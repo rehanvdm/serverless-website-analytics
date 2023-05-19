@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "allowJs": true,
+    "noEmit": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
+    "esModuleInterop": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": false,
+    "experimentalDecorators": true,
+    "strictPropertyInitialization": false,
+    "baseUrl": ".",
+    "moduleResolution": "Node",
+    "paths": {
+      "@backend/*": ["backend/*"],
+      "@frontend/*": ["frontend/*"],
+      "@tests/*": ["tests/*"]
+    }
+  },
+  "exclude": [
+    "node_modules",
+    "cdk.out",
+    "deploy",
+    "api-sdk"
+  ]
+}

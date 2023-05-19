@@ -1,0 +1,82 @@
+* {
+  font-family: Nunito, sans-serif;
+  /*font-family: Helvetica Neue, Helvetica, Arial, sans-serif;*/
+  word-break: break-word !important;
+}
+
+html, body, #app {
+  height: 100%;
+  margin: 0;
+}
+
+p {
+  word-break: break-word;
+}
+
+.h100 {
+  height: 100%
+}
+.w100 {
+  width: 100%
+}
+
+.row-center {
+  display: flex;
+  justify-content: center; /* Horizontal */
+  /* align-items: center; !* Vertical *!*/
+}
+
+.mt-1 {
+  margin-top: 10px;
+}
+.mt-2 {
+  margin-top: 20px;
+}
+.mt-3 {
+  margin-top: 30px;
+}
+.mt-4 {
+  margin-top: 40px;
+}
+.mt-5 {
+  margin-top: 40px;
+}
+
+/*#darkSwitch .el-switch .el-switch__core .el-switch__inner .el-icon .material-design-icon  {*/
+/*  color: red !important;*/
+/*  !*height: 30px;*!*/
+/*  !*width: 30px;*!*/
+/*  !*size: 50px !important;*! !*  does nothing *!*/
+/*  margin-top: -3px;*/
+/*}*/
+
+@keyframes spin {
+  from {
+    transform:rotate(0deg);
+  }
+  to {
+    transform:rotate(360deg);
+  }
+}
+.spin {
+  animation-name: spin;
+  animation-duration: 1000ms;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
+
+.material-design-icon > .material-design-icon__svg {
+  bottom: 0 !important;
+}
+
+.el-picker-panel__shortcut {
+  font-size: 13px;
+}
+
+.container {
+  box-shadow: var(--el-box-shadow-lighter);
+  border-radius: 10px;
+  width: 100%;
+  padding: 0 15px;
+  min-height: 470px;
+}

@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+npm run default
+npm run eslint
+node_modules/.bin/ts-node ./scripts/index.ts -c validate-src
+git add -u

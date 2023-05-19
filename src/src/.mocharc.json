@@ -1,0 +1,7 @@
+{
+  "spec": "tests/**/*.ts",
+  "require": [
+    "tsconfig-paths/register",
+    "./esbuild-runner-compile.js"
+  ]
+}
