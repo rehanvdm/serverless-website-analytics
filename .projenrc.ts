@@ -16,7 +16,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   npmAccess: NpmAccess.PUBLIC,
   repositoryUrl: 'https://github.com/rehan.merwe/serverless-website-analytics.git',
   excludeTypescript: ['src/src/**/*'],
-  devDeps: ['husky', 'execa@5', 'fs-extra', '@types/fs-extra', 'esbuild', 'yargs'],
+  devDeps: ['husky', 'execa@5', 'fs-extra', '@types/fs-extra', 'esbuild', 'yargs', 'esbuild-runner'],
   eslint: true,
   prettier: true,
   prettierOptions: {
@@ -31,12 +31,22 @@ const project = new awscdk.AwsCdkConstructLibrary({
       arrowParens: ArrowParens.ALWAYS,
     },
   },
+  tsconfig: {
+    compilerOptions: {
+      esModuleInterop: false, //Not set in main tsconfig.json
+    },
+  },
 });
+
+project.jest!.config.transform = {
+  '\\.ts$': 'esbuild-runner/jest',
+};
 
 project.package.addEngine('node', '~18.*');
 project.package.addEngine('npm', '~9.*');
 project.npmignore!.exclude('scripts/**/*');
 project.tsconfigDev!.addInclude('scripts/**/*');
+
 project.eslint!.ignorePatterns!.push('src/src/**');
 project.jest!.addIgnorePattern('<rootDir>/src/src');
 
@@ -44,5 +54,10 @@ project.compileTask.exec('ts-node ./scripts/index.ts -c install-src');
 project.compileTask.exec('ts-node ./scripts/index.ts -c validate-src');
 project.compileTask.exec('ts-node ./scripts/index.ts -c build-src');
 project.compileTask.exec('ts-node ./scripts/index.ts -c clean-lib'); //removes source
+
+project.tasks.addTask('build-package', {
+  description: 'Builds and packages',
+  exec: 'npm run build && npm run package',
+});
 
 project.synth();

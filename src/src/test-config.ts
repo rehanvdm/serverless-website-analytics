@@ -2,7 +2,7 @@ export type TestConfig = {
   awsProfile: string;
   apiIngestUrl: string;
   apiFrontUrl: string;
-  allowedOrigins: string; // comma delimited
+  allowedOrigins: string[];
   env: {
     AWS_REGION: string;
     ENVIRONMENT: string;
@@ -41,7 +41,7 @@ const sites = [
   'blog.cloudglance.dev',
   'docs.cloudglance.dev',
 ];
-const allowedOrigns = '*'; // localhost:3000 localhost:5173
+const allowedOrigns = ['*']; // localhost:3000 localhost:5173
 
 export const TestConfig = {
   awsProfile: 'rehan-demo-exported',
@@ -61,7 +61,7 @@ export const TestConfig = {
     GEOLITE2_CITY_PATH: '../../src/src/backend/layer-geolite2/GeoLite2-City.mmdb',
 
     SITES: JSON.stringify(sites),
-    ALLOWED_ORIGINS: allowedOrigns,
+    ALLOWED_ORIGINS: JSON.stringify(allowedOrigns),
     ANALYTICS_GLUE_DB_NAME: 'swa-prod-db',
 
     // Uncomment for no auth

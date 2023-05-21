@@ -42,7 +42,7 @@ describe('API Ingest', function () {
     };
 
     // Force origin above to not be in allowed origins
-    const testingConfig = { ...TestConfig.env, ALLOWED_ORIGINS: 'localhost:5173' };
+    const testingConfig = { ...TestConfig.env, ALLOWED_ORIGINS: JSON.stringify(['localhost:5173']) };
     setEnvVariables(testingConfig);
     const resp = await invokeLocalHandlerOrMakeAPICall(event, handler, TestConfig.apiIngestUrl, context);
 
@@ -61,7 +61,7 @@ describe('API Ingest', function () {
     };
 
     // Force origin above to not be in allowed origins
-    const testingConfig = { ...TestConfig.env, ALLOWED_ORIGINS: 'localhost:5173' };
+    const testingConfig = { ...TestConfig.env, ALLOWED_ORIGINS: JSON.stringify(['localhost:5173']) };
     setEnvVariables(testingConfig);
     const resp = await invokeLocalHandlerOrMakeAPICall(event, handler, TestConfig.apiIngestUrl, context);
 

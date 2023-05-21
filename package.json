@@ -6,6 +6,7 @@
   },
   "scripts": {
     "build": "npx projen build",
+    "build-package": "npx projen build-package",
     "bump": "npx projen bump",
     "clobber": "npx projen clobber",
     "compat": "npx projen compat",
@@ -42,6 +43,7 @@
     "aws-cdk-lib": "2.79.1",
     "constructs": "10.0.5",
     "esbuild": "^0.17.19",
+    "esbuild-runner": "^2.2.2",
     "eslint": "^8",
     "eslint-config-prettier": "^8.8.0",
     "eslint-import-resolver-node": "^0.3.7",
@@ -120,6 +122,9 @@
       "ts-jest": {
         "tsconfig": "tsconfig.dev.json"
       }
+    },
+    "transform": {
+      "\\.ts$": "esbuild-runner/jest"
     }
   },
   "types": "lib/index.d.ts",

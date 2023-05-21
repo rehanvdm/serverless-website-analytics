@@ -13,7 +13,7 @@ export class LambdaEnvironment {
   static GEOLITE2_CITY_PATH: string;
 
   static SITES: string[];
-  static ALLOWED_ORIGINS: string;
+  static ALLOWED_ORIGINS: string[];
 
   static init() {
     const schema = z.object({
@@ -47,5 +47,7 @@ export class LambdaEnvironment {
     this.ENRICH_RETURNED_ERRORS = Boolean(this.ENRICH_RETURNED_ERRORS);
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.SITES = JSON.parse(process.env.SITES!) as string[];
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.ALLOWED_ORIGINS = JSON.parse(process.env.ALLOWED_ORIGINS!) as string[];
   }
 }

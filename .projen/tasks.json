@@ -24,6 +24,15 @@
         }
       ]
     },
+    "build-package": {
+      "name": "build-package",
+      "description": "Builds and packages",
+      "steps": [
+        {
+          "exec": "npm run build && npm run package"
+        }
+      ]
+    },
     "bump": {
       "name": "bump",
       "description": "Bumps version based on latest git tag and generates a changelog entry",

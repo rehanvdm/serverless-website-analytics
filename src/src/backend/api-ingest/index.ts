@@ -60,12 +60,11 @@ function docsRoute(): APIGatewayProxyResult {
 }
 
 function validateAndGetCorsOrigin(origin: string) {
-  if (LambdaEnvironment.ALLOWED_ORIGINS === '*') {
+  if (LambdaEnvironment.ALLOWED_ORIGINS.includes('*')) {
     return origin;
   }
 
-  const allowedDomains = LambdaEnvironment.ALLOWED_ORIGINS.split(',');
-  if (allowedDomains.includes(origin)) {
+  if (LambdaEnvironment.ALLOWED_ORIGINS.includes(origin)) {
     return origin;
   } else {
     return false;
