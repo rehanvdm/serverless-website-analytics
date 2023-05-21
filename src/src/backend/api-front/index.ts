@@ -15,7 +15,9 @@ import { CognitoJwtVerifierSingleUserPool } from 'aws-jwt-verify/cognito-verifie
 /* Lazy loaded variables */
 let initialized = false;
 let isCognitoAuth = false;
-let cognitoVerifier: CognitoJwtVerifierSingleUserPool<{userPoolId: string, tokenUse: 'id', clientId: string}> | undefined;
+let cognitoVerifier:
+  | CognitoJwtVerifierSingleUserPool<{ userPoolId: string; tokenUse: 'id'; clientId: string }>
+  | undefined;
 
 export const handler = async (event: APIGatewayProxyEventV2, context: Context): Promise<APIGatewayProxyResult> => {
   // console.log("EVENT", event);
@@ -29,7 +31,7 @@ export const handler = async (event: APIGatewayProxyEventV2, context: Context): 
       cognitoVerifier = CognitoJwtVerifier.create({
         userPoolId: LambdaEnvironment.COGNITO_USER_POOL_ID,
         clientId: LambdaEnvironment.COGNITO_CLIENT_ID,
-        tokenUse: 'id'
+        tokenUse: 'id',
       });
     }
     initialized = true;
@@ -51,7 +53,7 @@ export const handler = async (event: APIGatewayProxyEventV2, context: Context): 
     origin_method: event.requestContext.http.method,
     run_time: 0,
     success: true,
-    type: 'api'
+    type: 'api',
   };
 
   let response: APIGatewayProxyResult | undefined;
@@ -62,54 +64,62 @@ export const handler = async (event: APIGatewayProxyEventV2, context: Context): 
       createContext: async ({ event }: CreateAWSLambdaContextOptions<APIGatewayProxyEventV2>) => {
         /* Verify Cognito ID token if required */
         if (isCognitoAuth) {
-          assert(cognitoVerifier)
+          assert(cognitoVerifier);
           const idToken = event.headers.authorization || event.headers.Authorization || '';
           try {
             return {
               requiresAuth: true,
-              user: await cognitoVerifier.verify(idToken)
-            }
+              user: await cognitoVerifier.verify(idToken),
+            };
           } catch (err) {
             logger.info('JWT Decode error', err);
             return {
               requiresAuth: true,
-              user: undefined
-            }
+              user: undefined,
+            };
           }
         }
 
         return {
           requiresAuth: false,
-          user: undefined
-        }
+          user: undefined,
+        };
       },
-      onError (err) { trpcLastError = err }
+      onError(err) {
+        trpcLastError = err;
+      },
     });
     const structuredResponse = await trpcHandler(event, context);
-    if (!structuredResponse.statusCode) { throw new Error('No status code returned from TRPC handler'); }
+    if (!structuredResponse.statusCode) {
+      throw new Error('No status code returned from TRPC handler');
+    }
 
     response = {
       statusCode: structuredResponse.statusCode,
       headers: structuredResponse.headers,
       body: structuredResponse.body || '',
-      isBase64Encoded: structuredResponse.isBase64Encoded
+      isBase64Encoded: structuredResponse.isBase64Encoded,
     };
   } catch (err) {
     /* Should ideally never happen, the tRPC Lambda Handler will catch any `throw new Error(...)` and still
-    * return a response that has status code 500. This is just to cover all the basis. */
+     * return a response that has status code 500. This is just to cover all the basis. */
     if (err instanceof Error) {
       logger.error(err);
       if (!response) {
         response = {
           statusCode: 500,
-          body: JSON.stringify(new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Unexpected Error Occurred',
-            cause: LambdaEnvironment.ENVIRONMENT === 'dev' ? err : undefined
-          }))
-        }
+          body: JSON.stringify(
+            new TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: 'Unexpected Error Occurred',
+              cause: LambdaEnvironment.ENVIRONMENT === 'dev' ? err : undefined,
+            })
+          ),
+        };
       }
-    } else { throw new Error('Error is unknown', { cause: err }); }
+    } else {
+      throw new Error('Error is unknown', { cause: err });
+    }
   } finally {
     assert(response);
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -137,17 +147,19 @@ export const handler = async (event: APIGatewayProxyEventV2, context: Context): 
               code: trpcLastError.error.code,
               name: trpcLastError.error.name,
               message: trpcLastError.error.message,
-              stack: trpcLastError.error.stack
-            }
+              stack: trpcLastError.error.stack,
+            },
           });
         }
-      } else { response.body = JSON.stringify(new TRPCError({ code: 'INTERNAL_SERVER_ERROR' })); }
+      } else {
+        response.body = JSON.stringify(new TRPCError({ code: 'INTERNAL_SERVER_ERROR' }));
+      }
     }
 
     audit.status_code = response.statusCode;
-    audit.run_time = (LambdaEnvironment.TIMEOUT * 1000) - context.getRemainingTimeInMillis();
+    audit.run_time = LambdaEnvironment.TIMEOUT * 1000 - context.getRemainingTimeInMillis();
     logger.audit(audit);
   }
 
   return response;
-}
+};

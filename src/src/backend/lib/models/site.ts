@@ -13,7 +13,7 @@ export type Site = z.infer<typeof SchemaSite>;
 export const SchemaSitePartition = z.object({
   site: SchemaSite,
   year: z.number(),
-  month: z.number()
+  month: z.number(),
 });
 export const SchemaSitePartitions = z.array(SchemaSitePartition);
 export type SitePartition = z.infer<typeof SchemaSitePartition>;

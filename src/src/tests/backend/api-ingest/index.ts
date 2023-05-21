@@ -1,12 +1,7 @@
 import '@tests/environment-hoist';
 import { handler } from '@backend/api-ingest';
 import { TestConfig } from '../../../test-config';
-import {
-  apiGwContext,
-  ApiGwEventOptions,
-  invokeLocalHandlerOrMakeAPICall,
-  setEnvVariables
-} from '@tests/helpers';
+import { apiGwContext, ApiGwEventOptions, invokeLocalHandlerOrMakeAPICall, setEnvVariables } from '@tests/helpers';
 import { expect } from 'chai';
 import { V1PageViewInput } from '@backend/api-ingest/v1/page/view';
 import { V1PageEventInput } from '@backend/api-ingest/v1/event/track';
@@ -27,7 +22,7 @@ describe('API Ingest', function () {
     const context = apiGwContext();
     const event: ApiGwEventOptions = {
       method: 'GET',
-      path: '/api-ingest/docs'
+      path: '/api-ingest/docs',
     };
 
     TestConfig.apiIngestUrl = 'http://localhost:3000';
@@ -43,7 +38,7 @@ describe('API Ingest', function () {
     const event: ApiGwEventOptions = {
       method: 'OPTIONS',
       path: '/api-ingest/v1/page/view',
-      origin: 'nope'
+      origin: 'nope',
     };
 
     // Force origin above to not be in allowed origins
@@ -61,9 +56,8 @@ describe('API Ingest', function () {
     const event: ApiGwEventOptions = {
       method: 'POST',
       path: '/api-ingest/v1/page/view',
-      body: JSON.stringify({
-      }),
-      origin: 'nope'
+      body: JSON.stringify({}),
+      origin: 'nope',
     };
 
     // Force origin above to not be in allowed origins
@@ -81,7 +75,7 @@ describe('API Ingest', function () {
     const event: ApiGwEventOptions = {
       method: 'OPTIONS',
       path: '/api-ingest/v1/page/view',
-      origin: 'okay'
+      origin: 'okay',
     };
 
     setEnvVariables(TestConfig.env);
@@ -104,8 +98,8 @@ describe('API Ingest', function () {
       page_url: '/test_page_id_1.html',
       page_opened_at: '2022-12-03T07:15:00Z',
       time_on_page: 0,
-      referrer: ''
-    }
+      referrer: '',
+    };
     const event: ApiGwEventOptions = {
       contentType: 'text/plain;charset=UTF-8',
       method: 'POST',
@@ -113,7 +107,7 @@ describe('API Ingest', function () {
       body: JSON.stringify(pageView),
       origin: 'localhost',
       ip: '169.0.15.7',
-      ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6,2 Safari/605.1.15'
+      ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6,2 Safari/605.1.15',
     };
 
     setEnvVariables(TestConfig.env);
@@ -135,16 +129,16 @@ describe('API Ingest', function () {
       page_opened_at: '2023-04-29T18:30:00Z',
       time_on_page: 20,
       // referrer: "",
-      referrer: 'something.com'
+      referrer: 'something.com',
       // referrer: "tests.com/something",
-    }
+    };
     const event: ApiGwEventOptions = {
       method: 'POST',
       path: '/api-ingest/v1/page/view',
       body: JSON.stringify(pageView),
       origin: 'localhost',
       ip: '169.0.15.7',
-      ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6,2 Safari/605.1.15'
+      ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6,2 Safari/605.1.15',
     };
 
     setEnvVariables(TestConfig.env);
@@ -164,15 +158,15 @@ describe('API Ingest', function () {
       event: 'TEST',
       tracked_at: '2023-04-21T02:00:00Z',
       // data: 1,
-      referrer: ''
-    }
+      referrer: '',
+    };
     const event: ApiGwEventOptions = {
       method: 'POST',
       path: '/api-ingest/v1/event/track',
       body: JSON.stringify(pageEvent),
       origin: 'localhost',
       ip: '169.0.15.7',
-      ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6,2 Safari/605.1.15'
+      ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6,2 Safari/605.1.15',
     };
 
     setEnvVariables(TestConfig.env);
@@ -194,15 +188,15 @@ describe('API Ingest', function () {
       event: 'TEST_CUSTOM_VALUE',
       tracked_at: '2023-04-21T02:00:00Z',
       data: 104,
-      referrer: ''
-    }
+      referrer: '',
+    };
     const event: ApiGwEventOptions = {
       method: 'POST',
       path: '/api-ingest/v1/event/track',
       body: JSON.stringify(pageEvent),
       origin: 'localhost',
       ip: '169.0.15.7',
-      ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6,2 Safari/605.1.15'
+      ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6,2 Safari/605.1.15',
     };
 
     setEnvVariables(TestConfig.env);
@@ -223,7 +217,7 @@ describe('API Ingest', function () {
       page_url: '/test_page_id_1.html',
       page_opened_at: '2022-12-03T07:15:00Z',
       time_on_page: 0,
-      referrer: ''
+      referrer: '',
     };
     const event: ApiGwEventOptions = {
       method: 'POST',
@@ -231,7 +225,7 @@ describe('API Ingest', function () {
       body: JSON.stringify(pageView),
       origin: 'localhost',
       ip: '169.0.15.7',
-      ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6,2 Safari/605.1.15'
+      ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6,2 Safari/605.1.15',
     };
 
     setEnvVariables(TestConfig.env);

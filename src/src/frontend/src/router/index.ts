@@ -1,7 +1,7 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import loginCallback from '../views/login_callback.vue'
-import pageStats from '../views/page_stats/index.vue'
-import error from '../views/error.vue'
+import { createRouter, createWebHistory } from 'vue-router';
+import loginCallback from '../views/login_callback.vue';
+import pageStats from '../views/page_stats/index.vue';
+import error from '../views/error.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -9,18 +9,18 @@ const router = createRouter({
     {
       path: '/',
       name: 'page_stats',
-      component: pageStats
+      component: pageStats,
     },
     {
       path: '/error',
       name: 'error',
-      component: error
+      component: error,
     },
     {
       path: '/login_callback',
       name: 'login_callback',
-      component: loginCallback
-    }
+      component: loginCallback,
+    },
     // {
     //   path: '/about',
     //   name: 'about',
@@ -29,7 +29,7 @@ const router = createRouter({
     //   // which is lazy-loaded when the route is visited.
     //   component: () => import('../views/AboutView.vue')
     // }
-  ]
-})
+  ],
+});
 
-export default router
+export default router;

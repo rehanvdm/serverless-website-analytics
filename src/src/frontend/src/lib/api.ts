@@ -9,30 +9,35 @@ const frontendUrl = import.meta.env.VITE_FRONTEND_URL;
 
 export const api = createTRPCProxyClient<AppRouter>({
   links: [
-    httpLink({ // httpBatchLink
-      headers () {
+    httpLink({
+      // httpBatchLink
+      headers() {
         const systemStore = getSystemStore();
         return {
-          Authorization: systemStore.apiJwtToken
+          Authorization: systemStore.apiJwtToken,
         };
       },
-      url: frontendUrl
+      url: frontendUrl,
       // url: 'https://d3nhr87nci4rd5.cloudfront.net/api/', // make relative
       // url: 'http://localhost:3001/api', //Start the `start-local-api-front` from the package.json
-    })
-  ]
+    }),
+  ],
 });
 
-export async function apiWrapper<T> (func: Promise<T>, loadingState?: Ref<boolean>, displayError = true) {
+export async function apiWrapper<T>(func: Promise<T>, loadingState?: Ref<boolean>, displayError = true) {
   const systemStore = getSystemStore();
   try {
-    if (loadingState) { loadingState.value = true; }
+    if (loadingState) {
+      loadingState.value = true;
+    }
 
     if (!systemStore.frontendEnvironmentQueried) {
       console.log('No cognitoLoginUrl, getting from API');
       const resp = await api.getFrontendEnvironment.query();
-      if (!resp) { return false; }
-      console.log('Got cognitoLoginUrl', resp.cognitoLoginUrl)
+      if (!resp) {
+        return false;
+      }
+      console.log('Got cognitoLoginUrl', resp.cognitoLoginUrl);
       systemStore.$patch({ frontendEnvironmentQueried: true });
       systemStore.$patch({ frontendEnvironment: resp });
     }
@@ -55,10 +60,14 @@ export async function apiWrapper<T> (func: Promise<T>, loadingState?: Ref<boolea
       return false;
     }
 
-    if (displayError) { ElNotification({ title: 'API Error', message: (err as Error).message, type: 'error', position: 'bottom-right' }); }
+    if (displayError) {
+      ElNotification({ title: 'API Error', message: (err as Error).message, type: 'error', position: 'bottom-right' });
+    }
 
     return false;
   } finally {
-    if (loadingState) { loadingState.value = false; }
+    if (loadingState) {
+      loadingState.value = false;
+    }
   }
 }

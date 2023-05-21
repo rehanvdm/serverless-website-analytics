@@ -6,25 +6,25 @@ import {
   getPageViews,
   getChartViews,
   getPageReferrers,
-  getUsersGroupedByStatForPeriod
+  getUsersGroupedByStatForPeriod,
 } from '@backend/api-front/routes/stats';
 import { CognitoIdTokenPayload } from 'aws-jwt-verify/jwt-model';
 
 export type Context = {
-  requiresAuth: boolean,
-  user: CognitoIdTokenPayload | undefined
+  requiresAuth: boolean;
+  user: CognitoIdTokenPayload | undefined;
 };
 
-export function assertAuthentication (context: Context) {
-  if (context.requiresAuth && !context.user) { throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Not authenticated' }); }
+export function assertAuthentication(context: Context) {
+  if (context.requiresAuth && !context.user) {
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Not authenticated' });
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   return context.user!;
 }
 
-const trpcInstance = initTRPC
-  .context<Context>()
-  .create({ isDev: true });
+const trpcInstance = initTRPC.context<Context>().create({ isDev: true });
 
 export type TrpcInstance = typeof trpcInstance;
 
@@ -37,7 +37,7 @@ export const appRouter = trpcInstance.router({
   getPageViews: getPageViews(trpcInstance),
   getChartViews: getChartViews(trpcInstance),
   getPageReferrers: getPageReferrers(trpcInstance),
-  getUsersGroupedByStatForPeriod: getUsersGroupedByStatForPeriod(trpcInstance)
+  getUsersGroupedByStatForPeriod: getUsersGroupedByStatForPeriod(trpcInstance),
 });
 
 export type AppRouter = typeof appRouter;

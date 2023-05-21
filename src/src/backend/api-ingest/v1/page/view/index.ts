@@ -25,27 +25,32 @@ const V1PageViewInputSchema = SchemaPage.pick({
   utm_term: true,
   utm_content: true,
   querystring: true,
-  referrer: true
+  referrer: true,
 });
 export type V1PageViewInput = z.infer<typeof V1PageViewInputSchema>;
 
-export function pageView (trpcInstance: TrpcInstance) {
+export function pageView(trpcInstance: TrpcInstance) {
   return trpcInstance.procedure
     .meta({ openapi: { method: 'POST', path: '/v1/page/view' } })
     .input(V1PageViewInputSchema)
     .output(z.void())
     .mutation(async ({ input, ctx }) => {
-      if (!LambdaEnvironment.SITES.includes(input.site)) { throw new TRPCError({ code: 'BAD_REQUEST', message: 'Site does not exist' }); }
+      if (!LambdaEnvironment.SITES.includes(input.site)) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Site does not exist' });
+      }
 
       const firehoseClient = getFirehoseClient();
 
-      const { countryIso, countryName, cityName, deviceType, isBot } = await getInfoFromIpAndUa(ctx.request.ip, ctx.request.ua);
+      const { countryIso, countryName, cityName, deviceType, isBot } = await getInfoFromIpAndUa(
+        ctx.request.ip,
+        ctx.request.ua
+      );
       const referrer = getCleanedUpReferrer(input.site, input.referrer);
       const pageOpenedAt = DateUtils.parseIso(input.page_opened_at);
       const data: Page = {
         site: input.site,
         year: pageOpenedAt.getFullYear(),
-        month: (pageOpenedAt.getMonth() + 1),
+        month: pageOpenedAt.getMonth() + 1,
 
         user_id: input.user_id,
         session_id: input.session_id,
@@ -64,17 +69,19 @@ export function pageView (trpcInstance: TrpcInstance) {
         utm_term: input.utm_term,
         utm_content: input.utm_content,
         querystring: input.querystring,
-        referrer
+        referrer,
       };
 
       logger.info('data', data);
 
-      const resp = await firehoseClient.send(new PutRecordCommand({
-        DeliveryStreamName: 'swa-prod-analytic-page-views-firehose',
-        Record: {
-          Data: Buffer.from(JSON.stringify(data))
-        }
-      }));
+      const resp = await firehoseClient.send(
+        new PutRecordCommand({
+          DeliveryStreamName: 'swa-prod-analytic-page-views-firehose',
+          Record: {
+            Data: Buffer.from(JSON.stringify(data)),
+          },
+        })
+      );
       console.log(resp.RecordId);
-    })
+    });
 }

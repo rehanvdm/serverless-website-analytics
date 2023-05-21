@@ -6,7 +6,6 @@ import { Construct } from 'constructs';
  * A sample class which creates a Lambda function.
  */
 export class NewLambda extends Construct {
-
   /**
    * Description of the constructor.
    * @param scope Okay Okay
@@ -20,7 +19,6 @@ export class NewLambda extends Construct {
       code: lambda.Code.fromAsset(path.join(__dirname, 'build/backend/api')),
       handler: 'index.handler', // defaults to 'handler'
     });
-
   }
 }
 

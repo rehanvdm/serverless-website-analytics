@@ -5,11 +5,16 @@ import { LambdaEnvironment } from '@backend/api-front/environment';
 import { Page } from '@backend/lib/models/page';
 
 export class AthenaPageViews extends AthenaBase {
-  constructor () {
+  constructor() {
     const athenaClient = getAthenaClient();
     const s3Client = getS3Client();
-    super(athenaClient, s3Client, LambdaEnvironment.ANALYTICS_GLUE_DB_NAME,
-      LambdaEnvironment.ANALYTICS_BUCKET_ATHENA_PATH, { bigIntAsNumber: true });
+    super(
+      athenaClient,
+      s3Client,
+      LambdaEnvironment.ANALYTICS_GLUE_DB_NAME,
+      LambdaEnvironment.ANALYTICS_BUCKET_ATHENA_PATH,
+      { bigIntAsNumber: true }
+    );
   }
 
   /**
@@ -19,15 +24,13 @@ export class AthenaPageViews extends AthenaBase {
    * @param toDate
    * @param sites
    */
-  cteFilteredDataQuery (columns: string[], fromDate: Date, toDate: Date, sites: string[]) {
+  cteFilteredDataQuery(columns: string[], fromDate: Date, toDate: Date, sites: string[]) {
     const months = DateUtils.getMonthsBetweenDates(fromDate, toDate);
     const cteWhereClauseDates: string = months
       // +1 to the month because months are 0-indexed in JS but Athena/Firehose is 1-indexed
-      .map(month => `(year = ${month.getFullYear()} AND month = ${month.getMonth() + 1})`)
+      .map((month) => `(year = ${month.getFullYear()} AND month = ${month.getMonth() + 1})`)
       .join(' OR ');
-    const cteWhereClauseSites = sites
-      .map(site => `site = '${site}'`)
-      .join(' OR ');
+    const cteWhereClauseSites = sites.map((site) => `site = '${site}'`).join(' OR ');
 
     const cteWhereClause = `(${cteWhereClauseSites}) AND (${cteWhereClauseDates})`;
     const exactTimeFrom = DateUtils.stringifyFormat(fromDate, 'yyyy-MM-dd HH:mm:ss.SSS');
@@ -48,9 +51,14 @@ export class AthenaPageViews extends AthenaBase {
           )`;
   }
 
-  async totalsForPeriod (fromDate: Date, toDate: Date, sites: string[]) {
+  async totalsForPeriod(fromDate: Date, toDate: Date, sites: string[]) {
     const query = `
-          WITH ${this.cteFilteredDataQuery(['user_id', 'session_id', 'page_id', 'time_on_page'], fromDate, toDate, sites)},
+          WITH ${this.cteFilteredDataQuery(
+            ['user_id', 'session_id', 'page_id', 'time_on_page'],
+            fromDate,
+            toDate,
+            sites
+          )},
           totals_basic AS (
               SELECT
                   COUNT(DISTINCT a.user_id) as "users",
@@ -80,19 +88,27 @@ export class AthenaPageViews extends AthenaBase {
 
     const res = await this.query(query);
     return res.data[0] as {
-      users: number,
-      sessions: number,
-      unique_sessions: number,
-      views: number,
-      avg_time_on_page?: number,
-      latest_page_opened_at?: Date,
-      bounce_rate?: number,
+      users: number;
+      sessions: number;
+      unique_sessions: number;
+      views: number;
+      avg_time_on_page?: number;
+      latest_page_opened_at?: Date;
+      bounce_rate?: number;
     };
   }
 
-  async pageViewsForPeriod (fromDate: Date, toDate: Date, sites: string[],
-    queryExecutionId?: string, nextToken?: string, limit = 1000) {
-    if (queryExecutionId && !nextToken) { throw new Error('Cannot paginate results without a nextToken'); }
+  async pageViewsForPeriod(
+    fromDate: Date,
+    toDate: Date,
+    sites: string[],
+    queryExecutionId?: string,
+    nextToken?: string,
+    limit = 1000
+  ) {
+    if (queryExecutionId && !nextToken) {
+      throw new Error('Cannot paginate results without a nextToken');
+    }
 
     const query = `
           WITH ${this.cteFilteredDataQuery(['site', 'page_url', 'time_on_page'], fromDate, toDate, sites)},
@@ -114,16 +130,15 @@ export class AthenaPageViews extends AthenaBase {
       nextToken: resp.nextToken,
       queryExecutionId: resp.queryExecutionId,
       data: resp.data as {
-        site: string,
-        page_url: string,
-        views: number,
-        avg_time_on_page: number
-      }[]
-    }
+        site: string;
+        page_url: string;
+        views: number;
+        avg_time_on_page: number;
+      }[],
+    };
   }
 
-  async chartViewsForPeriod (fromDate: Date, toDate: Date, sites: string[], period: 'hour' | 'day',
-    timeZone: string) {
+  async chartViewsForPeriod(fromDate: Date, toDate: Date, sites: string[], period: 'hour' | 'day', timeZone: string) {
     const query = `
           WITH ${this.cteFilteredDataQuery(['site', 'user_id', 'page_id'], fromDate, toDate, sites)}
           SELECT
@@ -138,10 +153,10 @@ export class AthenaPageViews extends AthenaBase {
     const resp = await this.query(query);
 
     return resp.data as {
-      site: string,
-      date_key: Date,
-      visitors: number,
-      views: number
+      site: string;
+      date_key: Date;
+      visitors: number;
+      views: number;
     }[];
   }
 
@@ -174,7 +189,7 @@ export class AthenaPageViews extends AthenaBase {
   //   }[];
   // }
 
-  async referrersForPeriod (fromDate: Date, toDate: Date, sites: string[]) {
+  async referrersForPeriod(fromDate: Date, toDate: Date, sites: string[]) {
     const query = `
           WITH ${this.cteFilteredDataQuery(['referrer'], fromDate, toDate, sites)}
           SELECT
@@ -187,12 +202,12 @@ export class AthenaPageViews extends AthenaBase {
     const resp = await this.query(query);
 
     return resp.data as {
-      referrer: string,
-      views: number
+      referrer: string;
+      views: number;
     }[];
   }
 
-  async usersGroupedByStatForPeriod (fromDate: Date, toDate: Date, sites: string[], stat: keyof Page) {
+  async usersGroupedByStatForPeriod(fromDate: Date, toDate: Date, sites: string[], stat: keyof Page) {
     // Alternative query for getting country names grouped by visitors
     // TODO: Can be optimized to this. Scans half the amount of data then, will rework all of them later
     // SELECT
@@ -248,8 +263,8 @@ export class AthenaPageViews extends AthenaBase {
     const resp = await this.query(query);
 
     return resp.data as {
-      group: string,
-      visitors: number
+      group: string;
+      visitors: number;
     }[];
   }
 }

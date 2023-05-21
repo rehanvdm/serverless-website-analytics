@@ -1,1 +1,1 @@
-import 'frontend/node_modules/vite/client'
+import 'frontend/node_modules/vite/client';

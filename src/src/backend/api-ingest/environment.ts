@@ -3,7 +3,7 @@ import { z } from 'zod';
 export class LambdaEnvironment {
   static AWS_REGION: string;
   static ENVIRONMENT: string;
-  static VERSION : string;
+  static VERSION: string;
   static TIMEOUT: number;
   static LOG_LEVEL: string;
   static TRACE_ID?: string;
@@ -15,7 +15,7 @@ export class LambdaEnvironment {
   static SITES: string[];
   static ALLOWED_ORIGINS: string;
 
-  static init () {
+  static init() {
     const schema = z.object({
       AWS_REGION: z.string(),
       ENVIRONMENT: z.string(),
@@ -28,7 +28,7 @@ export class LambdaEnvironment {
       GEOLITE2_CITY_PATH: z.string(),
 
       SITES: z.string(),
-      ALLOWED_ORIGINS: z.string()
+      ALLOWED_ORIGINS: z.string(),
     });
 
     const parsed = schema.safeParse(process.env);

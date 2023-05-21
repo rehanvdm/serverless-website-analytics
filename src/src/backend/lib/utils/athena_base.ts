@@ -1,8 +1,9 @@
 import {
   AthenaClient,
   GetQueryExecutionCommand,
-  GetQueryResultsCommand, ResultSet,
-  StartQueryExecutionCommand
+  GetQueryResultsCommand,
+  ResultSet,
+  StartQueryExecutionCommand,
 } from '@aws-sdk/client-athena';
 import { S3Client } from '@aws-sdk/client-s3';
 import { DateUtils } from '@backend/lib/utils/date_utils';
@@ -20,27 +21,38 @@ export class AthenaBase {
   private readonly queryStorageFullS3Path: string;
   private readonly defaultParseOptions?: ParseOptions;
 
-  constructor (athenaClient: AthenaClient, s3Client: S3Client, dbName: string, queryStorageFullS3Path: string,
-    defaultParseOptions?: ParseOptions) {
+  constructor(
+    athenaClient: AthenaClient,
+    s3Client: S3Client,
+    dbName: string,
+    queryStorageFullS3Path: string,
+    defaultParseOptions?: ParseOptions
+  ) {
     this.athenaClient = athenaClient;
     this.s3Client = s3Client;
     this.dbName = dbName;
     this.queryStorageFullS3Path = queryStorageFullS3Path;
     this.defaultParseOptions = defaultParseOptions || {
       bigIntAsNumber: true,
-      falselyAs: 'undefined'
+      falselyAs: 'undefined',
     };
   }
 
-  async query (query: string, limit?: number, queryExecutionId?: string, nextToken?: string, parseOptions?: ParseOptions) {
+  async query(
+    query: string,
+    limit?: number,
+    queryExecutionId?: string,
+    nextToken?: string,
+    parseOptions?: ParseOptions
+  ) {
     /* Start query if not already started */
     if (!queryExecutionId) {
       const startQueryCommand = new StartQueryExecutionCommand({
         QueryString: query,
         ResultConfiguration: {
-          OutputLocation: this.queryStorageFullS3Path
+          OutputLocation: this.queryStorageFullS3Path,
         },
-        QueryExecutionContext: { Database: this.dbName }
+        QueryExecutionContext: { Database: this.dbName },
       });
       const startQueryResponse = await this.athenaClient.send(startQueryCommand);
       queryExecutionId = startQueryResponse.QueryExecutionId;
@@ -48,13 +60,17 @@ export class AthenaBase {
       /* Poll until query is finished */
       let queryState = '';
       while (queryState !== 'SUCCEEDED') {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        const getQueryExecutionResponse = await this.athenaClient.send(new GetQueryExecutionCommand({
-          QueryExecutionId: queryExecutionId
-        }));
+        const getQueryExecutionResponse = await this.athenaClient.send(
+          new GetQueryExecutionCommand({
+            QueryExecutionId: queryExecutionId,
+          })
+        );
         queryState = getQueryExecutionResponse.QueryExecution?.Status?.State || '';
-        if (queryState === 'FAILED') { throw new Error(`Query failed: ${getQueryExecutionResponse.QueryExecution?.Status?.StateChangeReason}`); }
+        if (queryState === 'FAILED') {
+          throw new Error(`Query failed: ${getQueryExecutionResponse.QueryExecution?.Status?.StateChangeReason}`);
+        }
       }
     }
 
@@ -68,13 +84,17 @@ export class AthenaBase {
          this loop will always run one more time with the last page size being 1 */
       const pageSize = Math.min(maxPageSize, stopAtPageSize - results.length);
 
-      const getQueryResultsResponse = await this.athenaClient.send(new GetQueryResultsCommand({
-        QueryExecutionId: queryExecutionId,
-        NextToken: nextToken,
-        MaxResults: pageSize
-      }));
+      const getQueryResultsResponse = await this.athenaClient.send(
+        new GetQueryResultsCommand({
+          QueryExecutionId: queryExecutionId,
+          NextToken: nextToken,
+          MaxResults: pageSize,
+        })
+      );
 
-      results = results.concat(this.parseAthenaResult(getQueryResultsResponse.ResultSet, !nextToken, parseOptions || this.defaultParseOptions));
+      results = results.concat(
+        this.parseAthenaResult(getQueryResultsResponse.ResultSet, !nextToken, parseOptions || this.defaultParseOptions)
+      );
       nextToken = getQueryResultsResponse.NextToken;
     } while (!!nextToken && results.length < stopAtPageSize);
 
@@ -82,7 +102,7 @@ export class AthenaBase {
       data: results,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       queryExecutionId: queryExecutionId!,
-      nextToken
+      nextToken,
     };
   }
 
@@ -93,8 +113,10 @@ export class AthenaBase {
    * @param parseOptions
    * @private
    */
-  private parseAthenaResult (athenaResultSet?: ResultSet, isFirstRowHeaders?: boolean, parseOptions?: ParseOptions) {
-    if (!athenaResultSet) { return []; }
+  private parseAthenaResult(athenaResultSet?: ResultSet, isFirstRowHeaders?: boolean, parseOptions?: ParseOptions) {
+    if (!athenaResultSet) {
+      return [];
+    }
 
     const rowDatas = athenaResultSet.Rows || [];
     const columns = athenaResultSet.ResultSetMetadata?.ColumnInfo || [];
@@ -124,7 +146,11 @@ export class AthenaBase {
               continue;
             }
 
-            if (parseOptions?.bigIntAsNumber) { resultRow[column.Name] = Number(cell); } else { resultRow[column.Name] = BigInt(cell); }
+            if (parseOptions?.bigIntAsNumber) {
+              resultRow[column.Name] = Number(cell);
+            } else {
+              resultRow[column.Name] = BigInt(cell);
+            }
             break;
           case 'integer':
           case 'tinyint':
@@ -144,10 +170,10 @@ export class AthenaBase {
               resultRow[column.Name] = parseOptions?.falselyAs === 'null' ? null : undefined;
               continue;
             }
-            resultRow[column.Name] = DateUtils.parseFormat(cell, 'yyyy-MM-dd HH:mm:ss.SSS')
+            resultRow[column.Name] = DateUtils.parseFormat(cell, 'yyyy-MM-dd HH:mm:ss.SSS');
             break;
           default:
-            resultRow[column.Name] = cell
+            resultRow[column.Name] = cell;
         }
       }
       result.push(resultRow);

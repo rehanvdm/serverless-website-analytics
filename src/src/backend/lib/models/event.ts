@@ -20,6 +20,6 @@ export const SchemaEvent = z.object({
   utm_term: z.string().optional(),
   utm_content: z.string().optional(),
   querystring: z.string().optional(),
-  referrer: z.string().optional()
+  referrer: z.string().optional(),
 });
 export type Event = z.infer<typeof SchemaEvent>;

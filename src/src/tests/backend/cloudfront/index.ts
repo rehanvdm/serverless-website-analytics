@@ -19,11 +19,11 @@ describe('Basic Auth', function () {
       request: {
         headers: {
           authorization: {
-            value: 'Basic ' + Buffer.from('{USERNAME}:{PASSWORD}').toString('base64')
-          }
-        }
-      }
-    }
+            value: 'Basic ' + Buffer.from('{USERNAME}:{PASSWORD}').toString('base64'),
+          },
+        },
+      },
+    };
     const resp = handler(event);
     expect(resp).to.equal(event.request);
   });
@@ -33,11 +33,11 @@ describe('Basic Auth', function () {
       request: {
         headers: {
           authorization: {
-            value: 'Basic ' + Buffer.from('{USERNAME}:nope').toString('base64')
-          }
-        }
-      }
-    }
+            value: 'Basic ' + Buffer.from('{USERNAME}:nope').toString('base64'),
+          },
+        },
+      },
+    };
     const resp = handler(event);
     expect(resp.statusCode).to.equal(401);
   });

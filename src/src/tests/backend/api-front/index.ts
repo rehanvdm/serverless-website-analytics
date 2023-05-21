@@ -3,9 +3,10 @@ import { handler } from '@backend/api-front';
 import { TestConfig } from '../../../test-config';
 import {
   apiGwContext,
-  ApiGwEventOptions, getCognitoIdentity,
+  ApiGwEventOptions,
+  getCognitoIdentity,
   invokeLocalHandlerOrMakeAPICall,
-  setEnvVariables
+  setEnvVariables,
 } from '@tests/helpers';
 import { inferProcedureInput, inferProcedureOutput } from '@trpc/server';
 import { AppRouter } from '@backend/api-front/server';
@@ -22,9 +23,11 @@ const TimeOut = 60;
 export function trpcToApiGwOptions<
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   TRouter extends AppRouter,
-  T extends Exclude<keyof AppRouter, '_def' | 'createCaller' | 'getErrorShape'> = Exclude<keyof AppRouter, '_def' | 'createCaller' | 'getErrorShape'>
+  T extends Exclude<keyof AppRouter, '_def' | 'createCaller' | 'getErrorShape'> = Exclude<
+    keyof AppRouter,
+    '_def' | 'createCaller' | 'getErrorShape'
   >
-(
+>(
   functionKey: T,
   type: 'query' | 'mutation',
   args: inferProcedureInput<AppRouter[T]>,
@@ -35,23 +38,28 @@ export function trpcToApiGwOptions<
         method: 'GET',
         path: '/' + functionKey,
         queryStringParameters: {
-          input: args ? JSON.stringify(args) : undefined
+          input: args ? JSON.stringify(args) : undefined,
         },
-        headers
+        headers,
       }
     : {
         method: 'POST',
         path: '/' + functionKey,
         body: JSON.stringify(args),
-        headers
+        headers,
       };
 }
 
-async function getCognitoAuthHeaders () {
-  let authHeaders = { };
+async function getCognitoAuthHeaders() {
+  let authHeaders = {};
   if (TestConfig.cognitoAuthUser) {
     const testUser = TestConfig.cognitoAuthUser;
-    const cognitoUser = await getCognitoIdentity(testUser.userPoolId, testUser.clientId, testUser.username, testUser.password);
+    const cognitoUser = await getCognitoIdentity(
+      testUser.userPoolId,
+      testUser.clientId,
+      testUser.username,
+      testUser.password
+    );
     authHeaders = { Authorization: cognitoUser.jwtIdToken };
   }
   return authHeaders;
@@ -66,10 +74,11 @@ describe('API Frontend', function () {
     this.timeout(TimeOut * 1000);
 
     const context = apiGwContext();
-    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter,
-      'getFrontendEnvironment'>('getFrontendEnvironment', 'query',
-        undefined
-      );
+    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter, 'getFrontendEnvironment'>(
+      'getFrontendEnvironment',
+      'query',
+      undefined
+    );
 
     setEnvVariables(TestConfig.env);
     const resp = await invokeLocalHandlerOrMakeAPICall(event, handler, TestConfig.apiFrontUrl, context);
@@ -77,8 +86,10 @@ describe('API Frontend', function () {
 
     expect(resp.statusCode).to.eq(200);
     const respData = JSON.parse(resp.body);
-    const expectedCognitoLoginUrl = TestConfig.env.COGNITO_HOSTED_UI_URL +
-      '/login?client_id=' + TestConfig.env.COGNITO_CLIENT_ID +
+    const expectedCognitoLoginUrl =
+      TestConfig.env.COGNITO_HOSTED_UI_URL +
+      '/login?client_id=' +
+      TestConfig.env.COGNITO_CLIENT_ID +
       '&response_type=token&scope=aws.cognito.signin.user.admin+email+openid+profile';
     expect(respData.result.data.cognitoLoginUrl).to.eq(expectedCognitoLoginUrl);
   });
@@ -87,9 +98,7 @@ describe('API Frontend', function () {
     this.timeout(TimeOut * 1000);
 
     const context = apiGwContext();
-    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter,
-      'sites'>('sites', 'query',
-        undefined);
+    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter, 'sites'>('sites', 'query', undefined);
 
     setEnvVariables(TestConfig.env);
     const resp = await invokeLocalHandlerOrMakeAPICall(event, handler, TestConfig.apiFrontUrl, context);
@@ -105,10 +114,7 @@ describe('API Frontend', function () {
 
     const context = apiGwContext();
     const authHeaders = await getCognitoAuthHeaders();
-    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter,
-      'sites'>('sites', 'query',
-        undefined,
-        authHeaders);
+    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter, 'sites'>('sites', 'query', undefined, authHeaders);
     const expectedOutput: inferProcedureOutput<AppRouter['sites']> = JSON.parse(TestConfig.env.SITES);
 
     setEnvVariables(TestConfig.env);
@@ -125,10 +131,12 @@ describe('API Frontend', function () {
 
     const context = apiGwContext();
     const authHeaders = await getCognitoAuthHeaders();
-    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter,
-      'sitesGetPartitions'>('sitesGetPartitions', 'query',
-        undefined,
-        authHeaders);
+    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter, 'sitesGetPartitions'>(
+      'sitesGetPartitions',
+      'query',
+      undefined,
+      authHeaders
+    );
 
     setEnvVariables(TestConfig.env);
     const resp = await invokeLocalHandlerOrMakeAPICall(event, handler, TestConfig.apiFrontUrl, context);
@@ -146,11 +154,14 @@ describe('API Frontend', function () {
 
     const context = apiGwContext();
     const authHeaders = await getCognitoAuthHeaders();
-    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter,
-      'sitesUpdatePartition'>('sitesUpdatePartition', 'mutation', {
-        forceRepair: true
+    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter, 'sitesUpdatePartition'>(
+      'sitesUpdatePartition',
+      'mutation',
+      {
+        forceRepair: true,
       },
-      authHeaders);
+      authHeaders
+    );
     // const expectedOutput: inferProcedureOutput<AppRouter["sitesUpdatePartition"]> = true;
 
     setEnvVariables(TestConfig.env);
@@ -169,11 +180,14 @@ describe('API Frontend', function () {
 
     const context = apiGwContext();
     const authHeaders = await getCognitoAuthHeaders();
-    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter,
-      'sitesUpdatePartition'>('sitesUpdatePartition', 'mutation', {
-        forceRepair: false
+    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter, 'sitesUpdatePartition'>(
+      'sitesUpdatePartition',
+      'mutation',
+      {
+        forceRepair: false,
       },
-      authHeaders);
+      authHeaders
+    );
     // const expectedOutput: inferProcedureOutput<AppRouter["sitesUpdatePartition"]> = true;
 
     setEnvVariables(TestConfig.env);
@@ -192,26 +206,28 @@ describe('API Frontend', function () {
 
     const context = apiGwContext();
     const authHeaders = await getCognitoAuthHeaders();
-    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter,
-      'getTopLevelStats'>('getTopLevelStats', 'query',
-        {
-          sites: ['tests'],
+    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter, 'getTopLevelStats'>(
+      'getTopLevelStats',
+      'query',
+      {
+        sites: ['tests'],
 
-          // From 2023-03-01 to 2023-04-01
-          // Meaning UTC backend 2023-02-28 22:00:00 to 2023-03-31 22:00:00
-          from: new Date(2023, 2, 1, 0, 0, 0).toISOString(),
-          to: new Date(2023, 3, 1, 23, 59, 59, 999).toISOString()
+        // From 2023-03-01 to 2023-04-01
+        // Meaning UTC backend 2023-02-28 22:00:00 to 2023-03-31 22:00:00
+        from: new Date(2023, 2, 1, 0, 0, 0).toISOString(),
+        to: new Date(2023, 3, 1, 23, 59, 59, 999).toISOString(),
 
-          // From 2023-04-01 to 2023-05-01
-          // Meaning UTC backend 2023-03-31 22:00:00 to 2023-04-30 22:00:00
-          // from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
-          // to: new Date(2023, 4, 1, 0, 0, 0).toISOString(),
+        // From 2023-04-01 to 2023-05-01
+        // Meaning UTC backend 2023-03-31 22:00:00 to 2023-04-30 22:00:00
+        // from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
+        // to: new Date(2023, 4, 1, 0, 0, 0).toISOString(),
 
         // Test differences between dates.
         // from: new Date(2023, 3, 14).toISOString(),
         // to: new Date(2023, 3, 21).toISOString(),
-        },
-        authHeaders);
+      },
+      authHeaders
+    );
 
     setEnvVariables(TestConfig.env);
     const resp = await invokeLocalHandlerOrMakeAPICall(event, handler, TestConfig.apiFrontUrl, context);
@@ -233,26 +249,28 @@ describe('API Frontend', function () {
 
     const context = apiGwContext();
     const authHeaders = await getCognitoAuthHeaders();
-    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter,
-      'getPageViews'>('getPageViews', 'query',
-        {
-          sites: ['tests'],
-          // From 2023-03-01 to 2023-04-01
-          // Meaning UTC backend 2023-02-28 22:00:00 to 2023-03-31 22:00:00
+    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter, 'getPageViews'>(
+      'getPageViews',
+      'query',
+      {
+        sites: ['tests'],
+        // From 2023-03-01 to 2023-04-01
+        // Meaning UTC backend 2023-02-28 22:00:00 to 2023-03-31 22:00:00
 
-          // // Month 3 - March
-          // from: new Date(2023, 2, 1, 0, 0, 0).toISOString(),
-          // to: new Date(2023, 2, 30, 23, 59, 59,999).toISOString(),
+        // // Month 3 - March
+        // from: new Date(2023, 2, 1, 0, 0, 0).toISOString(),
+        // to: new Date(2023, 2, 30, 23, 59, 59,999).toISOString(),
 
-          // //Month 4 - April
-          // from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
-          // to: new Date(2023, 3, 30, 23, 59, 59,999).toISOString(),
+        // //Month 4 - April
+        // from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
+        // to: new Date(2023, 3, 30, 23, 59, 59,999).toISOString(),
 
-          // Month 4 - April - Past so data fixed, not changing still
-          from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
-          to: new Date(2023, 3, 22, 23, 59, 59, 999).toISOString()
-        },
-        authHeaders);
+        // Month 4 - April - Past so data fixed, not changing still
+        from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
+        to: new Date(2023, 3, 22, 23, 59, 59, 999).toISOString(),
+      },
+      authHeaders
+    );
 
     setEnvVariables(TestConfig.env);
     const resp = await invokeLocalHandlerOrMakeAPICall(event, handler, TestConfig.apiFrontUrl, context);
@@ -271,15 +289,17 @@ describe('API Frontend', function () {
 
     const context = apiGwContext();
     const authHeaders = await getCognitoAuthHeaders();
-    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter,
-      'getPageViews'>('getPageViews', 'query',
-        {
-          sites: ['tests'],
-          // Month 4 - April - Past so data fixed, not changing still
-          from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
-          to: new Date(2023, 3, 22, 23, 59, 59, 999).toISOString()
-        },
-        authHeaders);
+    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter, 'getPageViews'>(
+      'getPageViews',
+      'query',
+      {
+        sites: ['tests'],
+        // Month 4 - April - Past so data fixed, not changing still
+        from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
+        to: new Date(2023, 3, 22, 23, 59, 59, 999).toISOString(),
+      },
+      authHeaders
+    );
 
     setEnvVariables(TestConfig.env);
     const resp = await invokeLocalHandlerOrMakeAPICall(event, handler, TestConfig.apiFrontUrl, context);
@@ -292,16 +312,19 @@ describe('API Frontend', function () {
     expect(output.nextToken).to.be.a('string');
     expect(output.data).to.be.an('array');
 
-    const event2 = trpcToApiGwOptions<AppRouter,
-      'getPageViews'>('getPageViews', 'query',
-        {
-          sites: ['tests'],
-          // Month 4 - April - Past so data fixed, not changing still
-          from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
-          to: new Date(2023, 3, 22, 23, 59, 59, 999).toISOString(),
-          queryExecutionId: output.queryExecutionId,
-          nextToken: output.nextToken
-        }, authHeaders);
+    const event2 = trpcToApiGwOptions<AppRouter, 'getPageViews'>(
+      'getPageViews',
+      'query',
+      {
+        sites: ['tests'],
+        // Month 4 - April - Past so data fixed, not changing still
+        from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
+        to: new Date(2023, 3, 22, 23, 59, 59, 999).toISOString(),
+        queryExecutionId: output.queryExecutionId,
+        nextToken: output.nextToken,
+      },
+      authHeaders
+    );
     const resp2 = await invokeLocalHandlerOrMakeAPICall(event2, handler, TestConfig.apiFrontUrl, context);
     ECHO_TEST_OUTPUTS && console.log(resp2);
 
@@ -319,17 +342,19 @@ describe('API Frontend', function () {
 
     const context = apiGwContext();
     const authHeaders = await getCognitoAuthHeaders();
-    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter,
-      'getChartViews'>('getChartViews', 'query',
-        {
-          sites: ['tests'],
-          // Month 4 - April - Past so data fixed, not changing still
-          from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
-          to: new Date(2023, 3, 22, 23, 59, 59, 999).toISOString(),
-          period: 'hour',
-          timeZone: 'Africa/Johannesburg'
-        },
-        authHeaders);
+    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter, 'getChartViews'>(
+      'getChartViews',
+      'query',
+      {
+        sites: ['tests'],
+        // Month 4 - April - Past so data fixed, not changing still
+        from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
+        to: new Date(2023, 3, 22, 23, 59, 59, 999).toISOString(),
+        period: 'hour',
+        timeZone: 'Africa/Johannesburg',
+      },
+      authHeaders
+    );
 
     setEnvVariables(TestConfig.env);
     const resp = await invokeLocalHandlerOrMakeAPICall(event, handler, TestConfig.apiFrontUrl, context);
@@ -352,17 +377,19 @@ describe('API Frontend', function () {
 
     const context = apiGwContext();
     const authHeaders = await getCognitoAuthHeaders();
-    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter,
-      'getChartViews'>('getChartViews', 'query',
-        {
-          sites: ['tests'],
-          // Month 4 - April - Past so data fixed, not changing still
-          from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
-          to: new Date(2023, 3, 22, 23, 59, 59, 999).toISOString(),
-          period: 'day',
-          timeZone: 'Africa/Johannesburg'
-        },
-        authHeaders);
+    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter, 'getChartViews'>(
+      'getChartViews',
+      'query',
+      {
+        sites: ['tests'],
+        // Month 4 - April - Past so data fixed, not changing still
+        from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
+        to: new Date(2023, 3, 22, 23, 59, 59, 999).toISOString(),
+        period: 'day',
+        timeZone: 'Africa/Johannesburg',
+      },
+      authHeaders
+    );
 
     setEnvVariables(TestConfig.env);
     const resp = await invokeLocalHandlerOrMakeAPICall(event, handler, TestConfig.apiFrontUrl, context);
@@ -385,17 +412,19 @@ describe('API Frontend', function () {
 
     const context = apiGwContext();
     const authHeaders = await getCognitoAuthHeaders();
-    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter,
-      'getChartViews'>('getChartViews', 'query',
-        {
-          sites: ['tests'],
-          // Month 4 - April - Past so data fixed, not changing still
-          from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
-          to: new Date(2023, 3, 22, 23, 59, 59, 999).toISOString(),
-          period: 'day',
-          timeZone: 'XXXX'
-        },
-        authHeaders);
+    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter, 'getChartViews'>(
+      'getChartViews',
+      'query',
+      {
+        sites: ['tests'],
+        // Month 4 - April - Past so data fixed, not changing still
+        from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
+        to: new Date(2023, 3, 22, 23, 59, 59, 999).toISOString(),
+        period: 'day',
+        timeZone: 'XXXX',
+      },
+      authHeaders
+    );
 
     setEnvVariables(TestConfig.env);
     const resp = await invokeLocalHandlerOrMakeAPICall(event, handler, TestConfig.apiFrontUrl, context);
@@ -409,16 +438,18 @@ describe('API Frontend', function () {
 
     const context = apiGwContext();
     const authHeaders = await getCognitoAuthHeaders();
-    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter,
-      'getUsersGroupedByStatForPeriod'>('getUsersGroupedByStatForPeriod', 'query',
-        {
-          sites: ['tests'],
-          // Month 4 - April - Past so data fixed, not changing still
-          from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
-          to: new Date(2023, 3, 22, 23, 59, 59, 999).toISOString(),
-          groupBy: 'country_name'
-        },
-        authHeaders);
+    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter, 'getUsersGroupedByStatForPeriod'>(
+      'getUsersGroupedByStatForPeriod',
+      'query',
+      {
+        sites: ['tests'],
+        // Month 4 - April - Past so data fixed, not changing still
+        from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
+        to: new Date(2023, 3, 22, 23, 59, 59, 999).toISOString(),
+        groupBy: 'country_name',
+      },
+      authHeaders
+    );
 
     setEnvVariables(TestConfig.env);
     const resp = await invokeLocalHandlerOrMakeAPICall(event, handler, TestConfig.apiFrontUrl, context);
@@ -439,15 +470,17 @@ describe('API Frontend', function () {
 
     const context = apiGwContext();
     const authHeaders = await getCognitoAuthHeaders();
-    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter,
-      'getPageReferrers'>('getPageReferrers', 'query',
-        {
-          sites: ['tests'],
-          // Month 4 - April - Past so data fixed, not changing still
-          from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
-          to: new Date(2023, 3, 30, 23, 59, 59, 999).toISOString()
-        },
-        authHeaders);
+    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter, 'getPageReferrers'>(
+      'getPageReferrers',
+      'query',
+      {
+        sites: ['tests'],
+        // Month 4 - April - Past so data fixed, not changing still
+        from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
+        to: new Date(2023, 3, 30, 23, 59, 59, 999).toISOString(),
+      },
+      authHeaders
+    );
 
     setEnvVariables(TestConfig.env);
     const resp = await invokeLocalHandlerOrMakeAPICall(event, handler, TestConfig.apiFrontUrl, context);

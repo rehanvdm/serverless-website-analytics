@@ -3,7 +3,7 @@ import { z } from 'zod';
 export class LambdaEnvironment {
   static AWS_REGION: string;
   static ENVIRONMENT: string;
-  static VERSION : string;
+  static VERSION: string;
   static TIMEOUT: number;
   static LOG_LEVEL: string;
   static TRACE_ID?: string;
@@ -18,7 +18,7 @@ export class LambdaEnvironment {
   static COGNITO_CLIENT_ID: string | undefined;
   static COGNITO_HOSTED_UI_URL: string | undefined;
 
-  static init () {
+  static init() {
     const schema = z.object({
       AWS_REGION: z.string(),
       ENVIRONMENT: z.string(),
@@ -33,7 +33,7 @@ export class LambdaEnvironment {
 
       COGNITO_USER_POOL_ID: z.string().optional(),
       COGNITO_CLIENT_ID: z.string().optional(),
-      COGNITO_HOSTED_UI_URL: z.string().optional()
+      COGNITO_HOSTED_UI_URL: z.string().optional(),
     });
 
     const parsed = schema.safeParse(process.env);

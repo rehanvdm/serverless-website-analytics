@@ -5,31 +5,34 @@ import { DateTime, Interval } from 'luxon';
  * Wrapper that uses luxon internally but uses the JS Date function as interface for all arguments or returns.
  */
 export class DateUtils {
-  private static fromJSDate (dt: Date): DateTime {
+  private static fromJSDate(dt: Date): DateTime {
     return DateTime.fromJSDate(dt);
   }
 
-  private static toJSDate (dt: DateTime): Date {
+  private static toJSDate(dt: DateTime): Date {
     return dt.toJSDate();
   }
 
-  static now (): Date {
+  static now(): Date {
     return DateTime.now().toJSDate();
   }
 
-  static stringifyIso (date: Date): string {
+  static stringifyIso(date: Date): string {
     return date.toISOString();
   }
 
-  static parseIso (date: string): Date {
+  static parseIso(date: string): Date {
     return this.toJSDate(DateTime.fromISO(date));
   }
 
-  static stringifyFormat (date: Date, format: string): string {
+  static stringifyFormat(date: Date, format: string): string {
     return DateTime.fromJSDate(date).toFormat(format);
   }
 
-  static getDayRange (range: 'today' | 'yesterday' | 'last_7_days' | 'last_30_days'): {startDate: Date, endDate: Date} {
+  static getDayRange(range: 'today' | 'yesterday' | 'last_7_days' | 'last_30_days'): {
+    startDate: Date;
+    endDate: Date;
+  } {
     const now = DateTime.now();
     let startDate: DateTime;
     let endDate: DateTime;
@@ -55,11 +58,11 @@ export class DateUtils {
 
     return {
       startDate: startDate.toJSDate(),
-      endDate: endDate.toJSDate()
-    }
+      endDate: endDate.toJSDate(),
+    };
   }
 
-  static getAbsoluteDayRange (range: 'this_month' | 'last_week' | 'last_month'): {startDate: Date, endDate: Date} {
+  static getAbsoluteDayRange(range: 'this_month' | 'last_week' | 'last_month'): { startDate: Date; endDate: Date } {
     const now = DateTime.now();
     let startDate: DateTime;
     let endDate: DateTime;
@@ -81,18 +84,20 @@ export class DateUtils {
 
     return {
       startDate: startDate.toJSDate(),
-      endDate: endDate.toJSDate()
-    }
+      endDate: endDate.toJSDate(),
+    };
   }
 
-  static daysBetween (startDate: Date, endDate: Date) {
+  static daysBetween(startDate: Date, endDate: Date) {
     const interval = Interval.fromDateTimes(DateTime.fromJSDate(startDate), DateTime.fromJSDate(endDate));
     return interval.length('days');
   }
 
-  static currentTimeZone () {
+  static currentTimeZone() {
     const tz = DateTime.local().zoneName;
-    if (!tz) { throw new Error('Could not determine timezone'); }
+    if (!tz) {
+      throw new Error('Could not determine timezone');
+    }
     return tz;
   }
 }

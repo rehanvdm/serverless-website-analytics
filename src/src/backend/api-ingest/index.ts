@@ -17,7 +17,7 @@ import { removeCloudFrontProxyPath, TRPCHandlerError } from '@backend/lib/utils/
 let openApiDocument: OpenAPIV3.Document | undefined;
 let initialized = false;
 
-function docsRoute (): APIGatewayProxyResult {
+function docsRoute(): APIGatewayProxyResult {
   const applicationName = 'Serverless Website Analytics';
 
   if (!openApiDocument) {
@@ -25,7 +25,7 @@ function docsRoute (): APIGatewayProxyResult {
       title: applicationName,
       description: 'Ingestion API',
       version: '-',
-      baseUrl: '-'
+      baseUrl: '-',
     });
   }
 
@@ -53,24 +53,30 @@ function docsRoute (): APIGatewayProxyResult {
   return {
     statusCode: 200,
     headers: {
-      'Content-Type': 'text/html'
+      'Content-Type': 'text/html',
     },
-    body
+    body,
   };
 }
 
-function validateAndGetCorsOrigin (origin: string) {
-  if (LambdaEnvironment.ALLOWED_ORIGINS === '*') { return origin; }
+function validateAndGetCorsOrigin(origin: string) {
+  if (LambdaEnvironment.ALLOWED_ORIGINS === '*') {
+    return origin;
+  }
 
   const allowedDomains = LambdaEnvironment.ALLOWED_ORIGINS.split(',');
-  if (allowedDomains.includes(origin)) { return origin; } else { return false; }
+  if (allowedDomains.includes(origin)) {
+    return origin;
+  } else {
+    return false;
+  }
 }
-function corsHeaders (origin: string) {
+function corsHeaders(origin: string) {
   return {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
     'Access-Control-Allow-Headers': '*',
-    'Access-Control-Max-Age': '86400'
+    'Access-Control-Max-Age': '86400',
   };
 }
 
@@ -100,7 +106,7 @@ export const handler = async (event: APIGatewayProxyEventV2, context: Context): 
     origin_method: event.requestContext.http.method,
     run_time: 0,
     success: true,
-    type: 'api'
+    type: 'api',
   };
 
   let response: APIGatewayProxyResult | undefined;
@@ -108,18 +114,24 @@ export const handler = async (event: APIGatewayProxyEventV2, context: Context): 
   try {
     const corsValidOrigin = validateAndGetCorsOrigin(event.headers.origin || '');
 
-    if (event.rawPath === '/docs') { response = docsRoute(); } else {
+    if (event.rawPath === '/docs') {
+      response = docsRoute();
+    } else {
       if (!corsValidOrigin) {
         logger.error('Invalid origin:', event.headers.origin);
         response = { statusCode: 403, body: '' };
       } else {
         const returnCorsHeaders = corsHeaders(corsValidOrigin);
         if (event.requestContext.http.method === 'OPTIONS') {
-          if (corsValidOrigin) { response = { statusCode: 200, headers: returnCorsHeaders, body: '' }; }
+          if (corsValidOrigin) {
+            response = { statusCode: 200, headers: returnCorsHeaders, body: '' };
+          }
         } else {
           /* navigator.sendBeacon(..) leaves the content type as text, by adding the request header here the handler
            * will interpret it as application/json correctly  */
-          if (event.rawPath === '/v1/page/view' || event.rawPath === '/v1/page/time') { event.headers['content-type'] = 'application/json'; }
+          if (event.rawPath === '/v1/page/view' || event.rawPath === '/v1/page/time') {
+            event.headers['content-type'] = 'application/json';
+          }
 
           const trpcOpenApiHandler = createOpenApiAwsLambdaHandler({
             router: appRouter,
@@ -127,11 +139,13 @@ export const handler = async (event: APIGatewayProxyEventV2, context: Context): 
               return {
                 request: {
                   ip: event.headers['x-forwarded-for'] || '',
-                  ua: event.requestContext.http.userAgent
-                }
-              }
+                  ua: event.requestContext.http.userAgent,
+                },
+              };
             },
-            onError (err) { trpcLastError = err }
+            onError(err) {
+              trpcLastError = err;
+            },
           });
           response = await trpcOpenApiHandler(event, context);
           response.headers = { ...response.headers, ...returnCorsHeaders };
@@ -140,27 +154,35 @@ export const handler = async (event: APIGatewayProxyEventV2, context: Context): 
     }
   } catch (err) {
     /* Should ideally never happen, the tRPC OpenAPI Lambda Handler will catch any `throw new Error(...)` and still
-    * return a response that has status code 500. This is just to cover all the basis. */
+     * return a response that has status code 500. This is just to cover all the basis. */
     if (err instanceof Error) {
       logger.error(err);
       if (!response) {
         response = {
           statusCode: 500,
-          body: JSON.stringify(new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Unexpected Error Occurred',
-            cause: LambdaEnvironment.ENVIRONMENT === 'dev' ? err : undefined
-          }))
-        }
+          body: JSON.stringify(
+            new TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: 'Unexpected Error Occurred',
+              cause: LambdaEnvironment.ENVIRONMENT === 'dev' ? err : undefined,
+            })
+          ),
+        };
       }
-    } else { throw new Error('Error is unknown', { cause: err }); }
+    } else {
+      throw new Error('Error is unknown', { cause: err });
+    }
   } finally {
     assert(response);
 
-    if (response.statusCode >= 200 && response.statusCode < 300) { audit.success = true; } else if (response.statusCode >= 300 && response.statusCode < 500) {
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      audit.success = true;
+    } else if (response.statusCode >= 300 && response.statusCode < 500) {
       audit.success = true;
       audit.status_description = response.body;
-      if (trpcLastError) { audit.meta = JSON.stringify(trpcLastError); }
+      if (trpcLastError) {
+        audit.meta = JSON.stringify(trpcLastError);
+      }
     } else {
       audit.success = false;
       audit.status_description = response.body;
@@ -177,17 +199,19 @@ export const handler = async (event: APIGatewayProxyEventV2, context: Context): 
               code: trpcLastError.error.code,
               name: trpcLastError.error.name,
               message: trpcLastError.error.message,
-              stack: trpcLastError.error.stack
-            }
+              stack: trpcLastError.error.stack,
+            },
           });
         }
-      } else { response.body = JSON.stringify(new TRPCError({ code: 'INTERNAL_SERVER_ERROR' })); }
+      } else {
+        response.body = JSON.stringify(new TRPCError({ code: 'INTERNAL_SERVER_ERROR' }));
+      }
     }
 
     audit.status_code = response.statusCode;
-    audit.run_time = (LambdaEnvironment.TIMEOUT * 1000) - context.getRemainingTimeInMillis();
+    audit.run_time = LambdaEnvironment.TIMEOUT * 1000 - context.getRemainingTimeInMillis();
     logger.audit(audit);
   }
 
   return response;
-}
+};

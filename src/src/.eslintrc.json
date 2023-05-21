@@ -10,11 +10,15 @@
         "sourceType": "module"
     },
     "plugins": [
-        "@typescript-eslint"
+        "@typescript-eslint",
+        "import",
+        "prettier"
     ],
     "extends": [
         "standard",
-        "plugin:@typescript-eslint/recommended"
+        "plugin:@typescript-eslint/recommended",
+        "prettier",
+        "plugin:prettier/recommended"
     ],
     "rules": {
         "semi": "off"

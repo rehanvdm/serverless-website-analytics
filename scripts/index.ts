@@ -73,6 +73,8 @@ const argv = yargs(hideBin(process.argv))
     case "validate-src":
       await validateSrc();
       break;
+    default:
+        throw new Error("Unknown command: " + command);
   }
 })();
 
