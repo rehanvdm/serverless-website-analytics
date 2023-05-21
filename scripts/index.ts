@@ -20,8 +20,11 @@ const paths = {
   distFrontend: path.resolve(__dirname, baseDir, ...libBuild, "frontend"),
 };
 
-async function runCommand(command: string, args: string[], options: execa.Options<string> = {})
+async function runCommand(command: string, args: string[], options: execa.Options<string> = {}, echoCommand: boolean = true)
 {
+  if(echoCommand)
+    console.log("> Running:", command, args.join(" "));
+
   const resp = await execa(command, args, { ...options, preferLocal: true, reject: false });
   if (resp.exitCode !== 0)
   {
@@ -59,6 +62,7 @@ const argv = yargs(hideBin(process.argv))
       await buildTsLambdas();
       await buildLambdas();
       await buildLambdaLayers();
+      await buildLFrontend();
       break;
     case "clean-lib":
       await cleanLib();
@@ -75,15 +79,17 @@ const argv = yargs(hideBin(process.argv))
 async function installSrc()
 {
   await runCommand('npm', ['ci'], { cwd: paths.src });
+  await runCommand('npm', ['ci'], { cwd: paths.srcFrontend });
 }
 async function validateSrc()
 {
-  /* All TS */
-  await runCommand('tsc', [], { cwd:paths.src});
-  await runCommand('eslint', ['**/*.ts' , "--ignore-pattern", "'**/*.d.ts'", "--fix"], { cwd:paths.src });
+  /* Not using the npm commands as defined in the package.jsons because we loose the colors and direct link click ability */
 
+  /* All TS */
+  await runCommand('tsc', ["--noEmit"], { cwd:paths.src});
+  await runCommand('eslint', ['**/*.ts' , "--ignore-pattern", "'**/*.d.ts'", "--fix"], { cwd:paths.src });
   /* Frontend Vue */
-  await runCommand('npm', ['run' , "check"], { cwd:paths.srcFrontend });
+  await runCommand('vue-tsc', ['--noEmit' ], { cwd:paths.srcFrontend });
 }
 
 async function buildTsLambdas()
@@ -162,7 +168,6 @@ async function buildLFrontend()
 {
   console.log("BUILDING FRONTEND")
 
-  await runCommand('npm', ['ci'], { cwd: paths.srcFrontend });
   //Output set to paths.distFrontend in vite.config
   await runCommand('npm', ['run', 'build'], { cwd: paths.srcFrontend });
 

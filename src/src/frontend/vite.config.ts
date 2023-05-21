@@ -13,6 +13,6 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: '../../../lib/build/frontend',
+    outDir: '../../../lib/build/frontend'
   }
 })

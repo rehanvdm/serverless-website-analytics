@@ -11,6 +11,7 @@ import ChartLocations from "@frontend/src/views/page_stats/components/chart_loca
 import Referrers from "@frontend/src/views/page_stats/components/referrers.vue";
 import UserInfo from "@frontend/src/views/page_stats/components/user_info.vue";
 import UTM from "@frontend/src/views/page_stats/components/utm.vue";
+import assert from "assert";
 
 /* ================================================================================================================== */
 /* ============================================= Settings & Partitions ============================================== */
@@ -147,12 +148,25 @@ const componentUserInfo = ref<InstanceType<typeof Referrers>>();
 const componentUtm = ref<InstanceType<typeof UTM>>();
 async function refresh()
 {
+  assert(componentTotal.value);
   componentTotal.value.refresh();
+
+  assert(componentPageViews.value);
   componentPageViews.value.refresh();
+
+  assert(componentChartViews.value);
   componentChartViews.value.refresh();
+
+  assert(componentChartLocations.value);
   componentChartLocations.value.refresh();
+
+  assert(componentReferrers.value);
   componentReferrers.value.refresh();
+
+  assert(componentUserInfo.value);
   componentUserInfo.value.refresh();
+
+  assert(componentUtm.value);
   componentUtm.value.refresh();
 }
 
@@ -200,17 +214,19 @@ async function refresh()
 
             <el-divider direction="vertical" style="height: 1.5rem; top: -3px;"></el-divider>
 
+            <el-tooltip content="Refresh partitions">
+              <el-button class="menu-button" text round plain @click="refreshPartitions(false)" :disabled="loadingPartitions">
+                <mdi-inbox-multiple class="menu-button__icon"></mdi-inbox-multiple>
+              </el-button>
+            </el-tooltip>
+
             <el-tooltip content="Settings">
               <el-button class="menu-button" text round plain @click="showSettings = !showSettings" >
                 <mdi-cog class="menu-button__icon"></mdi-cog>
               </el-button>
             </el-tooltip>
 
-            <el-tooltip content="Refresh partitions">
-              <el-button class="menu-button" text round plain @click="refreshPartitions(false)" :disabled="loadingPartitions">
-                <mdi-inbox-multiple class="menu-button__icon"></mdi-inbox-multiple>
-              </el-button>
-            </el-tooltip>
+
 
           </div>
         </div>

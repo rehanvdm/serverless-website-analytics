@@ -1,4 +1,4 @@
-import {z} from "zod";
+import { z } from 'zod';
 
 export const SchemaPage = z.object({
   site: z.string(),
@@ -21,6 +21,6 @@ export const SchemaPage = z.object({
   utm_term: z.string().optional(),
   utm_content: z.string().optional(),
   querystring: z.string().optional(),
-  referrer: z.string().optional(),
+  referrer: z.string().optional()
 });
 export type Page = z.infer<typeof SchemaPage>;

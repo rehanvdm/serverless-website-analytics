@@ -8,8 +8,8 @@ export type Props = {
   rows: any[] | undefined;
   pageSize: number;
   loading: boolean;
-  loadMorePromise: () => Promise<void> | undefined;
-  enablePageForward: boolean | undefined;
+  loadMorePromise?: (() => Promise<void>);
+  enablePageForward?: boolean;
 }
 const props = withDefaults(defineProps<Props>(), {});
 

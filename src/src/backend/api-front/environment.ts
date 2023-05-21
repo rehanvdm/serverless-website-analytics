@@ -1,7 +1,6 @@
-import {z} from "zod";
+import { z } from 'zod';
 
-export class LambdaEnvironment
-{
+export class LambdaEnvironment {
   static AWS_REGION: string;
   static ENVIRONMENT: string;
   static VERSION : string;
@@ -19,8 +18,7 @@ export class LambdaEnvironment
   static COGNITO_CLIENT_ID: string | undefined;
   static COGNITO_HOSTED_UI_URL: string | undefined;
 
-  static init()
-  {
+  static init () {
     const schema = z.object({
       AWS_REGION: z.string(),
       ENVIRONMENT: z.string(),
@@ -35,25 +33,25 @@ export class LambdaEnvironment
 
       COGNITO_USER_POOL_ID: z.string().optional(),
       COGNITO_CLIENT_ID: z.string().optional(),
-      COGNITO_HOSTED_UI_URL: z.string().optional(),
+      COGNITO_HOSTED_UI_URL: z.string().optional()
     });
 
     const parsed = schema.safeParse(process.env);
-    if(!parsed.success)
-    {
+    if (!parsed.success) {
       console.error(parsed.error);
-      throw new Error("Environment Variable Parse Error");
+      throw new Error('Environment Variable Parse Error');
     }
 
-    for(let key in parsed.data)
-    {
-      //@ts-ignore we know this is safe
+    for (const key in parsed.data) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore we know this is safe
       this[key] = process.env[key];
     }
 
     this.TIMEOUT = Number(this.TIMEOUT);
-    this.ANALYTICS_BUCKET_ATHENA_PATH = "s3://"+this.ANALYTICS_BUCKET+"/athena-results";
+    this.ANALYTICS_BUCKET_ATHENA_PATH = 's3://' + this.ANALYTICS_BUCKET + '/athena-results';
     this.ENRICH_RETURNED_ERRORS = Boolean(this.ENRICH_RETURNED_ERRORS);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.SITES = JSON.parse(process.env.SITES!) as string[];
   }
 }

@@ -1,43 +1,39 @@
-import {APIGatewayEvent, APIGatewayProxyEventV2, APIGatewayProxyResult, Context} from "aws-lambda";
-import aws from "aws-sdk";
-import axios from "axios";
-import {AxiosRequestConfig} from "axios";
-import assert from "assert";
-import {handler} from "@backend/api-ingest";
-import {AnyRouter} from "@trpc/server/src/core/router";
-import {AppRouter} from "@backend/api-front/server";
-import fs from "fs/promises";
-import * as AmazonCognitoIdentity from "amazon-cognito-identity-js"
-import path from "path";
+import { APIGatewayProxyEventV2, APIGatewayProxyResult, Context } from 'aws-lambda';
+import aws from 'aws-sdk';
+import axios, { AxiosRequestConfig, AxiosError } from 'axios';
+import assert from 'assert';
+import fs from 'fs/promises';
+import * as AmazonCognitoIdentity from 'amazon-cognito-identity-js'
+import path from 'path';
 
-export function apiGwContext() {
-    const apiGwContext: Context = {
-        callbackWaitsForEmptyEventLoop: false,
-        functionName: 'mocked',
-        functionVersion: 'mocked',
-        invokedFunctionArn: 'mocked',
-        memoryLimitInMB: 'mocked',
-        awsRequestId: 'mocked',
-        logGroupName: 'mocked',
-        logStreamName: 'mocked',
-        getRemainingTimeInMillis(): number {
-            return 999;
-        },
-        done(error?: Error, result?: any): void {
-            return;
-        },
-        fail(error: Error | string): void {
-            return;
-        },
-        succeed(messageOrObject: any): void {
-            return;
-        }
-    };
-    return apiGwContext;
+export function apiGwContext () {
+  const apiGwContext: Context = {
+    callbackWaitsForEmptyEventLoop: false,
+    functionName: 'mocked',
+    functionVersion: 'mocked',
+    invokedFunctionArn: 'mocked',
+    memoryLimitInMB: 'mocked',
+    awsRequestId: 'mocked',
+    logGroupName: 'mocked',
+    logStreamName: 'mocked',
+    getRemainingTimeInMillis (): number {
+      return 999;
+    }
+    // done (error?: Error, result?: any): void {
+    //
+    // },
+    // fail (error: Error | string): void {
+    //
+    // },
+    // succeed (messageOrObject: any): void {
+    //
+    // }
+  } as Context;
+  return apiGwContext;
 }
 
 export type ApiGwEventOptions = {
-    method: "GET" | "POST" | "OPTIONS",
+    method: 'GET' | 'POST' | 'OPTIONS',
     path: string,
     contentType?: string,
     pathParameters?: { [name: string]: string | undefined },
@@ -95,55 +91,53 @@ export type ApiGwEventOptions = {
 //     };
 // }
 
-export function apiGwEventV2(opts: ApiGwEventOptions): APIGatewayProxyEventV2 {
-    return {
-        version: '2.0',
-        routeKey: '$default',
-        body: opts.body || undefined,
-        rawPath: opts.path,
-        rawQueryString: '',
-        queryStringParameters: opts.queryStringParameters,
-        pathParameters: opts.pathParameters,
-        headers: {
-            'x-amzn-tls-cipher-suite': 'ECDHE-RSA-AES128-GCM-SHA256',
-            'x-amzn-tls-version': 'TLSv1.2',
-            'x-amzn-trace-id': 'Root=1-63f1bdf2-7dc6e1bb7f6b429b5380582b',
-            'x-forwarded-proto': 'https',
-            'origin': opts.origin || "",
-            'x-forwarded-port': '443',
-            'x-amz-cf-id': 'FBw78cV1ocjog1mSm3hAzQAAVpOPqzXnPVdX5q0fIqvTXIjs2WS55Q==',
-            'via': '2.0 1db4ab20ef3897e534041f147e869cca.cloudfront.net (CloudFront)',
-            'x-forwarded-for': opts.ip || "",
-            'user-agent': opts.ua || "",
-            'content-type': opts.contentType || 'application/json',
-              ...opts.headers
-        },
-        requestContext: {
-            accountId: 'anonymous',
-            apiId: 'wgww7os4xwv5bquomdbplkn4gi0hwlmo',
-            domainName: 'wgww7os4xwv5bquomdbplkn4gi0hwlmo.lambda-url.us-east-1.on.aws',
-            domainPrefix: 'wgww7os4xwv5bquomdbplkn4gi0hwlmo',
-            http: {
-                method: opts.method,
-                path: opts.path,
-                protocol: 'HTTP/1.1',
-                sourceIp: opts.ip || "",
-                userAgent: opts.ua || "",
-            },
-            requestId: '9cd26b7a-e51f-48ae-b926-0f6580e66cdd',
-            routeKey: '$default',
-            stage: '$default',
-            time: '19/Feb/2023:06:13:07 +0000',
-            timeEpoch: 1676787187031
-        },
-        isBase64Encoded: false
-    };
+export function apiGwEventV2 (opts: ApiGwEventOptions): APIGatewayProxyEventV2 {
+  return {
+    version: '2.0',
+    routeKey: '$default',
+    body: opts.body || undefined,
+    rawPath: opts.path,
+    rawQueryString: '',
+    queryStringParameters: opts.queryStringParameters,
+    pathParameters: opts.pathParameters,
+    headers: {
+      'x-amzn-tls-cipher-suite': 'ECDHE-RSA-AES128-GCM-SHA256',
+      'x-amzn-tls-version': 'TLSv1.2',
+      'x-amzn-trace-id': 'Root=1-63f1bdf2-7dc6e1bb7f6b429b5380582b',
+      'x-forwarded-proto': 'https',
+      origin: opts.origin || '',
+      'x-forwarded-port': '443',
+      'x-amz-cf-id': 'FBw78cV1ocjog1mSm3hAzQAAVpOPqzXnPVdX5q0fIqvTXIjs2WS55Q==',
+      via: '2.0 1db4ab20ef3897e534041f147e869cca.cloudfront.net (CloudFront)',
+      'x-forwarded-for': opts.ip || '',
+      'user-agent': opts.ua || '',
+      'content-type': opts.contentType || 'application/json',
+      ...opts.headers
+    },
+    requestContext: {
+      accountId: 'anonymous',
+      apiId: 'wgww7os4xwv5bquomdbplkn4gi0hwlmo',
+      domainName: 'wgww7os4xwv5bquomdbplkn4gi0hwlmo.lambda-url.us-east-1.on.aws',
+      domainPrefix: 'wgww7os4xwv5bquomdbplkn4gi0hwlmo',
+      http: {
+        method: opts.method,
+        path: opts.path,
+        protocol: 'HTTP/1.1',
+        sourceIp: opts.ip || '',
+        userAgent: opts.ua || ''
+      },
+      requestId: '9cd26b7a-e51f-48ae-b926-0f6580e66cdd',
+      routeKey: '$default',
+      stage: '$default',
+      time: '19/Feb/2023:06:13:07 +0000',
+      timeEpoch: 1676787187031
+    },
+    isBase64Encoded: false
+  };
 }
 
-export function setEnvVariables(obj: Record<string, string>)
-{
-  for(let [key, val] of Object.entries(obj))
-  {
+export function setEnvVariables (obj: Record<string, string>) {
+  for (const [key, val] of Object.entries(obj)) {
     process.env[key] = val;
   }
 }
@@ -157,104 +151,86 @@ export function setEnvVariables(obj: Record<string, string>)
  * @param setAccessAndSecretKeys
  * @param awsSdk
  */
-export function setAWSSDKCreds(profileName: string, region: string, setAccessAndSecretKeys: boolean = false, awsSdk: any = undefined)
-{
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function setAWSSDKCreds (profileName: string, region: string, setAccessAndSecretKeys = false, awsSdk: any = undefined) {
   /* Setting these for all future imports of the AWS SDK, won't work if the aws-sdk has been acquired all ready */
   process.env.AWS_PROFILE = profileName;
-  process.env.AWS_DEFAULT_REGION  = region;
-  process.env.AWS_ACCESS_KEY_ID = "";
-  process.env.AWS_SECRET_ACCESS_KEY = "";
-  process.env.AWS_SESSION_TOKEN = ""; /* Always empty this, not using STS but long-lived */
+  process.env.AWS_DEFAULT_REGION = region;
+  process.env.AWS_ACCESS_KEY_ID = '';
+  process.env.AWS_SECRET_ACCESS_KEY = '';
+  process.env.AWS_SESSION_TOKEN = ''; /* Always empty this, not using STS but long-lived */
 
   /* This is to change any AWS SDK that has been imported all ready */
-  if(awsSdk)
-    awsSdk.config.credentials = new awsSdk.SharedIniFileCredentials({profile: process.env.AWS_PROFILE});
+  if (awsSdk) { awsSdk.config.credentials = new awsSdk.SharedIniFileCredentials({ profile: process.env.AWS_PROFILE }); }
 
-  if(setAccessAndSecretKeys)
-  {
+  if (setAccessAndSecretKeys) {
     /* These are needed for when making SIGNED IAM REQUESTS, these ENV variables will be used by default.
      * For the Lambdas, these will be populated and have the permissions of the role. */
-    let awsCredentials = new aws.SharedIniFileCredentials({profile: process.env.AWS_PROFILE});
+    const awsCredentials = new aws.SharedIniFileCredentials({ profile: process.env.AWS_PROFILE });
     process.env.AWS_ACCESS_KEY_ID = awsCredentials.accessKeyId;
     process.env.AWS_SECRET_ACCESS_KEY = awsCredentials.secretAccessKey;
     process.env.AWS_SESSION_TOKEN = awsCredentials.sessionToken;
-    process.env.AWS_PROFILE = "";
+    process.env.AWS_PROFILE = '';
   }
 }
 
 export const TEST_TYPE = {
-  UNIT: "UNIT",
-  E2E: "E2E"
+  UNIT: 'UNIT',
+  E2E: 'E2E'
 }
 
-export async function apiRequest(url: string, opts: ApiGwEventOptions): Promise<APIGatewayProxyResult>
-{
-
+export async function apiRequest (url: string, opts: ApiGwEventOptions): Promise<APIGatewayProxyResult> {
   let headers = { };
-  if(opts.headers)
-    headers = opts.headers;
+  if (opts.headers) { headers = opts.headers; }
 
-  if(opts.origin)
-    headers = { ...headers, origin: opts.origin }
+  if (opts.origin) { headers = { ...headers, origin: opts.origin } }
 
-  let options: AxiosRequestConfig = {
+  const options: AxiosRequestConfig = {
     method: opts.method,
     params: opts.queryStringParameters || undefined,
     data: opts.body ? JSON.parse(opts.body) : undefined,
-    url: url+opts.path,
+    url: url + opts.path,
     // timeout: 30000,
     headers,
-    transformResponse: (res) => {  return res; } /* Do not parse json */
+    transformResponse: (res) => { return res; } /* Do not parse json */
   };
 
   console.log(JSON.stringify(options, null, 2));
 
-  try
-  {
-    let res = await axios(options);
+  try {
+    const res = await axios(options);
     return {
-      'statusCode': res.status,
-      'body': res.data,
-      'headers': res.headers as {[p: string]: string | number | boolean} | undefined
+      statusCode: res.status,
+      body: res.data,
+      headers: res.headers as {[p: string]: string | number | boolean} | undefined
     };
-  }
-  catch (e)
-  {
-    const err = e as any;
+  } catch (e) {
+    const err = e as AxiosError;
+    assert(err.response);
     const resp = {
-      'statusCode': err.response.status,
-      'body': err.response.data,
-      'headers': err.response.headers
+      statusCode: err.response.status,
+      body: err.response.data,
+      headers: err.response.headers
     };
     console.error(resp);
-    console.error("body decoded", JSON.stringify(JSON.parse(resp.body),null,2));
-    return resp;
+    console.error('body decoded', JSON.stringify(JSON.parse(resp.body as string), null, 2));
+    return resp as APIGatewayProxyResult;
   }
 }
 
-
-
-export function invokeLocalHandlerOrMakeAPICall(opts: ApiGwEventOptions,
-                                         handler?: (event: APIGatewayProxyEventV2, context: Context) => Promise<APIGatewayProxyResult>,
-                                         apiUrl?: string, context?: Context): Promise<APIGatewayProxyResult>
-{
-  if(process.env.TEST_TYPE === TEST_TYPE.UNIT)
-  {
+export function invokeLocalHandlerOrMakeAPICall (opts: ApiGwEventOptions,
+  handler?: (event: APIGatewayProxyEventV2, context: Context) => Promise<APIGatewayProxyResult>,
+  apiUrl?: string, context?: Context): Promise<APIGatewayProxyResult> {
+  if (process.env.TEST_TYPE === TEST_TYPE.UNIT) {
     assert(handler);
     assert(context);
     const event = apiGwEventV2(opts);
-    return handler(event ,context);
-  }
-  else if(process.env.TEST_TYPE === TEST_TYPE.E2E)
-  {
+    return handler(event, context);
+  } else if (process.env.TEST_TYPE === TEST_TYPE.E2E) {
     assert(apiUrl);
     return apiRequest(apiUrl, opts);
-  }
-  else
-    throw new Error("TEST_TYPE is not set");
+  } else { throw new Error('TEST_TYPE is not set'); }
 }
-
-
 
 /**
  *
@@ -263,30 +239,25 @@ export function invokeLocalHandlerOrMakeAPICall(opts: ApiGwEventOptions,
  * @param password
  * @returns { Promise<CognitoUserSession>}
  */
-async function authenticateCognito(cognitoUser: AmazonCognitoIdentity.CognitoUser, username: string, password: string)
-  :Promise<AmazonCognitoIdentity.CognitoUserSession>
-{
-  let authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails({
-      Username: username,
-      Password: password,
-    });
-  return await new Promise((resolve, reject) =>
-  {
-    try
-    {
+async function authenticateCognito (cognitoUser: AmazonCognitoIdentity.CognitoUser, username: string, password: string)
+  :Promise<AmazonCognitoIdentity.CognitoUserSession> {
+  const authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails({
+    Username: username,
+    Password: password
+  });
+  return await new Promise((resolve, reject) => {
+    try {
       cognitoUser.authenticateUser(authenticationDetails,
         {
-          onSuccess: function(result) {
+          onSuccess: function (result) {
             resolve(result);
           },
-          onFailure: function(err) {
+          onFailure: function (err) {
             console.error(err);
             reject(err);
-          },
+          }
         });
-    }
-    catch (e)
-    {
+    } catch (e) {
       console.error(e);
       reject(e);
     }
@@ -300,31 +271,28 @@ type CachedCognitoUser = {
   }
   jwtIdToken: string
 }
-export async function getCognitoIdentity(userPoolId: string, clientId: string, username: string, password: string)
-{
-  const userCachePath = path.resolve("./cognito_identity_cache.json");
+export async function getCognitoIdentity (userPoolId: string, clientId: string, username: string, password: string) {
+  const userCachePath = path.resolve('./cognito_identity_cache.json');
   const exists = await fs.access(userCachePath).then(() => true).catch(() => false);
 
-  let cacheString: string | undefined = undefined;
-  if(exists)
-    cacheString = await fs.readFile(userCachePath, { encoding: "utf8" });
+  let cacheString: string | undefined;
+  if (exists) { cacheString = await fs.readFile(userCachePath, { encoding: 'utf8' }); }
 
   let userCached: CachedCognitoUser | undefined = cacheString ? JSON.parse(cacheString) : undefined;
-  let refreshAt = !userCached ? 0 : (userCached?.payload?.exp || 0) - (60*5); //Get new token 5 mins before expires
+  const refreshAt = !userCached ? 0 : (userCached?.payload?.exp || 0) - (60 * 5); // Get new token 5 mins before expires
   let jwtIdToken: string;
-  if((Date.now()/1000) > refreshAt)
-  {
-    console.log("Cognito: fetching new user credential for "+username+" and storing in cache");
+  if ((Date.now() / 1000) > refreshAt) {
+    console.log('Cognito: fetching new user credential for ' + username + ' and storing in cache');
 
-    let cognitoUser = new AmazonCognitoIdentity.CognitoUser( {
+    const cognitoUser = new AmazonCognitoIdentity.CognitoUser({
       Username: username,
       Pool: new AmazonCognitoIdentity.CognitoUserPool({
         UserPoolId: userPoolId,
-        ClientId: clientId,
+        ClientId: clientId
       })
     });
 
-    let result = await authenticateCognito(cognitoUser, username, password);
+    const result = await authenticateCognito(cognitoUser, username, password);
     const idToken = result.getIdToken();
 
     userCached = {
@@ -337,11 +305,10 @@ export async function getCognitoIdentity(userPoolId: string, clientId: string, u
 
     await fs.writeFile(userCachePath, JSON.stringify(userCached, null, 2));
     jwtIdToken = idToken.getJwtToken();
-  }
-  else
-  {
-    console.log("Cognito: reading user credential for "+username+" from cache");
-    jwtIdToken = userCached!.jwtIdToken;
+  } else {
+    console.log('Cognito: reading user credential for ' + username + ' from cache');
+    assert(userCached)
+    jwtIdToken = userCached.jwtIdToken;
   }
 
   return {

@@ -1,38 +1,35 @@
 import { CreateAWSLambdaContextOptions, awsLambdaRequestHandler } from '@trpc/server/adapters/aws-lambda';
-import {AppRouter, appRouter} from "@backend/api-front/server";
-import {APIGatewayProxyEventV2, APIGatewayProxyResult, APIGatewayProxyStructuredResultV2, Context} from "aws-lambda";
-import {LambdaLog} from "@backend/lib/utils/lambda_logger";
-import {LambdaEnvironment} from "@backend/api-front/environment";
-import {AuditLog} from "@backend/lib/models/audit_log";
-import {v4 as uuidv4} from "uuid";
-import {DateUtils} from "@backend/lib/utils/date_utils";
-import {TRPCError} from "@trpc/server";
-import assert from "assert";
-import {removeCloudFrontProxyPath, TRPCHandlerError} from "@backend/lib/utils/api_utils";
-import { CognitoJwtVerifier } from "aws-jwt-verify";
-import {CognitoJwtVerifierSingleUserPool} from "aws-jwt-verify/cognito-verifier";
+import { appRouter } from '@backend/api-front/server';
+import { APIGatewayProxyEventV2, APIGatewayProxyResult, Context } from 'aws-lambda';
+import { LambdaLog } from '@backend/lib/utils/lambda_logger';
+import { LambdaEnvironment } from '@backend/api-front/environment';
+import { AuditLog } from '@backend/lib/models/audit_log';
+import { v4 as uuidv4 } from 'uuid';
+import { DateUtils } from '@backend/lib/utils/date_utils';
+import { TRPCError } from '@trpc/server';
+import assert from 'assert';
+import { removeCloudFrontProxyPath, TRPCHandlerError } from '@backend/lib/utils/api_utils';
+import { CognitoJwtVerifier } from 'aws-jwt-verify';
+import { CognitoJwtVerifierSingleUserPool } from 'aws-jwt-verify/cognito-verifier';
 
 /* Lazy loaded variables */
-let initialized: boolean = false;
-let isCognitoAuth: boolean = false;
-let cognitoVerifier:  CognitoJwtVerifierSingleUserPool<{userPoolId: string, tokenUse: "id", clientId: string}> | undefined = undefined;
+let initialized = false;
+let isCognitoAuth = false;
+let cognitoVerifier: CognitoJwtVerifierSingleUserPool<{userPoolId: string, tokenUse: 'id', clientId: string}> | undefined;
 
-export const handler = async (event: APIGatewayProxyEventV2, context: Context): Promise<APIGatewayProxyResult> =>
-{
+export const handler = async (event: APIGatewayProxyEventV2, context: Context): Promise<APIGatewayProxyResult> => {
   // console.log("EVENT", event);
   const logger = new LambdaLog();
-  const shouldInitialize = !initialized || process.env.TESTING_LOCAL_RE_INIT === "true";
-  if(shouldInitialize)
-  {
+  const shouldInitialize = !initialized || process.env.TESTING_LOCAL_RE_INIT === 'true';
+  if (shouldInitialize) {
     LambdaEnvironment.init();
     logger.init(LambdaEnvironment.ENVIRONMENT);
-    if(LambdaEnvironment.COGNITO_USER_POOL_ID && LambdaEnvironment.COGNITO_CLIENT_ID)
-    {
+    if (LambdaEnvironment.COGNITO_USER_POOL_ID && LambdaEnvironment.COGNITO_CLIENT_ID) {
       isCognitoAuth = true;
       cognitoVerifier = CognitoJwtVerifier.create({
         userPoolId: LambdaEnvironment.COGNITO_USER_POOL_ID,
         clientId: LambdaEnvironment.COGNITO_CLIENT_ID,
-        tokenUse: "id"
+        tokenUse: 'id'
       });
     }
     initialized = true;
@@ -40,44 +37,40 @@ export const handler = async (event: APIGatewayProxyEventV2, context: Context): 
 
   LambdaEnvironment.TRACE_ID = context.awsRequestId;
   logger.start(LambdaEnvironment.LOG_LEVEL, LambdaEnvironment.TRACE_ID);
-  logger.info("Init", event);
+  logger.info('Init', event);
   event = removeCloudFrontProxyPath(event, '/api');
-  let audit: AuditLog = {
+  const audit: AuditLog = {
     app_version: LambdaEnvironment.VERSION,
     audit_log_id: uuidv4(),
     trace_id: LambdaEnvironment.TRACE_ID,
     created_at: DateUtils.stringifyIso(DateUtils.now()),
     environment: LambdaEnvironment.ENVIRONMENT,
-    meta: "",
-    origin: "swa/api",
+    meta: '',
+    origin: 'swa/api',
     origin_path: event.rawPath,
     origin_method: event.requestContext.http.method,
     run_time: 0,
     success: true,
-    type: "api"
+    type: 'api'
   };
-
-
 
   let response: APIGatewayProxyResult | undefined;
   let trpcLastError: TRPCHandlerError | undefined;
-  try
-  {
+  try {
     const trpcHandler = awsLambdaRequestHandler({
       router: appRouter,
-      createContext: async ({event, context}: CreateAWSLambdaContextOptions<APIGatewayProxyEventV2>) =>
-      {
+      createContext: async ({ event }: CreateAWSLambdaContextOptions<APIGatewayProxyEventV2>) => {
         /* Verify Cognito ID token if required */
-        if(isCognitoAuth)
-        {
-          const idToken = event.headers.authorization || event.headers.Authorization || "";
+        if (isCognitoAuth) {
+          assert(cognitoVerifier)
+          const idToken = event.headers.authorization || event.headers.Authorization || '';
           try {
             return {
               requiresAuth: true,
-              user:  await cognitoVerifier!.verify(idToken)
+              user: await cognitoVerifier.verify(idToken)
             }
           } catch (err) {
-            logger.info("JWT Decode error", err);
+            logger.info('JWT Decode error', err);
             return {
               requiresAuth: true,
               user: undefined
@@ -90,69 +83,65 @@ export const handler = async (event: APIGatewayProxyEventV2, context: Context): 
           user: undefined
         }
       },
-      onError(err) { trpcLastError = err },
+      onError (err) { trpcLastError = err }
     });
     const structuredResponse = await trpcHandler(event, context);
+    if (!structuredResponse.statusCode) { throw new Error('No status code returned from TRPC handler'); }
+
     response = {
-      statusCode: structuredResponse.statusCode!,
+      statusCode: structuredResponse.statusCode,
       headers: structuredResponse.headers,
-      body: structuredResponse.body || "",
-      isBase64Encoded: structuredResponse.isBase64Encoded,
+      body: structuredResponse.body || '',
+      isBase64Encoded: structuredResponse.isBase64Encoded
     };
-  }
-  catch(err)
-  {
+  } catch (err) {
     /* Should ideally never happen, the tRPC Lambda Handler will catch any `throw new Error(...)` and still
     * return a response that has status code 500. This is just to cover all the basis. */
-    if(err instanceof Error) {
+    if (err instanceof Error) {
       logger.error(err);
-      if(!response) {
+      if (!response) {
         response = {
           statusCode: 500,
           body: JSON.stringify(new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "Unexpected Error Occurred",
-            cause: LambdaEnvironment.ENVIRONMENT === "dev" ? err : undefined
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Unexpected Error Occurred',
+            cause: LambdaEnvironment.ENVIRONMENT === 'dev' ? err : undefined
           }))
         }
       }
-    }
-    else
-      throw new Error("Error is unknown", { cause: err });
-  }
-  finally
-  {
+    } else { throw new Error('Error is unknown', { cause: err }); }
+  } finally {
     assert(response);
-    if(response.statusCode >= 200 && response.statusCode < 300)
+    if (response.statusCode >= 200 && response.statusCode < 300) {
       audit.success = true;
-    else if(response.statusCode >= 300 && response.statusCode < 500)
-    {
+    } else if (response.statusCode >= 300 && response.statusCode < 500) {
       audit.success = true;
       audit.status_description = response.body;
-      if(trpcLastError)
-        audit.meta = JSON.stringify(trpcLastError);
-    }
-    else
-    {
-      audit.success = false;
-      audit.status_description = response.body;
-      if(trpcLastError)
-      {
-        logger.error(trpcLastError.error);
+      if (trpcLastError) {
         audit.meta = JSON.stringify(trpcLastError);
       }
+    } else {
+      audit.success = false;
+      audit.status_description = response.body;
 
-      /* Enrich error response with stack trace in dev and testing
-         and do not show the error description in production, status code is enough */
-      if(LambdaEnvironment.ENRICH_RETURNED_ERRORS)
-        response.body = JSON.stringify({ ...trpcLastError!, error: {
-            code: trpcLastError!.error.code,
-            name: trpcLastError!.error.name,
-            message: trpcLastError!.error.message,
-            stack: trpcLastError!.error.stack,
-          }}); //Override the toString method of the TRPC error, we want the actual message and stack
-      else
-        response.body = JSON.stringify(new TRPCError({code: "INTERNAL_SERVER_ERROR"}));
+      if (trpcLastError) {
+        logger.error(trpcLastError.error);
+        audit.meta = JSON.stringify(trpcLastError);
+
+        /* Enrich error response with stack trace in dev and testing
+           and do not show the error description in production, status code is enough */
+        if (LambdaEnvironment.ENRICH_RETURNED_ERRORS) {
+          response.body = JSON.stringify({
+            ...trpcLastError,
+            error: {
+              code: trpcLastError.error.code,
+              name: trpcLastError.error.name,
+              message: trpcLastError.error.message,
+              stack: trpcLastError.error.stack
+            }
+          });
+        }
+      } else { response.body = JSON.stringify(new TRPCError({ code: 'INTERNAL_SERVER_ERROR' })); }
     }
 
     audit.status_code = response.statusCode;

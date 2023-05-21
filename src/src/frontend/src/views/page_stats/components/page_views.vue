@@ -6089,7 +6089,7 @@ onMounted(() => {
 })
 
 const columns: ComputedRef<Column[]> = computed(()  => {
-  const ret = [
+  const ret: Column[] = [
     { name: "Page", type: "string", index: "page_url", gridColumn: "6fr" },
     { name: "Views", type: "number", index: "views", gridColumn: "1fr" },
     { name: "Time on Page", type: "number", index: "avg_time_on_page", gridColumn: "2fr" },

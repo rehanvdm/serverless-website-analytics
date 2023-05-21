@@ -1,13 +1,10 @@
 import { z } from 'zod';
-import {assertAuthentication, TrpcInstance} from "@backend/api-front/server";
+import { assertAuthentication, TrpcInstance } from '@backend/api-front/server';
 import {
-  SchemaSite,
-} from "@backend/lib/models/site";
-import {DateUtils} from "@backend/lib/utils/date_utils";
-import {AthenaPageViews} from "@backend/lib/dal/athena/page_views";
-
-
-
+  SchemaSite
+} from '@backend/lib/models/site';
+import { DateUtils } from '@backend/lib/utils/date_utils';
+import { AthenaPageViews } from '@backend/lib/dal/athena/page_views';
 
 const GetTopLevelStatsSchema = z.object({
   visitors: z.number(),
@@ -31,8 +28,7 @@ const GetTopLevelStatsSchema = z.object({
   })
 });
 export type GetTopLevelStats = z.infer<typeof GetTopLevelStatsSchema>;
-export function getTopLevelStats(trpcInstance: TrpcInstance)
-{
+export function getTopLevelStats (trpcInstance: TrpcInstance) {
   return trpcInstance.procedure
     .input(z.object({
       from: z.string().datetime(),
@@ -40,20 +36,19 @@ export function getTopLevelStats(trpcInstance: TrpcInstance)
       sites: z.array(SchemaSite)
     }))
     .output(GetTopLevelStatsSchema)
-    .query(async ({input, ctx}) =>
-    {
+    .query(async ({ input, ctx }) => {
       assertAuthentication(ctx);
 
       const athenaPageViews = new AthenaPageViews();
 
       const fromDate = DateUtils.parseIso(input.from);
       const toDate = DateUtils.parseIso(input.to);
-      const {prevStartDate, prevEndDate} = DateUtils.getPreviousPeriod(fromDate, toDate);
+      const { prevStartDate, prevEndDate } = DateUtils.getPreviousPeriod(fromDate, toDate);
 
       const [totals, totalsPrev] = await Promise.all([
         athenaPageViews.totalsForPeriod(fromDate, toDate, input.sites),
         athenaPageViews.totalsForPeriod(prevStartDate, prevEndDate, input.sites)
-                                  ]);
+      ]);
 
       return {
         visitors: totals.users,
@@ -79,32 +74,29 @@ export function getTopLevelStats(trpcInstance: TrpcInstance)
     });
 }
 
-
 const PageViewsSchema = z.object({
-    site: z.string(),
-    page_url: z.string(),
-    views: z.number(),
-    avg_time_on_page: z.number(),
-  });
+  site: z.string(),
+  page_url: z.string(),
+  views: z.number(),
+  avg_time_on_page: z.number()
+});
 export type PageView = z.infer<typeof PageViewsSchema>;
-export function getPageViews(trpcInstance: TrpcInstance)
-{
+export function getPageViews (trpcInstance: TrpcInstance) {
   return trpcInstance.procedure
     .input(z.object({
       from: z.string().datetime(),
       to: z.string().datetime(),
       sites: z.array(SchemaSite),
       queryExecutionId: z.string().optional(),
-      nextToken: z.string().optional(),
+      nextToken: z.string().optional()
     }))
-    .output( z.object({
+    .output(z.object({
       queryExecutionId: z.string(),
       nextToken: z.string().optional(),
       data: z.array(PageViewsSchema)
-      })
+    })
     )
-    .query(async ({input, ctx}) =>
-    {
+    .query(async ({ input, ctx }) => {
       assertAuthentication(ctx);
 
       const athenaPageViews = new AthenaPageViews();
@@ -116,22 +108,19 @@ export function getPageViews(trpcInstance: TrpcInstance)
       return {
         queryExecutionId: pageViews.queryExecutionId,
         nextToken: pageViews.nextToken,
-        data: pageViews.data,
+        data: pageViews.data
       };
     });
 }
-
-
 
 const ChartViewsSchema = z.object({
   site: z.string(),
   date_key: z.string(),
   visitors: z.number(),
-  views: z.number(),
+  views: z.number()
 });
 export type ChartView = z.infer<typeof ChartViewsSchema>;
-export function getChartViews(trpcInstance: TrpcInstance)
-{
+export function getChartViews (trpcInstance: TrpcInstance) {
   return trpcInstance.procedure
     .input(z.object({
       from: z.string().datetime(),
@@ -142,8 +131,7 @@ export function getChartViews(trpcInstance: TrpcInstance)
     }))
     .output(z.array(ChartViewsSchema)
     )
-    .query(async ({input, ctx}) =>
-    {
+    .query(async ({ input, ctx }) => {
       assertAuthentication(ctx);
 
       const athenaPageViews = new AthenaPageViews();
@@ -152,14 +140,12 @@ export function getChartViews(trpcInstance: TrpcInstance)
       const toDate = DateUtils.parseIso(input.to);
 
       const isValidTz = DateUtils.isValidTimeZone(input.timeZone);
-      if(!isValidTz)
-        throw new Error(`Invalid time zone: ${input.timeZone}`);
+      if (!isValidTz) { throw new Error(`Invalid time zone: ${input.timeZone}`); }
 
       const chartViews = await athenaPageViews.chartViewsForPeriod(fromDate, toDate, input.sites, input.period, input.timeZone);
-      return chartViews.map(row => ({...row, date_key: DateUtils.stringifyIso(row.date_key)}) );
+      return chartViews.map(row => ({ ...row, date_key: DateUtils.stringifyIso(row.date_key) }));
     });
 }
-
 
 // const ChartLocationSchema = z.object({
 //   country_name: z.string(),
@@ -190,21 +176,19 @@ export function getChartViews(trpcInstance: TrpcInstance)
 
 const PageReferrerSchema = z.object({
   referrer: z.string(),
-  views: z.number(),
+  views: z.number()
 });
 export type PageReferrer = z.infer<typeof PageReferrerSchema>;
-export function getPageReferrers(trpcInstance: TrpcInstance)
-{
+export function getPageReferrers (trpcInstance: TrpcInstance) {
   return trpcInstance.procedure
     .input(z.object({
       from: z.string().datetime(),
       to: z.string().datetime(),
-      sites: z.array(SchemaSite),
+      sites: z.array(SchemaSite)
     }))
     .output(z.array(PageReferrerSchema)
     )
-    .query(async ({input, ctx}) =>
-    {
+    .query(async ({ input, ctx }) => {
       assertAuthentication(ctx);
 
       const athenaPageViews = new AthenaPageViews();
@@ -217,25 +201,22 @@ export function getPageReferrers(trpcInstance: TrpcInstance)
     });
 }
 
-
 const UsersGroupedByStatSchema = z.object({
   group: z.string(),
-  visitors: z.number(),
+  visitors: z.number()
 });
 export type UsersGroupedByStat = z.infer<typeof UsersGroupedByStatSchema>;
-export function getUsersGroupedByStatForPeriod(trpcInstance: TrpcInstance)
-{
+export function getUsersGroupedByStatForPeriod (trpcInstance: TrpcInstance) {
   return trpcInstance.procedure
     .input(z.object({
       from: z.string().datetime(),
       to: z.string().datetime(),
       sites: z.array(SchemaSite),
-      groupBy: z.enum(['country_name',"device_type", "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"]), // TODO: Later: "browser", "os"
+      groupBy: z.enum(['country_name', 'device_type', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content']) // TODO: Later: "browser", "os"
     }))
     .output(z.array(UsersGroupedByStatSchema)
     )
-    .query(async ({input, ctx}) =>
-    {
+    .query(async ({ input, ctx }) => {
       assertAuthentication(ctx);
 
       const athenaPageViews = new AthenaPageViews();
