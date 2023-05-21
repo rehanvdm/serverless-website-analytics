@@ -96,7 +96,7 @@
           "exec": "ts-node ./scripts/index.ts -c validate-src"
         },
         {
-          "exec": "ts-node ./scripts/index.ts -c build-lambdas"
+          "exec": "ts-node ./scripts/index.ts -c build-src"
         },
         {
           "exec": "ts-node ./scripts/index.ts -c clean-lib"
