@@ -5,7 +5,6 @@ import { backend } from './backend';
 import { backendAnalytics } from './backendAnalytics';
 import { frontend } from './frontend';
 
-
 export interface SwaAuthBasicAuth {
   /**
    * The username to use for basic auth.
@@ -49,7 +48,6 @@ export interface SwaAuth {
   readonly cognito?: SwaAuthCognito;
 }
 
-
 /**
  * The AWS environment (account and region) to deploy to.
  */
@@ -68,7 +66,6 @@ export interface Domain {
 }
 
 export interface SwaProps {
-
   /**
    * The AWS environment (account and region) to deploy to.
    */
@@ -95,7 +92,7 @@ export interface SwaProps {
 
   /**
    * A string added as a tag to the Lambda function to appear in logs
-    */
+   */
   readonly environment: string;
 
   /**

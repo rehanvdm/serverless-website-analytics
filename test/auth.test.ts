@@ -35,7 +35,7 @@ describe('Auth', () => {
         basicAuth: {
           username: 'test',
           password: 'test',
-        }
+        },
       },
     });
 
@@ -58,13 +58,39 @@ describe('Auth', () => {
               email: 'test@gmail.com',
             },
           ],
-        }
-
+        },
       },
     });
 
     const assert = Template.fromStack(stack);
     assert.resourceCountIs('AWS::Cognito::UserPool', 1);
     assert.resourceCountIs('AWS::Cognito::UserPoolUser', 1);
+  });
+
+  test('Only 1 auth type allowed', () => {
+    try {
+      const app = new App();
+      const stack = new Stack(app, 'testing-stack');
+      new Swa(stack, 'testing-swa', {
+        ...partialSwaProps,
+        auth: {
+          basicAuth: {
+            username: 'test',
+            password: 'test',
+          },
+          cognito: {
+            users: [
+              {
+                name: 'test',
+                email: 'test@gmail.com',
+              },
+            ],
+          },
+        },
+      });
+      const assert = Template.fromStack(stack);
+    } catch (e) {
+      expect(e.message).toBe('Specify only `basicAuth` or `cognito` for `auth` but not both');
+    }
   });
 });

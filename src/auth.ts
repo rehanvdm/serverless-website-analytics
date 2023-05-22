@@ -6,7 +6,6 @@ import * as cognito from 'aws-cdk-lib/aws-cognito';
 import { Construct } from 'constructs';
 import { SwaProps } from './index';
 
-
 export function auth(scope: Construct, name: (name: string) => string, props: SwaProps) {
   let cloudFrontBasicAuthFunction: cloudfront.Function | undefined = undefined;
   let userPool: cognito.UserPool | undefined = undefined;
@@ -15,7 +14,7 @@ export function auth(scope: Construct, name: (name: string) => string, props: Sw
   let userPoolDomain: string | undefined = undefined;
 
   if (props.auth?.basicAuth && props.auth?.cognito) {
-    throw new Error('Specify only one auth type');
+    throw new Error('Specify only `basicAuth` or `cognito` for `auth` but not both');
   }
 
   if (props.auth?.basicAuth) {

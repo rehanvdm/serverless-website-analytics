@@ -6,11 +6,11 @@
   },
   "scripts": {
     "build": "npx projen build",
-    "build-package": "npx projen build-package",
     "bump": "npx projen bump",
     "clobber": "npx projen clobber",
     "compat": "npx projen compat",
     "compile": "npx projen compile",
+    "compile-package-locally": "npx projen compile-package-locally",
     "default": "npx projen default",
     "docgen": "npx projen docgen",
     "eject": "npx projen eject",

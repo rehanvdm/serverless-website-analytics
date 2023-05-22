@@ -21,9 +21,7 @@
     "plotly.js-dist-min": "^2.21.0",
     "vue": "^3.2.47",
     "vue-material-design-icons": "^5.2.0",
-    "vue-router": "^4.1.6"
-  },
-  "devDependencies": {
+    "vue-router": "^4.1.6",
     "@types/node": "^18.14.2",
     "@vitejs/plugin-vue": "^4.0.0",
     "@vue/tsconfig": "^0.1.3",

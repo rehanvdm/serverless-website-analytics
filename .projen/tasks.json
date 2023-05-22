@@ -24,15 +24,6 @@
         }
       ]
     },
-    "build-package": {
-      "name": "build-package",
-      "description": "Builds and packages",
-      "steps": [
-        {
-          "exec": "npm run build && npm run package"
-        }
-      ]
-    },
     "bump": {
       "name": "bump",
       "description": "Bumps version based on latest git tag and generates a changelog entry",
@@ -109,6 +100,24 @@
         },
         {
           "exec": "ts-node ./scripts/index.ts -c clean-lib"
+        }
+      ]
+    },
+    "compile-package-locally": {
+      "name": "compile-package-locally",
+      "description": "Compiles and packages, skips installs, validations and tests. Only to be used locally to improve DX of local install",
+      "steps": [
+        {
+          "exec": "jsii --silence-warnings=reserved-word"
+        },
+        {
+          "exec": "ts-node ./scripts/index.ts -c build-src"
+        },
+        {
+          "exec": "ts-node ./scripts/index.ts -c clean-lib"
+        },
+        {
+          "exec": "npm run package"
         }
       ]
     },

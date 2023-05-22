@@ -10,6 +10,7 @@ import { Construct } from 'constructs';
 import { auth } from './auth';
 import { backend } from './backend';
 import { SwaProps } from './index';
+import * as path from "path";
 
 //eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -103,8 +104,9 @@ export function frontend(
     defaultRootObject: 'index.html',
   });
 
+
   new s3deploy.BucketDeployment(scope, name('deploy-with-invalidation'), {
-    sources: [s3deploy.Source.asset('./lib/build/frontend')],
+    sources: [s3deploy.Source.asset(path.join(__dirname, '../lib/build/frontend'))],
     destinationBucket: frontendBucket,
     distribution: frontendDist,
     distributionPaths: ['/*'],

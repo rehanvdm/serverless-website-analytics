@@ -32,7 +32,7 @@ export function backend(
 
   const geoLite2Layer = new lambda.LayerVersion(scope, name('layer-geolite2'), {
     layerVersionName: name('layer-geolite2'),
-    code: lambda.Code.fromAsset(path.join(__dirname, './src/backend/layer-geolite2')),
+    code: lambda.Code.fromAsset(path.join(__dirname, '../lib/build/backend/layer-geolite2')),
   });
 
   const ingestLambdaTimeout = 10;
