@@ -42,7 +42,7 @@ export async function apiWrapper<T>(func: Promise<T>, loadingState?: Ref<boolean
       systemStore.$patch({ frontendEnvironment: resp });
     }
 
-    if (!systemStore.apiJwtToken) {
+    if (systemStore.frontendEnvironment.cognitoLoginUrl && !systemStore.apiJwtToken) {
       console.log('No JWT token, redirecting to login', systemStore.apiJwtToken);
       document.location.href = systemStore.cognitoLoginUrlWithRedirect;
       return false;
@@ -50,14 +50,16 @@ export async function apiWrapper<T>(func: Promise<T>, loadingState?: Ref<boolean
 
     return await func;
   } catch (err) {
-    if (err instanceof TRPCClientError && err.message === 'Not authenticated') {
-      console.log('Not authenticated, redirecting to login', systemStore.cognitoLoginUrlWithRedirect);
-      document.location.href = systemStore.cognitoLoginUrlWithRedirect;
-      return false;
-    } else if (err instanceof TRPCError && err.code === 'UNAUTHORIZED' && systemStore.cognitoLoginUrlWithRedirect) {
-      console.log('UNAUTHORIZED, redirecting to login', systemStore.cognitoLoginUrlWithRedirect);
-      document.location.href = systemStore.cognitoLoginUrlWithRedirect;
-      return false;
+    if(systemStore.frontendEnvironment.cognitoLoginUrl) {
+      if (err instanceof TRPCClientError && err.message === 'Not authenticated') {
+        console.log('Not authenticated, redirecting to login', systemStore.cognitoLoginUrlWithRedirect);
+        document.location.href = systemStore.cognitoLoginUrlWithRedirect;
+        return false;
+      } else if (err instanceof TRPCError && err.code === 'UNAUTHORIZED' && systemStore.cognitoLoginUrlWithRedirect) {
+        console.log('UNAUTHORIZED, redirecting to login', systemStore.cognitoLoginUrlWithRedirect);
+        document.location.href = systemStore.cognitoLoginUrlWithRedirect;
+        return false;
+      }
     }
 
     if (displayError) {

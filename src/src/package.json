@@ -13,7 +13,7 @@
     "generate-openapi-ingest": "wireit",
     "start-local-api-ingest": "wireit",
     "start-local-api-front": "wireit",
-    "start-frontend": "cd src/frontend && npm run dev",
+    "start-frontend": "cd frontend && npm run dev",
     "watch-local-api-ingest-watch": "npm run start-local-api-ingest --watch",
     "watch-local-api-front-watch": "npm run start-local-api-front --watch"
   },

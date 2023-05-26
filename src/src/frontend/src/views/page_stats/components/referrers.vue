@@ -26,8 +26,6 @@ async function loadData()
   if (props.sites.length === 0 || !props.fromDate || !props.toDate)
     return;
 
-  console.log("PROPS CHANGES - PAGE REFERRER", props.sites, props.fromDate, props.toDate);
-
   const resp = await apiWrapper(api.getPageReferrers.query({
     sites: props.sites,
     from: props.fromDate?.toISOString(),

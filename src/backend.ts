@@ -50,6 +50,8 @@ export function backend(
       TIMEOUT: ingestLambdaTimeout.toString(),
       ENRICH_RETURNED_ERRORS: 'true', //props.environment != "prod"
       ANALYTICS_BUCKET: backendAnalyticsProps.analyticsBucket.bucketName,
+      FIREHOSE_PAGE_VIEWS_NAME: backendAnalyticsProps.firehosePageViews.deliveryStreamName!,
+      FIREHOSE_EVENTS_NAME: backendAnalyticsProps.firehoseEvents.deliveryStreamName!,
       GEOLITE2_CITY_PATH: '/opt/GeoLite2-City.mmdb',
 
       SITES: JSON.stringify(props.sites),

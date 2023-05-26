@@ -83,7 +83,7 @@ export function eventTrack(trpcInstance: TrpcInstance) {
 
       const resp = await firehoseClient.send(
         new PutRecordCommand({
-          DeliveryStreamName: 'swa-prod-analytic-events-firehose',
+          DeliveryStreamName: LambdaEnvironment.FIREHOSE_EVENTS_NAME,
           Record: {
             Data: Buffer.from(JSON.stringify(data)),
           },

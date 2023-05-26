@@ -26,12 +26,49 @@ const emit = defineEmits<{
 }>()
 
 let chartViews: Ref<ChartView[] | undefined> = ref();
+
+function* getDatesInRange(startDate: string, endDate: string, hourly: boolean): Generator<string> {
+  const currentDate = new Date(startDate);
+  while (currentDate <= new Date(endDate)) {
+    yield currentDate.toISOString();
+    if (hourly) {
+      currentDate.setHours(currentDate.getHours() + 1);
+    } else {
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+  }
+}
+
+function fillMissingDates(chartData: ChartView[], minDate: string, maxDate: string, sites: string[], hourly: boolean): ChartView[] {
+  const filledData: ChartView[] = [];
+
+  for (const site of sites) {
+    const siteData = chartData.filter((entry) => entry.site === site);
+    for (const date of getDatesInRange(minDate, maxDate, hourly)) {
+      const entry = siteData.find((x) => x.date_key === date);
+      if (!entry) {
+        filledData.push({
+          site,
+          date_key: date,
+          visitors: 0,
+          views: 0,
+        });
+      } else {
+        filledData.push(entry);
+      }
+    }
+  }
+
+  return filledData;
+}
+
+
+
 async function loadData()
 {
   if (props.sites.length === 0 || !props.fromDate || !props.toDate)
     return;
 
-  console.log("PROPS CHANGES - CHART VIEW", props.sites, props.fromDate, props.toDate);
   // //
   // // TODO: now auto, later make this configurable in the settings pane + the chart type
   const daysBetween = DateUtils.daysBetween(props.fromDate, props.toDate);
@@ -51,55 +88,60 @@ async function loadData()
   if (!resp)
     return;
 
-  chartViews.value = resp;
+  const filledInData = fillMissingDates(resp, props.fromDate.toISOString(), props.toDate.toISOString(),
+    props.sites, period === "hour");
+  chartViews.value = filledInData;
 
-  // loading.value = true;
-  // await new Promise(resolve => setTimeout(resolve, 1000));
-  // chartViews.value = [
+  // // loading.value = true;
+  // // await new Promise(resolve => setTimeout(resolve, 1000));
+  //daily
+  // const data = [
+  //   // {
+  //   //   "site": "tests1",
+  //   //   "date_key": "2023-04-23T22:00:00.000Z",
+  //   //   "visitors": 1,
+  //   //   "views": 144100
+  //   // },
   //   {
-  //     "site": "tests",
-  //     "date_key": "2023-04-23T22:00:00.000Z",
-  //     "visitors": 1,
-  //     "views": 144100
-  //   },
-  //   {
-  //     "site": "tests",
+  //     "site": "tests1",
   //     "date_key": "2023-04-24T22:00:00.000Z",
   //     "visitors": 1,
   //     "views": 144000
   //   },
+  //
+  //   // {
+  //   //   "site": "tests1",
+  //   //   "date_key": "2023-04-23T22:00:00.000Z",
+  //   //   "visitors": 1,
+  //   //   "views": 144000
+  //   // },
+  //
   //   {
-  //     "site": "tests",
-  //     "date_key": "2023-04-25T22:00:00.000Z",
-  //     "visitors": 1,
-  //     "views": 144000
-  //   },
-  //   {
-  //     "site": "tests",
+  //     "site": "tests1",
   //     "date_key": "2023-04-26T22:00:00.000Z",
   //     "visitors": 1,
   //     "views": 144000
   //   },
   //   {
-  //     "site": "tests",
+  //     "site": "tests1",
   //     "date_key": "2023-04-27T22:00:00.000Z",
   //     "visitors": 1,
   //     "views": 144000
   //   },
   //   {
-  //     "site": "tests",
+  //     "site": "tests1",
   //     "date_key": "2023-04-28T22:00:00.000Z",
   //     "visitors": 2,
   //     "views": 144001
   //   },
   //   {
-  //     "site": "tests",
+  //     "site": "tests1",
   //     "date_key": "2023-04-29T22:00:00.000Z",
   //     "visitors": 1,
   //     "views": 144000
   //   },
   //   {
-  //     "site": "tests",
+  //     "site": "tests1",
   //     "date_key": "2023-04-30T22:00:00.000Z",
   //     "visitors": 1,
   //     "views": 12000
@@ -107,13 +149,13 @@ async function loadData()
   //
   //
   //   {
-  //     "site": "rehanvdm.com",
+  //     "site": "tests2",
   //     "date_key": "2023-04-23T22:00:00.000Z",
   //     "visitors": 1,
   //     "views": 2356
   //   },
   //   {
-  //     "site": "rehanvdm.com",
+  //     "site": "tests2",
   //     "date_key": "2023-04-24T22:00:00.000Z",
   //     "visitors": 1,
   //     "views": 643
@@ -121,27 +163,100 @@ async function loadData()
   //
   //
   //   {
-  //     "site": "cloudglance.com",
+  //     "site": "example.com",
   //     "date_key": "2023-04-24T22:00:00.000Z",
   //     "visitors": 1,
   //     "views": 2356
   //   },
   //   {
-  //     "site": "cloudglance.com",
+  //     "site": "example.com",
   //     "date_key": "2023-04-25T22:00:00.000Z",
   //     "visitors": 1,
   //     "views": 777
   //   },
   //   {
-  //     "site": "cloudglance.com",
+  //     "site": "example.com",
   //     "date_key": "2023-04-26T22:00:00.000Z",
   //     "visitors": 1,
   //     "views": 12425
   //   },
   //
   // ];
-  // loading.value = false;
+  // // loading.value = false;
 
+  // //hourly
+  // const data = [
+  //   {
+  //     "site": "tests1",
+  //     "date_key": "2023-04-27T22:00:00.000Z",
+  //     "visitors": 1,
+  //     "views": 144100
+  //   },
+  //   {
+  //     "site": "tests1",
+  //     "date_key": "2023-04-27T23:00:00.000Z",
+  //     "visitors": 1,
+  //     "views": 144000
+  //   },
+  //
+  //   {
+  //     "site": "tests1",
+  //     "date_key": "2023-04-28T00:00:00.000Z",
+  //     "visitors": 1,
+  //     "views": 144000
+  //   },
+  //
+  //   {
+  //     "site": "tests1",
+  //     "date_key": "2023-04-28T01:00:00.000Z",
+  //     "visitors": 1,
+  //     "views": 144000
+  //   },
+  //   {
+  //     "site": "tests1",
+  //     "date_key": "2023-04-28T02:00:00.000Z",
+  //     "visitors": 1,
+  //     "views": 144000
+  //   },
+  //   {
+  //     "site": "tests1",
+  //     "date_key": "2023-04-28T03:00:00.000Z",
+  //     "visitors": 2,
+  //     "views": 144001
+  //   },
+  //   {
+  //     "site": "tests1",
+  //     "date_key": "2023-04-28T04:00:00.000Z",
+  //     "visitors": 1,
+  //     "views": 144000
+  //   },
+  //   {
+  //     "site": "tests1",
+  //     "date_key": "2023-04-28T05:00:00.000Z",
+  //     "visitors": 1,
+  //     "views": 12000
+  //   },
+  //
+  //
+  //   {
+  //     "site": "tests2",
+  //     "date_key": "2023-04-28T14:00:00.000Z",
+  //     "visitors": 1,
+  //     "views": 2356
+  //   },
+  //   {
+  //     "site": "tests2",
+  //     "date_key": "2023-04-28T15:00:00.000Z",
+  //     "visitors": 1,
+  //     "views": 643
+  //   },
+  //
+  // ];
+
+  // console.log("FROM:", props.fromDate.toISOString(), "TO", props.toDate.toISOString());
+  // const filledIn = fillMissingDates(data, props.fromDate.toISOString(), props.toDate.toISOString(),
+  //   props.sites, period === "hour");
+  // console.log(filledIn);
 }
 watch(() => [props.sites, props.fromDate, props.toDate], async () =>{
   await loadData();
@@ -258,10 +373,10 @@ function paintChart()
       hovermode: "x unified",
       xaxis : {
         color: chartForeground,
+        range: [props.fromDate!.getTime(),props.toDate!.getTime()],
         showgrid: false,
         zeroline: false,
         showline: false,
-
       },
       yaxis : {
         color: chartForeground,

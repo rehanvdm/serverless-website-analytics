@@ -1,9 +1,11 @@
 import * as cert from 'aws-cdk-lib/aws-certificatemanager';
-import { Construct } from 'constructs';
-import { auth } from './auth';
-import { backend } from './backend';
-import { backendAnalytics } from './backendAnalytics';
-import { frontend } from './frontend';
+import * as route53 from 'aws-cdk-lib/aws-route53';
+import {Construct} from 'constructs';
+import {auth} from './auth';
+import {backend} from './backend';
+import {backendAnalytics} from './backendAnalytics';
+import {frontend} from './frontend';
+import {Arn, ArnFormat} from "aws-cdk-lib";
 
 export interface SwaAuthBasicAuth {
   /**
@@ -27,6 +29,13 @@ export interface SwaAuthCognitoUser {
   readonly email: string;
 }
 export interface SwaAuthCognito {
+
+  /**
+   * The unique domain prefix for the Cognito Hosted UI login page. If no `domain` is specified, this will be used to
+   * prefix the AWS provided domain for Cognito Hosted UI login. If `domain` is specified, then it will create the
+   * Cognito Hosted UI login page at `{loginSubDomain}.${domain}`.
+   */
+  loginSubDomain: string;
   /**
    * An array of users that are allowed to login.
    */
@@ -61,8 +70,28 @@ export interface AwsEnv {
  * website URL from the stack output.
  */
 export interface Domain {
+  /**
+   * Name of the domain to use for the site, example: `serverless-website-analytics.com`
+   */
   readonly name: string;
-  readonly certificate: cert.Certificate;
+  /**
+   * The certificate to use for the domain. This certificate must be in the `us-east-1` region. It must be for the
+   * domain specified in `domain.name` or a wildcard certificate for the domain.
+   */
+  readonly certificate: cert.ICertificate;
+
+  /**
+   * The Cognito certificate to use for the domain. This certificate must be in the same region as the stack. It must be
+   * for the Cognito domain defined as `{auth.cognito.loginSubDomain}.{domain.name}` or a wildcard certificate for the domain.
+   */
+  readonly cognitoCertificate: cert.ICertificate;
+  /**
+   * Optional, if not specified then no DNS records will be created. You will have to create the DNS records yourself.
+   *
+   * The Route53 hosted zone to add DNS records for CloudFront and Cognito. Cognito will be added as a subdomain of
+   * the domain, for example: `{auth.cognito.loginSubDomain}.{domain.name}`.
+   */
+  readonly hostedZone?: route53.IHostedZone;
 }
 
 export interface SwaProps {
@@ -108,6 +137,14 @@ export class Swa extends Construct {
 
     function name(resourceId: string): string {
       return id + '-' + resourceId;
+    }
+
+    if(props.domain?.certificate)
+    {
+      const certRegion = Arn.split(props.domain.certificate.certificateArn, ArnFormat.COLON_RESOURCE_NAME).region;
+      if(certRegion !== 'us-east-1') {
+        throw new Error(`Certificate must be in us-east-1, not in ${certRegion}, this is a requirement for CloudFront`);
+      }
     }
 
     const authProps = auth(scope, name, props);

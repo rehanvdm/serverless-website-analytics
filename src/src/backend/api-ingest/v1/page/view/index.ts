@@ -76,7 +76,7 @@ export function pageView(trpcInstance: TrpcInstance) {
 
       const resp = await firehoseClient.send(
         new PutRecordCommand({
-          DeliveryStreamName: 'swa-prod-analytic-page-views-firehose',
+          DeliveryStreamName: LambdaEnvironment.FIREHOSE_PAGE_VIEWS_NAME,
           Record: {
             Data: Buffer.from(JSON.stringify(data)),
           },

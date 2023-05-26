@@ -57,8 +57,6 @@ async function loadData(groupBy: "utm_source" | "utm_medium" | "utm_campaign" | 
   if (props.sites.length === 0 || !props.fromDate || !props.toDate)
     return;
 
-  console.log("PROPS CHANGES - UTM SOURCE", props.sites, props.fromDate, props.toDate);
-
   const resp = await apiWrapper(api.getUsersGroupedByStatForPeriod.query({
     sites: props.sites,
     from: props.fromDate?.toISOString(),
@@ -82,7 +80,6 @@ async function loadData(groupBy: "utm_source" | "utm_medium" | "utm_campaign" | 
 }
 watch(() => [props.sites, props.fromDate, props.toDate, activeTab.value], async () =>
 {
-  console.log(activeTab)
   if(activeTab.value === "source" && !source.value && !loadingSource.value)
     await loadData("utm_source", loadingSource, source);
   else if(activeTab.value === "medium" && !medium.value && !loadingMedium.value)

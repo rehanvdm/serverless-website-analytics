@@ -55,13 +55,19 @@ project.compileTask.exec('ts-node ./scripts/index.ts -c validate-src');
 project.compileTask.exec('ts-node ./scripts/index.ts -c build-src');
 project.compileTask.exec('ts-node ./scripts/index.ts -c clean-lib'); //removes source
 
-const task = project.tasks.addTask('compile-package-locally', {
+const taskCompilePackageLocally = project.tasks.addTask('compile-package-locally', {
   description:
     'Compiles and packages, skips installs, validations and tests. Use only locally to improve DX of local install',
   exec: 'jsii --silence-warnings=reserved-word', // Same as compile command without the extra tasks added
 });
-task.exec('ts-node ./scripts/index.ts -c build-src');
-task.exec('ts-node ./scripts/index.ts -c clean-lib');
-task.exec('npm run package');
+taskCompilePackageLocally.exec('ts-node ./scripts/index.ts -c build-src');
+taskCompilePackageLocally.exec('ts-node ./scripts/index.ts -c clean-lib');
+taskCompilePackageLocally.exec('npm run package');
+
+project.tasks.addTask('build-src', {
+  description:
+    'Only builds source, this is the only step needed to be run before using the package with `npm link` locally',
+  exec: 'ts-node ./scripts/index.ts -c build-src',
+});
 
 project.synth();

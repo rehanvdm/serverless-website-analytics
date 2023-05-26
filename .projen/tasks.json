@@ -24,6 +24,15 @@
         }
       ]
     },
+    "build-src": {
+      "name": "build-src",
+      "description": "Only builds source, this is the only step needed to be run before using the package with `npm link` locally",
+      "steps": [
+        {
+          "exec": "ts-node ./scripts/index.ts -c build-src"
+        }
+      ]
+    },
     "bump": {
       "name": "bump",
       "description": "Bumps version based on latest git tag and generates a changelog entry",
@@ -105,7 +114,7 @@
     },
     "compile-package-locally": {
       "name": "compile-package-locally",
-      "description": "Compiles and packages, skips installs, validations and tests. Only to be used locally to improve DX of local install",
+      "description": "Compiles and packages, skips installs, validations and tests. Use only locally to improve DX of local install",
       "steps": [
         {
           "exec": "jsii --silence-warnings=reserved-word"

@@ -1,5 +1,8 @@
+import {z} from "zod";
+
 export type TestConfig = {
   awsProfile: string;
+  awsRegion: string;
   apiIngestUrl: string;
   apiFrontUrl: string;
   allowedOrigins: string[];
@@ -12,6 +15,8 @@ export type TestConfig = {
     ENRICH_RETURNED_ERRORS: string;
 
     ANALYTICS_BUCKET: string;
+    FIREHOSE_PAGE_VIEWS_NAME: string;
+    FIREHOSE_EVENTS_NAME: string;
     GEOLITE2_CITY_PATH: string;
 
     SITES: string;
@@ -31,23 +36,17 @@ export type TestConfig = {
 };
 
 const sites = [
-  'tests',
+  'example.com',
   'tests1',
   'tests2',
-  'tests3',
-  'localhost:5173', // < Writes but can not read, can not make partition
-  'rehanvdm.com',
-  'cloudglance.dev',
-  'blog.cloudglance.dev',
-  'docs.cloudglance.dev',
 ];
 const allowedOrigns = ['*']; // localhost:3000 localhost:5173
 
-export const TestConfig = {
+export const TestConfig: TestConfig = {
   awsProfile: 'rehan-demo-exported',
   awsRegion: 'us-east-1',
-  apiIngestUrl: 'https://d3nhr87nci4rd5.cloudfront.net',
-  apiFrontUrl: 'https://d3nhr87nci4rd5.cloudfront.net/api',
+  apiIngestUrl: 'https://demo.serverless-website-analytics.com/api-ingest',
+  apiFrontUrl: 'https://demo.serverless-website-analytics.com/api',
   allowedOrigins: allowedOrigns,
   env: {
     AWS_REGION: 'us-east-1',
@@ -57,22 +56,24 @@ export const TestConfig = {
     LOG_LEVEL: 'DEBUG',
     ENRICH_RETURNED_ERRORS: 'true',
 
-    ANALYTICS_BUCKET: 'swa-prod-bucket-analytics',
+    ANALYTICS_BUCKET: 'swa-demo-bucket-analytics',
+    FIREHOSE_PAGE_VIEWS_NAME: 'swa-demo-analytic-page-views-firehose',
+    FIREHOSE_EVENTS_NAME: 'swa-demo-analytic-events-firehose',
     GEOLITE2_CITY_PATH: '../../src/src/backend/layer-geolite2/GeoLite2-City.mmdb',
 
     SITES: JSON.stringify(sites),
     ALLOWED_ORIGINS: JSON.stringify(allowedOrigns),
-    ANALYTICS_GLUE_DB_NAME: 'swa-prod-db',
+    ANALYTICS_GLUE_DB_NAME: 'swa-demo-db',
 
     // Uncomment for no auth
-    COGNITO_USER_POOL_ID: 'us-east-1_p5R0wUQDM',
-    COGNITO_CLIENT_ID: '6sb9c1fn4fcvtetfp4ap7dqm0e',
-    COGNITO_HOSTED_UI_URL: 'https://swa-test-1.auth.us-east-1.amazoncognito.com',
+    COGNITO_USER_POOL_ID: 'us-east-1_tvl0sw7Ei',
+    COGNITO_CLIENT_ID: '1lqovfns5d5000va207dc6hhmo',
+    COGNITO_HOSTED_UI_URL: 'https://swa-demo-login.demo.serverless-website-analytics.com',
   },
   // Uncomment for no auth
   cognitoAuthUser: {
-    userPoolId: 'us-east-1_p5R0wUQDM',
-    clientId: '6sb9c1fn4fcvtetfp4ap7dqm0e',
+    userPoolId: 'us-east-1_xIzDq3qma',
+    clientId: '29h8gut29idqhobn0lovtvsvmq',
     username: 'rehan.vdm4@gmail.com',
     password: 'Rehan1234',
   },

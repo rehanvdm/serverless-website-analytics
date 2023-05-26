@@ -18,9 +18,6 @@ export function auth(scope: Construct, name: (name: string) => string, props: Sw
   }
 
   if (props.auth?.basicAuth) {
-    /* =========================================== */
-    /* ============ Cloud Front Related ========== */
-    /* =========================================== */
     let cloudFrontBasicAuthFunctionContents = fs.readFileSync(
       path.join(__dirname, '../lib/build/backend/cloudfront/basic-auth.js'),
       { encoding: 'utf8' }
@@ -39,6 +36,9 @@ export function auth(scope: Construct, name: (name: string) => string, props: Sw
       functionName: name('basic-auth-cf-func'),
       code: cloudfront.FunctionCode.fromInline(cloudFrontBasicAuthFunctionContents),
     });
+
+    cdk.Annotations.of(scope).addWarning('Basic auth is not recommended for production use, it only protects the html' +
+      ' page, not the APIs, consider Cognito instead');
   } else if (props.auth?.cognito) {
     userPool = new cognito.UserPool(scope, name('userpool'), {
       userPoolName: name('userpool'),
@@ -50,10 +50,6 @@ export function auth(scope: Construct, name: (name: string) => string, props: Sw
         email: true,
       },
       standardAttributes: {
-        // fullname: { //name is already a standard attribute
-        //   required: true,
-        //   mutable: true,
-        // },
         email: {
           required: true,
           mutable: true,
@@ -70,22 +66,36 @@ export function auth(scope: Construct, name: (name: string) => string, props: Sw
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
 
-    const domain = userPool.addDomain('CognitoDomain', {
-      cognitoDomain: {
-        domainPrefix: 'swa-test-1', //TODO: How to randomize this? Think let them pass in a prefix
-      },
-    });
-
-    //TODO:
-    // const certificateArn = 'arn:aws:acm:us-east-1:123456789012:certificate/11-3336f1-44483d-adc7-9cd375c5169d';
+    // let domain: cognito.UserPoolDomain;
+    // if(props.domain) {
+    //   domain = userPool.addDomain('custom-domain', {
+    //     customDomain: {
+    //       domainName: `${props.auth.cognito.loginSubDomain}.${props.domain.name}`,
+    //       certificate: props.domain.cognitoCertificate,
+    //     },
+    //   });
     //
-    // const domainCert = certificatemanager.Certificate.fromCertificateArn(this, 'domainCert', certificateArn);
-    // pool.addDomain('CustomDomain', {
-    //   customDomain: {
-    //     domainName: 'user.myapp.com',
-    //     certificate: domainCert,
-    //   },
-    // });
+    //   if(props.domain && props.domain.hostedZone) {
+    //     new route53.ARecord(scope, 'custom-domain-dns-record', {
+    //       recordName: domain.domainName,
+    //       target: route53.RecordTarget.fromAlias({
+    //         bind: () => ({
+    //           dnsName: domain.cloudFrontDomainName,
+    //           hostedZoneId: 'Z2FDTNDATAQYW2', // CloudFront Zone ID, fixed for everyone
+    //         })
+    //       }),
+    //       zone: props.domain.hostedZone,
+    //     })
+    //     domain.cloudFrontDomainName
+    //   }
+    // }
+    // else {
+    //   domain = userPool.addDomain('cognito-domain', {
+    //     cognitoDomain: {
+    //       domainPrefix: props.auth.cognito.loginSubDomain,
+    //     },
+    //   });
+    // }
 
     userPoolClientOptions = {
       userPoolClientName: name('userpool-web-client'),
@@ -106,7 +116,26 @@ export function auth(scope: Construct, name: (name: string) => string, props: Sw
     };
     userPoolClient = userPool.addClient(name('userpool-web-client'), userPoolClientOptions);
 
-    userPoolDomain = domain.baseUrl();
+
+    if(!props.domain)
+    {
+      const domain = userPool.addDomain('cognito-domain', {
+        cognitoDomain: {
+          domainPrefix: props.auth.cognito.loginSubDomain,
+        },
+      });
+      userPoolDomain = domain.baseUrl();
+      new cdk.CfnOutput(scope, name('COGNITO_HOSTED_UI_URL'), { description: 'COGNITO_HOSTED_UI_URL', value: userPoolDomain });
+    }
+    else
+    {
+      /* Defer creating it here, wait until the Frontend CloudFront is created.
+      * The domain will only be created in the Frontend stack because Cognito requires an A record for a hosted zone
+      * and many people will just create a new subdomain/hosted zone with no records when running this component */
+      userPoolDomain = `https://${props.auth.cognito.loginSubDomain}.${props.domain.name}`;
+    }
+
+
 
     for (let user of props.auth?.cognito.users) {
       new cognito.CfnUserPoolUser(scope, user.email, {
@@ -126,7 +155,10 @@ export function auth(scope: Construct, name: (name: string) => string, props: Sw
       description: 'USER_POOL_CLIENT_ID',
       value: userPoolClient.userPoolClientId,
     });
-    new cdk.CfnOutput(scope, name('USER_POOL_BASE_URL'), { description: 'USER_POOL_BASE_URL', value: userPoolDomain });
+
+  }
+  else {
+    cdk.Annotations.of(scope).addWarning('No auth specified. This is not recommended for production use, specify Cognito instead.');
   }
 
   return {

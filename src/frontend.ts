@@ -5,12 +5,15 @@ import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
-import { AwsCustomResource, AwsCustomResourcePolicy, PhysicalResourceId } from 'aws-cdk-lib/custom-resources';
+import { AwsCustomResource, AwsCustomResourcePolicy, PhysicalResourceId, AwsSdkCall } from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 import { auth } from './auth';
 import { backend } from './backend';
 import { SwaProps } from './index';
 import * as path from "path";
+import {DistributionProps} from "aws-cdk-lib/aws-cloudfront/lib/distribution";
+import * as route53 from 'aws-cdk-lib/aws-route53';
+import * as route53Targets from 'aws-cdk-lib/aws-route53-targets';
 
 //eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -25,6 +28,8 @@ export function frontend(
   const frontendBucket = new s3.Bucket(scope, name('web-bucket'), {
     bucketName: name('web-bucket'),
     autoDeleteObjects: true,
+    blockPublicAccess: s3.BlockPublicAccess.BLOCK_ACLS,
+    accessControl:s3. BucketAccessControl.BUCKET_OWNER_FULL_CONTROL,
     removalPolicy: cdk.RemovalPolicy.DESTROY,
     websiteIndexDocument: 'index.html',
     websiteErrorDocument: 'index.html',
@@ -59,6 +64,10 @@ export function frontend(
     headerBehavior: cloudfront.CacheHeaderBehavior.allowList('user-agent', 'authorization'),
   });
 
+  const domainProps: Partial<DistributionProps> = !props.domain ? {} : {
+    domainNames: [props.domain.name],
+    certificate: props.domain.certificate,
+  }
   const frontendDist = new cloudfront.Distribution(scope, name('web-dist'), {
     comment: name('web-dist'),
     defaultBehavior: {
@@ -98,10 +107,8 @@ export function frontend(
         cachePolicy: apiProxyCachePolicy,
       },
     },
-    //TODO:
-    // domainNames: [buildProps.Params.DomainName],
-    // certificate: cert.Certificate.fromCertificateArn( scope, name("web-dist-cert"), buildProps.Params.WildCardCert),
     defaultRootObject: 'index.html',
+    ...domainProps
   });
 
 
@@ -113,14 +120,13 @@ export function frontend(
   });
 
   /* Update the Cognito Client callback id with the CloudFront domain. This has to be done if we are using an
-       auto generated domain returned from CloudFront after it has been created. It is unknown before that. */
+     auto generated domain returned from CloudFront after it has been created. It is unknown before that.
+     + Do Cognito custom domain */
   if (props.auth?.cognito) {
     const codeGrants = [];
     if (authProps.userPoolClientOptions!.oAuth!.flows!.implicitCodeGrant) codeGrants.push('implicit');
 
-    /* This does a PUT not an update, need to keep in sync with the CognitoClient creation */
-    const updateCognitoCallback = new AwsCustomResource(scope, name('cr-update-cognito-callbacks'), {
-      onUpdate: {
+    const awsSdkCall: AwsSdkCall = {
         service: 'CognitoIdentityServiceProvider',
         action: 'updateUserPoolClient',
         parameters: {
@@ -144,7 +150,11 @@ export function frontend(
           ],
         },
         physicalResourceId: PhysicalResourceId.of(frontendDist.distributionDomainName),
-      },
+      };
+    /* This does a PUT not an update, need to keep in sync with the CognitoClient creation */
+    const updateCognitoCallback = new AwsCustomResource(scope, name('cr-update-cognito-callbacks'), {
+      onCreate: awsSdkCall,
+      onUpdate: awsSdkCall,
       policy: AwsCustomResourcePolicy.fromSdkCalls({ resources: [authProps.userPool!.userPoolArn] }),
     });
 
@@ -153,11 +163,103 @@ export function frontend(
     updateCognitoCallback.node.addDependency(authProps.userPoolClient!);
   }
 
+
+  /* Add DNS records */
+  if(props.domain)
+  {
+    const manualRecords: {
+      description: string;
+      name: string;
+      type: string;
+      value: string;
+    }[] = [];
+
+    /* First CloudFront A record if we can */
+    let cloudFrontRecord: route53.ARecord | undefined = undefined;
+    if(props.domain.hostedZone)
+    {
+      cloudFrontRecord = new route53.ARecord(scope, 'cloudfront-record', {
+        recordName: props.domain.name,
+        target: route53.RecordTarget.fromAlias(new route53Targets.CloudFrontTarget(frontendDist)),
+        zone: props.domain.hostedZone,
+      })
+    }
+    else {
+      manualRecords.push({
+        description: "CloudFront",
+        name: props.domain.name,
+        type: "CNAME",
+        value: frontendDist.distributionDomainName,
+      })
+    }
+
+    /* Add the custom domain to the Cognito User Pool only AFTER the CloudFront creates the A record, otherwise the
+     * Cognito domain will fail, this is to say we can create DNS records ourselves */
+    if(props.auth?.cognito)
+    {
+      const cognitoDomain = authProps.userPool!.addDomain('custom-domain', {
+        customDomain: {
+          domainName: `${props.auth.cognito.loginSubDomain}.${props.domain.name}`,
+          certificate: props.domain.cognitoCertificate,
+        },
+      });
+      new cdk.CfnOutput(scope, name('COGNITO_HOSTED_UI_URL'), { description: 'COGNITO_HOSTED_UI_URL', value: cognitoDomain.baseUrl() });
+      if(cloudFrontRecord)
+        cognitoDomain.node.addDependency(cloudFrontRecord)
+
+      /* Add the Cognito A record if we can */
+      if(props.domain.hostedZone)
+      {
+        new route53.ARecord(scope, 'custom-domain-dns-record', {
+          recordName: props.auth.cognito.loginSubDomain,
+          target: route53.RecordTarget.fromAlias({
+            bind: () => ({
+              dnsName: cognitoDomain.cloudFrontDomainName,
+              hostedZoneId: 'Z2FDTNDATAQYW2', // CloudFront Zone ID, fixed for everyone
+            })
+          }),
+          zone: props.domain.hostedZone,
+        })
+      }
+      else {
+        manualRecords.push({
+          description: "Cognito",
+          name: cognitoDomain.domainName,
+          type: "CNAME",
+          value: cognitoDomain.cloudFrontDomainName,
+        })
+      }
+    }
+
+    if(manualRecords.length) {
+      cdk.Annotations.of(scope).addInfo('DNS records need to be created manually, see all CloudFormation Outputs');
+      for (const record of manualRecords) {
+        new cdk.CfnOutput(scope, name(`DNS_${record.description}`), {
+          description: `DNS_${record.description}`,
+          value: `Manually Create DNS Record: ${record.name} ${record.type} ${record.value}`,
+        });
+      }
+    }
+  }
+
+
+
+
+
   new cdk.CfnOutput(scope, name('CFD_ID'), { description: 'CFD_ID', value: frontendDist.distributionId });
   new cdk.CfnOutput(scope, name('FRONTEND_URL'), {
     description: 'FRONTEND_URL',
-    value: frontendDist.distributionDomainName,
+    value: cdk.Fn.join('', ['https://', props.domain?.name || frontendDist.distributionDomainName]),
   });
+  new cdk.CfnOutput(scope, name('apiIngestUrl'), {
+    description: 'apiIngestUrl',
+    value: cdk.Fn.join('', ['https://', props.domain?.name || frontendDist.distributionDomainName, '/api-ingest']),
+  });
+  new cdk.CfnOutput(scope, name('apiFrontLambdaUrl'), {
+    description: 'apiFrontLambdaUrl',
+    value: cdk.Fn.join('', ['https://', props.domain?.name || frontendDist.distributionDomainName, '/api']),
+  });
+
 
   return {
     frontendDist,

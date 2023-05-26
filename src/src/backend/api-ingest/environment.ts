@@ -10,6 +10,8 @@ export class LambdaEnvironment {
   static ENRICH_RETURNED_ERRORS: boolean;
 
   static ANALYTICS_BUCKET: string;
+  static FIREHOSE_PAGE_VIEWS_NAME: string;
+  static FIREHOSE_EVENTS_NAME: string;
   static GEOLITE2_CITY_PATH: string;
 
   static SITES: string[];
@@ -25,6 +27,8 @@ export class LambdaEnvironment {
       ENRICH_RETURNED_ERRORS: z.string(),
 
       ANALYTICS_BUCKET: z.string(),
+      FIREHOSE_PAGE_VIEWS_NAME: z.string(),
+      FIREHOSE_EVENTS_NAME: z.string(),
       GEOLITE2_CITY_PATH: z.string(),
 
       SITES: z.string(),

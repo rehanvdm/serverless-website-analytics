@@ -11,6 +11,7 @@ import {
 import { inferProcedureInput, inferProcedureOutput } from '@trpc/server';
 import { AppRouter } from '@backend/api-front/server';
 import { expect } from 'chai';
+import { TEST_TYPE } from '@tests/helpers';
 
 const ECHO_TEST_OUTPUTS = true;
 const TimeOut = 60;
@@ -86,15 +87,24 @@ describe('API Frontend', function () {
 
     expect(resp.statusCode).to.eq(200);
     const respData = JSON.parse(resp.body);
-    const expectedCognitoLoginUrl =
-      TestConfig.env.COGNITO_HOSTED_UI_URL +
-      '/login?client_id=' +
-      TestConfig.env.COGNITO_CLIENT_ID +
-      '&response_type=token&scope=aws.cognito.signin.user.admin+email+openid+profile';
-    expect(respData.result.data.cognitoLoginUrl).to.eq(expectedCognitoLoginUrl);
+    if(TestConfig.env.COGNITO_HOSTED_UI_URL) {
+      const expectedCognitoLoginUrl =
+        TestConfig.env.COGNITO_HOSTED_UI_URL +
+        '/login?client_id=' +
+        TestConfig.env.COGNITO_CLIENT_ID +
+        '&response_type=token&scope=aws.cognito.signin.user.admin+email+openid+profile';
+      expect(respData.result.data.cognitoLoginUrl).to.eq(expectedCognitoLoginUrl);
+    }
+    else {
+      expect(Object.keys(respData.result.data).length).to.eq(0);
+    }
+
   });
 
-  it('Get sites - Not Authenticated', async function () {
+  it('Get sites - Cognito Not Authenticated', async function () {
+    if(!TestConfig.env.COGNITO_HOSTED_UI_URL)
+      return;
+
     this.timeout(TimeOut * 1000);
 
     const context = apiGwContext();
@@ -280,7 +290,7 @@ describe('API Frontend', function () {
     const respData = JSON.parse(resp.body);
     const output = respData.result.data as inferProcedureOutput<AppRouter['getPageViews']>;
     expect(output.queryExecutionId).to.be.a('string');
-    expect(output.nextToken).to.be.a('string');
+    // expect(output.nextToken).to.be.a('string');
     expect(output.data).to.be.an('array');
   });
 

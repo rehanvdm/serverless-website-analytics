@@ -18,6 +18,8 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
   const analyticsBucket = new s3.Bucket(scope, name('bucket-analytics'), {
     bucketName: name('bucket-analytics'),
     autoDeleteObjects: true,
+    blockPublicAccess: s3.BlockPublicAccess.BLOCK_ACLS,
+    accessControl:s3. BucketAccessControl.BUCKET_OWNER_FULL_CONTROL,
     removalPolicy: cdk.RemovalPolicy.DESTROY,
   });
 
@@ -451,9 +453,21 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
   firehoseEvents.addDependency(firehoseDeliveryRole.node.defaultChild as CfnRole);
   firehoseEvents.addDependency(logGroup.node.defaultChild as CfnLogGroup);
 
-  new cdk.CfnOutput(scope, name('bucketAnalytics'), {
-    description: 'bucketAnalytics',
+  new cdk.CfnOutput(scope, name('ANALYTICS_BUCKET'), {
+    description: 'ANALYTICS_BUCKET',
     value: analyticsBucket.bucketName,
+  });
+  new cdk.CfnOutput(scope, name('FIREHOSE_PAGE_VIEWS_NAME'), {
+    description: 'FIREHOSE_PAGE_VIEWS_NAME',
+    value: firehosePageViews.deliveryStreamName!,
+  });
+  new cdk.CfnOutput(scope, name('FIREHOSE_EVENTS_NAME'), {
+    description: 'FIREHOSE_EVENTS_NAME',
+    value: firehoseEvents.deliveryStreamName!,
+  });
+  new cdk.CfnOutput(scope, name('ANALYTICS_GLUE_DB_NAME'), {
+    description: 'ANALYTICS_GLUE_DB_NAME',
+    value: glueDbName,
   });
 
   return {

@@ -43,8 +43,8 @@ let fromDate: Ref<Date | undefined> = ref(startDate);
 let toDate: Ref<Date | undefined> = ref(endDate);
 watch(dateFilter, async () => {
   // const [_fromDate, _toDate] =  dateFilter.value;
-  fromDate.value = dateFilter.value[0];
-  toDate.value = dateFilter.value[1];
+  fromDate.value = DateUtils.startOfDay(dateFilter.value[0]);
+  toDate.value = DateUtils.endOfDay(dateFilter.value[1]);
   // console.log("DATES", dateFilter.value, fromDate, toDate);
 })
 const dateQuickSelectOptions = [

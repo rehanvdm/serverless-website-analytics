@@ -29,8 +29,6 @@ async function loadData()
   if (props.sites.length === 0 || !props.fromDate || !props.toDate)
     return;
 
-  console.log("PROPS CHANGES - CHART LOCATIONS");
-
   const resp = await apiWrapper(api.getUsersGroupedByStatForPeriod.query({
     sites: props.sites,
     from: props.fromDate?.toISOString(),

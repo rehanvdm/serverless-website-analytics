@@ -30,8 +30,6 @@ async function loadData(groupBy: "device_type") //TODO: Later | "browser" | "os"
   if (props.sites.length === 0 || !props.fromDate || !props.toDate)
     return;
 
-  console.log("PROPS CHANGES - USER INFO", props.sites, props.fromDate, props.toDate);
-
   const resp = await apiWrapper(api.getUsersGroupedByStatForPeriod.query({
     sites: props.sites,
     from: props.fromDate?.toISOString(),

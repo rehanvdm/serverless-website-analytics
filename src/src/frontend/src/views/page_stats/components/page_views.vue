@@ -28,8 +28,6 @@ async function loadData()
   if (props.sites.length === 0 || !props.fromDate || !props.toDate)
     return;
 
-  console.log("PROPS CHANGES - PAGE VIEW", props.sites, props.fromDate, props.toDate);
-
   const resp = await apiWrapper(api.getPageViews.query({
     sites: props.sites,
     from: props.fromDate?.toISOString(),
@@ -47,7 +45,7 @@ async function loadData()
   // pageViews.value = pageViews.value.concat(resp.data.slice(0,20));
   pageViewsQueryExecutionId = resp.queryExecutionId;
   pageViewsNextToken = resp.nextToken;
-  console.log("PAGE VIEWS", pageViews.value);
+  // console.log("PAGE VIEWS", pageViews.value);
 
   // loading.value = true;
   // await new Promise(resolve => setTimeout(resolve, 2000));

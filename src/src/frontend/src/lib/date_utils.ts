@@ -29,6 +29,12 @@ export class DateUtils {
     return DateTime.fromJSDate(date).toFormat(format);
   }
 
+  static startOfDay(date: Date): Date {
+    return this.toJSDate( DateTime.fromJSDate(date).startOf('day') );
+  }
+  static endOfDay(date: Date): Date {
+    return this.toJSDate( DateTime.fromJSDate(date).endOf('day') );
+  }
   static getDayRange(range: 'today' | 'yesterday' | 'last_7_days' | 'last_30_days'): {
     startDate: Date;
     endDate: Date;
