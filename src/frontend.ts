@@ -120,8 +120,7 @@ export function frontend(
   });
 
   /* Update the Cognito Client callback id with the CloudFront domain. This has to be done if we are using an
-     auto generated domain returned from CloudFront after it has been created. It is unknown before that.
-     + Do Cognito custom domain */
+     auto generated domain returned from CloudFront after it has been created. It is unknown before that. */
   if (props.auth?.cognito) {
     const codeGrants = [];
     if (authProps.userPoolClientOptions!.oAuth!.flows!.implicitCodeGrant) codeGrants.push('implicit');
@@ -146,7 +145,7 @@ export function frontend(
           ),
           CallbackURLs: [
             `http://localhost:5173/login_callback`,
-            `https://${frontendDist.distributionDomainName}/login_callback`,
+            `https://${props.domain?.name || frontendDist.distributionDomainName}/login_callback`,
           ],
         },
         physicalResourceId: PhysicalResourceId.of(frontendDist.distributionDomainName),

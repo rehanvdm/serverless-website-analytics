@@ -1,6 +1,5 @@
 <template>
   <main>
-    ABOUT
   </main>
 </template>
 
@@ -15,7 +14,6 @@ onMounted(() => {
   {
     const systemStore = getSystemStore();
     systemStore.$patch({apiJwtToken: idToken});
-    console.log("ID TOKEN", idToken);
     router.push({name: 'page_stats'});
   }
 
