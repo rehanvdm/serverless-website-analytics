@@ -199,7 +199,7 @@ export function frontend(
       const cognitoDomain = authProps.userPool!.addDomain('custom-domain', {
         customDomain: {
           domainName: `${props.auth.cognito.loginSubDomain}.${props.domain.name}`,
-          certificate: props.domain.cognitoCertificate,
+          certificate: props.domain.certificate,
         },
       });
       new cdk.CfnOutput(scope, name('COGNITO_HOSTED_UI_URL'), { description: 'COGNITO_HOSTED_UI_URL', value: cognitoDomain.baseUrl() });

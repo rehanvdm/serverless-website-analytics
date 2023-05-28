@@ -66,15 +66,15 @@ export const TestConfig: TestConfig = {
     ANALYTICS_GLUE_DB_NAME: 'swa-demo-db',
 
     // Uncomment for no auth
-    COGNITO_USER_POOL_ID: 'us-east-1_tvl0sw7Ei',
-    COGNITO_CLIENT_ID: '1lqovfns5d5000va207dc6hhmo',
-    COGNITO_HOSTED_UI_URL: 'https://swa-demo-login.demo.serverless-website-analytics.com',
+    // COGNITO_USER_POOL_ID: 'us-east-1_tvl0sw7Ei',
+    // COGNITO_CLIENT_ID: '1lqovfns5d5000va207dc6hhmo',
+    // COGNITO_HOSTED_UI_URL: 'https://swa-demo-login.demo.serverless-website-analytics.com',
   },
   // Uncomment for no auth
-  cognitoAuthUser: {
-    userPoolId: 'us-east-1_xIzDq3qma',
-    clientId: '29h8gut29idqhobn0lovtvsvmq',
-    username: 'rehan.vdm4@gmail.com',
-    password: 'Rehan1234',
-  },
+  // cognitoAuthUser: {
+  //   userPoolId: 'us-east-1_xIzDq3qma',
+  //   clientId: '29h8gut29idqhobn0lovtvsvmq',
+  //   username: 'rehan.vdm4@gmail.com',
+  //   password: 'Rehan1234',
+  // },
 };

@@ -52,6 +52,7 @@ describe('Auth', () => {
       ...partialSwaProps,
       auth: {
         cognito: {
+          loginSubDomain: 'login',
           users: [
             {
               name: 'test',
@@ -79,6 +80,7 @@ describe('Auth', () => {
             password: 'test',
           },
           cognito: {
+            loginSubDomain: 'login',
             users: [
               {
                 name: 'test',

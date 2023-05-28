@@ -148,26 +148,26 @@ const componentUserInfo = ref<InstanceType<typeof Referrers>>();
 const componentUtm = ref<InstanceType<typeof UTM>>();
 async function refresh()
 {
-  assert(componentTotal.value);
-  componentTotal.value.refresh();
+  if(componentTotal.value)
+    componentTotal.value.refresh();
 
-  assert(componentPageViews.value);
-  componentPageViews.value.refresh();
+  if(componentPageViews.value)
+    componentPageViews.value.refresh();
 
-  assert(componentChartViews.value);
-  componentChartViews.value.refresh();
+  if(componentChartViews.value)
+    componentChartViews.value.refresh();
 
-  assert(componentChartLocations.value);
-  componentChartLocations.value.refresh();
+  if(componentChartLocations.value)
+    componentChartLocations.value.refresh();
 
-  assert(componentReferrers.value);
-  componentReferrers.value.refresh();
+  if(componentReferrers.value)
+    componentReferrers.value.refresh();
 
-  assert(componentUserInfo.value);
-  componentUserInfo.value.refresh();
+  if(componentUserInfo.value)
+    componentUserInfo.value.refresh();
 
-  assert(componentUtm.value);
-  componentUtm.value.refresh();
+  if(componentUtm.value)
+    componentUtm.value.refresh();
 }
 
 </script>

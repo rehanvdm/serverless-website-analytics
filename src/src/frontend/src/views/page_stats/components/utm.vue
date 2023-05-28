@@ -80,15 +80,15 @@ async function loadData(groupBy: "utm_source" | "utm_medium" | "utm_campaign" | 
 }
 watch(() => [props.sites, props.fromDate, props.toDate, activeTab.value], async () =>
 {
-  if(activeTab.value === "source" && !source.value && !loadingSource.value)
+  if(activeTab.value === "source")
     await loadData("utm_source", loadingSource, source);
-  else if(activeTab.value === "medium" && !medium.value && !loadingMedium.value)
+  else if(activeTab.value === "medium")
     await loadData("utm_medium", loadingMedium, medium);
-  else if(activeTab.value === "campaign" && !campaign.value && !loadingCampaign.value)
+  else if(activeTab.value === "campaign")
     await loadData("utm_campaign", loadingCampaign, campaign);
-  else if(activeTab.value === "term" && !term.value && !loadingTerm.value)
+  else if(activeTab.value === "term")
     await loadData("utm_term", loadingTerm, term);
-  else if(activeTab.value === "content" && !content.value && !loadingContent.value)
+  else if(activeTab.value === "content")
     await loadData("utm_content", loadingContent, content);
 })
 async function refresh()
@@ -103,10 +103,6 @@ async function refresh()
   await loadData("utm_source", loadingSource, source);
 }
 
-defineExpose({
-  refresh
-});
-
 onMounted(() => {
   /* Fix for Vite HMR that will not fire loadData because the watch will not fire, the data it is watching did not change */
   if(!source.value)
@@ -116,6 +112,9 @@ onMounted(() => {
   }
 })
 
+defineExpose({
+  refresh
+});
 
 
 </script>

@@ -76,15 +76,10 @@ export interface Domain {
   readonly name: string;
   /**
    * The certificate to use for the domain. This certificate must be in the `us-east-1` region. It must be for the
-   * domain specified in `domain.name` or a wildcard certificate for the domain.
+   * domain specified in `domain.name` and {auth.cognito.loginSubDomain}.{domain.name}`
    */
   readonly certificate: cert.ICertificate;
 
-  /**
-   * The Cognito certificate to use for the domain. This certificate must be in the same region as the stack. It must be
-   * for the Cognito domain defined as `{auth.cognito.loginSubDomain}.{domain.name}` or a wildcard certificate for the domain.
-   */
-  readonly cognitoCertificate: cert.ICertificate;
   /**
    * Optional, if not specified then no DNS records will be created. You will have to create the DNS records yourself.
    *

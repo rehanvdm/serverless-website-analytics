@@ -66,37 +66,6 @@ export function auth(scope: Construct, name: (name: string) => string, props: Sw
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
 
-    // let domain: cognito.UserPoolDomain;
-    // if(props.domain) {
-    //   domain = userPool.addDomain('custom-domain', {
-    //     customDomain: {
-    //       domainName: `${props.auth.cognito.loginSubDomain}.${props.domain.name}`,
-    //       certificate: props.domain.cognitoCertificate,
-    //     },
-    //   });
-    //
-    //   if(props.domain && props.domain.hostedZone) {
-    //     new route53.ARecord(scope, 'custom-domain-dns-record', {
-    //       recordName: domain.domainName,
-    //       target: route53.RecordTarget.fromAlias({
-    //         bind: () => ({
-    //           dnsName: domain.cloudFrontDomainName,
-    //           hostedZoneId: 'Z2FDTNDATAQYW2', // CloudFront Zone ID, fixed for everyone
-    //         })
-    //       }),
-    //       zone: props.domain.hostedZone,
-    //     })
-    //     domain.cloudFrontDomainName
-    //   }
-    // }
-    // else {
-    //   domain = userPool.addDomain('cognito-domain', {
-    //     cognitoDomain: {
-    //       domainPrefix: props.auth.cognito.loginSubDomain,
-    //     },
-    //   });
-    // }
-
     userPoolClientOptions = {
       userPoolClientName: name('userpool-web-client'),
       accessTokenValidity: cdk.Duration.days(1),
