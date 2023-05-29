@@ -24,6 +24,15 @@
         }
       ]
     },
+    "build-jsii": {
+      "name": "build-jsii",
+      "description": "Builds JSII only",
+      "steps": [
+        {
+          "exec": "jsii --silence-warnings=reserved-word"
+        }
+      ]
+    },
     "build-src": {
       "name": "build-src",
       "description": "Only builds source, this is the only step needed to be run before using the package with `npm link` locally",

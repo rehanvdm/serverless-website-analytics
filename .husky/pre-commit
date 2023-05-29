@@ -4,5 +4,6 @@
 npm run default
 npm run eslint
 node_modules/.bin/ts-node ./scripts/index.ts -c validate-src
-jsii --silence-warnings=reserved-word
+npm run build-jsii
+npm run docgen
 git add -u

@@ -1,11 +1,11 @@
+import { Arn, ArnFormat } from 'aws-cdk-lib';
 import * as cert from 'aws-cdk-lib/aws-certificatemanager';
 import * as route53 from 'aws-cdk-lib/aws-route53';
-import {Construct} from 'constructs';
-import {auth} from './auth';
-import {backend} from './backend';
-import {backendAnalytics} from './backendAnalytics';
-import {frontend} from './frontend';
-import {Arn, ArnFormat} from "aws-cdk-lib";
+import { Construct } from 'constructs';
+import { auth } from './auth';
+import { backend } from './backend';
+import { backendAnalytics } from './backendAnalytics';
+import { frontend } from './frontend';
 
 export interface SwaAuthBasicAuth {
   /**
@@ -29,7 +29,6 @@ export interface SwaAuthCognitoUser {
   readonly email: string;
 }
 export interface SwaAuthCognito {
-
   /**
    * The unique domain prefix for the Cognito Hosted UI login page. If no `domain` is specified, this will be used to
    * prefix the AWS provided domain for Cognito Hosted UI login. If `domain` is specified, then it will create the
@@ -134,10 +133,9 @@ export class Swa extends Construct {
       return id + '-' + resourceId;
     }
 
-    if(props.domain?.certificate)
-    {
+    if (props.domain?.certificate) {
       const certRegion = Arn.split(props.domain.certificate.certificateArn, ArnFormat.COLON_RESOURCE_NAME).region;
-      if(certRegion !== 'us-east-1') {
+      if (certRegion !== 'us-east-1') {
         throw new Error(`Certificate must be in us-east-1, not in ${certRegion}, this is a requirement for CloudFront`);
       }
     }

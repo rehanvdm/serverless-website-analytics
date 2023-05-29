@@ -19,7 +19,7 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
     bucketName: name('bucket-analytics'),
     autoDeleteObjects: true,
     blockPublicAccess: s3.BlockPublicAccess.BLOCK_ACLS,
-    accessControl:s3. BucketAccessControl.BUCKET_OWNER_FULL_CONTROL,
+    accessControl: s3.BucketAccessControl.BUCKET_OWNER_FULL_CONTROL,
     removalPolicy: cdk.RemovalPolicy.DESTROY,
   });
 

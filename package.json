@@ -6,6 +6,7 @@
   },
   "scripts": {
     "build": "npx projen build",
+    "build-jsii": "npx projen build-jsii",
     "build-src": "npx projen build-src",
     "bump": "npx projen bump",
     "clobber": "npx projen clobber",
@@ -28,7 +29,8 @@
     "unbump": "npx projen unbump",
     "upgrade": "npx projen upgrade",
     "watch": "npx projen watch",
-    "projen": "npx projen"
+    "projen": "npx projen",
+    "postinstall": "husky install"
   },
   "author": {
     "name": "rehanvdm",

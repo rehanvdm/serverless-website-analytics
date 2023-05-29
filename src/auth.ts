@@ -37,8 +37,10 @@ export function auth(scope: Construct, name: (name: string) => string, props: Sw
       code: cloudfront.FunctionCode.fromInline(cloudFrontBasicAuthFunctionContents),
     });
 
-    cdk.Annotations.of(scope).addWarning('Basic auth is not recommended for production use, it only protects the html' +
-      ' page, not the APIs, consider Cognito instead');
+    cdk.Annotations.of(scope).addWarning(
+      'Basic auth is not recommended for production use, it only protects the html' +
+        ' page, not the APIs, consider Cognito instead'
+    );
   } else if (props.auth?.cognito) {
     userPool = new cognito.UserPool(scope, name('userpool'), {
       userPoolName: name('userpool'),
@@ -85,26 +87,23 @@ export function auth(scope: Construct, name: (name: string) => string, props: Sw
     };
     userPoolClient = userPool.addClient(name('userpool-web-client'), userPoolClientOptions);
 
-
-    if(!props.domain)
-    {
+    if (!props.domain) {
       const domain = userPool.addDomain('cognito-domain', {
         cognitoDomain: {
           domainPrefix: props.auth.cognito.loginSubDomain,
         },
       });
       userPoolDomain = domain.baseUrl();
-      new cdk.CfnOutput(scope, name('COGNITO_HOSTED_UI_URL'), { description: 'COGNITO_HOSTED_UI_URL', value: userPoolDomain });
-    }
-    else
-    {
+      new cdk.CfnOutput(scope, name('COGNITO_HOSTED_UI_URL'), {
+        description: 'COGNITO_HOSTED_UI_URL',
+        value: userPoolDomain,
+      });
+    } else {
       /* Defer creating it here, wait until the Frontend CloudFront is created.
-      * The domain will only be created in the Frontend stack because Cognito requires an A record for a hosted zone
-      * and many people will just create a new subdomain/hosted zone with no records when running this component */
+       * The domain will only be created in the Frontend stack because Cognito requires an A record for a hosted zone
+       * and many people will just create a new subdomain/hosted zone with no records when running this component */
       userPoolDomain = `https://${props.auth.cognito.loginSubDomain}.${props.domain.name}`;
     }
-
-
 
     for (let user of props.auth?.cognito.users) {
       new cognito.CfnUserPoolUser(scope, user.email, {
@@ -124,10 +123,10 @@ export function auth(scope: Construct, name: (name: string) => string, props: Sw
       description: 'USER_POOL_CLIENT_ID',
       value: userPoolClient.userPoolClientId,
     });
-
-  }
-  else {
-    cdk.Annotations.of(scope).addWarning('No auth specified. This is not recommended for production use, specify Cognito instead.');
+  } else {
+    cdk.Annotations.of(scope).addWarning(
+      'No auth specified. This is not recommended for production use, specify Cognito instead.'
+    );
   }
 
   return {

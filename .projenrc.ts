@@ -37,22 +37,23 @@ const project = new awscdk.AwsCdkConstructLibrary({
     },
   },
   depsUpgradeOptions: {
-    workflow: false
+    workflow: false,
   },
   pullRequestTemplate: false,
   githubOptions: {
     pullRequestLintOptions: {
       semanticTitleOptions: {
         types: ['feat', 'fix', 'docs', 'ci', 'chore'],
-      }
-    }
-  }
+      },
+    },
+  },
 });
 
 project.jest!.config.transform = {
   '\\.ts$': 'esbuild-runner/jest',
 };
 
+project.package.setScript('postinstall', 'husky install');
 project.package.addEngine('node', '~18.*');
 project.package.addEngine('npm', '~9.*');
 project.npmignore!.exclude('scripts/**/*');
@@ -79,6 +80,11 @@ project.tasks.addTask('build-src', {
   description:
     'Only builds source, this is the only step needed to be run before using the package with `npm link` locally',
   exec: 'ts-node ./scripts/index.ts -c build-src',
+});
+
+project.tasks.addTask('build-jsii', {
+  description: 'Builds JSII only',
+  exec: 'jsii --silence-warnings=reserved-word',
 });
 
 project.synth();
