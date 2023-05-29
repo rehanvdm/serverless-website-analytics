@@ -1,5 +1,3 @@
-import {z} from "zod";
-
 export type TestConfig = {
   awsProfile: string;
   awsRegion: string;
@@ -35,11 +33,7 @@ export type TestConfig = {
   };
 };
 
-const sites = [
-  'example.com',
-  'tests1',
-  'tests2',
-];
+const sites = ['example.com', 'tests1', 'tests2'];
 const allowedOrigns = ['*']; // localhost:3000 localhost:5173
 
 export const TestConfig: TestConfig = {

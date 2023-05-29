@@ -36,6 +36,17 @@ const project = new awscdk.AwsCdkConstructLibrary({
       esModuleInterop: false, //Not set in main tsconfig.json
     },
   },
+  depsUpgradeOptions: {
+    workflow: false
+  },
+  pullRequestTemplate: false,
+  githubOptions: {
+    pullRequestLintOptions: {
+      semanticTitleOptions: {
+        types: ['feat', 'fix', 'docs', 'ci', 'chore'],
+      }
+    }
+  }
 });
 
 project.jest!.config.transform = {

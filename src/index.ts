@@ -35,7 +35,7 @@ export interface SwaAuthCognito {
    * prefix the AWS provided domain for Cognito Hosted UI login. If `domain` is specified, then it will create the
    * Cognito Hosted UI login page at `{loginSubDomain}.${domain}`.
    */
-  loginSubDomain: string;
+  readonly loginSubDomain: string;
   /**
    * An array of users that are allowed to login.
    */

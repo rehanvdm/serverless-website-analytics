@@ -6,7 +6,7 @@ import {
   ApiGwEventOptions,
   invokeLocalHandlerOrMakeAPICall,
   setEnvVariables,
-  TEST_TYPE
+  TEST_TYPE,
 } from '@tests/helpers';
 import { expect } from 'chai';
 import { V1PageViewInput } from '@backend/api-ingest/v1/page/view';
@@ -128,8 +128,7 @@ describe('API Ingest', function () {
     this.timeout(TimeOut * 1000);
 
     const context = apiGwContext();
-    function getEvent(timeOnPage: number)
-    {
+    function getEvent(timeOnPage: number) {
       const pageView: V1PageViewInput = {
         site: 'example.com',
         user_id: 'test_user_id_2',
