@@ -2,7 +2,7 @@
   "name": "serverless-website-analytics",
   "repository": {
     "type": "git",
-    "url": "https://github.com/rehan.merwe/serverless-website-analytics.git"
+    "url": "https://github.com/rehanvdm/serverless-website-analytics.git"
   },
   "scripts": {
     "build": "npx projen build",

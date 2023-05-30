@@ -1,30 +1,30 @@
 # Contributing
 
-If you start to work on something, create an issue on it first, then do one of the following to indicate you are working on it:
-- Comment on the issue you created
-- Create a draft PR
-- DM me on any social media
-
-This is so I can keep an accurate [roadmap](https://github.com/users/rehanvdm/projects/1/views/1) and ensure that no one is working on the same thing at the same time.
-
-Code changes need accompanying tests.
-
-Commits + PR names must follow the [Conventional Commits](https://gist.github.com/Zekfad/f51cb06ac76e2457f11c80ed705c95a3) standard.
+1. If you start to work on something, create an issue on it first, then do one of the following to indicate you are working on it:
+   - Comment on the issue you created
+   - Create a draft PR
+   - DM me on any social media
+2. This is so I can keep an accurate [roadmap](https://github.com/users/rehanvdm/projects/1/views/1) and ensure that no one is working on the same thing at the same time.
+3. Code changes need accompanying tests.
+4. Commits + PR names must follow the [Conventional Commits](https://gist.github.com/Zekfad/f51cb06ac76e2457f11c80ed705c95a3) standard.
 Available PR name types:
-- feat
-- fix
-- docs
-- ci
-- chore
+   - feat
+   - fix
+   - docs
+   - ci
+   - chore
+5. Run the following command **before committing** to check if your changed code passes the linter, prettier, tsc and
+jsii compiler:
+```
+npm run pre-commit-check
+```
 
 ## Projen
 
-This repo follows the standard setup. The only deviation being the `src` directory for the source code. The whole
-application source code is within the `/src` directory, it can run independently of projen. This is because I want/am
-using this as a template where I can take any existing project and convert it to a projen project. This way I can
+This repo follows the standard setup. The only deviation is the `src` directory for the source code. The whole
+application source code is within the `/src/src` directory, it can run independently of projen. This is because I want/am
+using this as a template, where I can take any existing project and convert it to a projen project. This way I can
 keep the source code in the same place and not have to worry about things like conflicting packages and TS paths.
-
-
 
 ## Setup
 
@@ -35,8 +35,8 @@ cd src/src/ && npm install
 cd src/src/frontend && npm install
 ```
 
-There are two build systems used, the top level projen one for everything projen related and then the one in the
-`src/src` directory for the actual source code uses [wireit](https://github.com/google/wireit).
+There are two build systems used, the top-level `projen` one for everything `projen` related and then the one in the
+`src/src/` directory for the actual source code that uses [wireit](https://github.com/google/wireit).
 
 The only commands that you have to know about and run are in:
 - `package.json` - The top level projen commands
@@ -44,23 +44,22 @@ The only commands that you have to know about and run are in:
 
 ## Tests
 
-
-Similar to the build systems, there are two test systems. The top level projen one for everything projen related that
-uses `ts-jest` and then the one in the `src/src/tests` directory for the actual source code tests that uses `mocha`
-and `chai`. Both use `esbuid-runner` to transpile the TS to JS when testing.
+Similar to the build systems, there are two test systems. The top-level `projen` one for everything CDK related that
+uses `ts-jest` and then the one in the `src/src/tests` directory for the actual source code tests that use `mocha`
+and `chai`. Both use [esbuid-runner](https://github.com/folke/esbuild-runner) to transpile the TS to JS when testing.
 
 Tests for the source code are both unit and end-to-end tests. This is decided by the `process.env.TEST_TYPE` flag in the
 `src/src/tests/environment-hoist.ts` file. If set to `UNIT`, breakpoints can be placed in code and it can be debugged.
 If set to `E2E`, it will do the actual API call and use the same test criteria as for the unit test.
 
-The tests require a config file as we test against real AWS resource. The config file is located at
+The tests require a config file as we test against real AWS resources. The config file is located at
 `src/src/test-config.ts`. These will have to be changed if you are running the tests in your own AWS account.
 
 ## Running the backend and frontend locally
 
 The backend and frontend can be started locally for an improved DX. The backend will run as an express app that
 wraps around the tRPC server, similarly to the tests, it makes use of the `src/src/test-config.ts` file and uses
-real AWS resource. The frontend will run using the Vite dev command.
+real AWS resources. The frontend will run using the Vite dev command.
 ```
 cd src/src/
 npm run start-frontend
@@ -75,8 +74,8 @@ Events/logs/records are stored in S3 in a partitioned manner. The partitioning i
 Kinesis Firehose. The records are stored in parquet format. We are currently using an Append Only Log (AOL) pattern.
 This means that we are never updating the logs, we are only adding new ones.
 
-In order to track the time the use has been on the page we do the following:
-- Create a unique page_id for the current page view
+In order to track the time the user has been on the page we do the following:
+- Create a unique `page_id` for the current page view
 - When the user first loads the page we write a record with the `time_on_page` property set to 0
 - When the user leaves the page we write a record with the `time_on_page` property set to the time the user has been on the page
 
@@ -110,32 +109,32 @@ These are just some of the design decisions (mini ADRs) that were made during th
 
 ### Using S3 website hosting as the origin instead of OAI(Origin Access Identity )
 
-We need the error document of the static website to also point to `index.html`, for handling deeplinking and errors.
+We need the error document of the static website to also point to `index.html`, for handling deep linking and errors.
 We can not set the error document on the CloudFront as it will also be returned for the reverse proxied APIs.
 It needs to be set on S3 website origin, hence we are doing it the "old" way.
 
 ### Using LambdaFunction URLs
 
-It does not make sense using HTTP APIs and even less so REST APIs if we consider our objectives.
+It does not make sense to use HTTP APIs and even less so REST APIs if we consider our objectives.
 
 API requests will go: `Client => CloudFront => Lambda`. We do not use enough of the HTTP API features
 to justify adding it in the mix: `Client => CloudFront => HTTP API => Lambda`. The only thing we would benefit from is
 the route level throttling but that is not well documented and even supported in the AWS console.
 
 Advantages:
-- Cost nothing to execute on th Function URL
+- Cost nothing to execute the Function URL
 - Less integration latency
 
 Disadvantages:
 - Have to log at least 1 custom metric because when the API Lambda errors, it still returns data (success) and we need to
   track the 500s. This means +$0.30 but it is still less and almost constant compared to the $1 per million request for HTTP
   APIs.
-- Can not do method level throttling. But this seems to be a mission in the CDK/CFN as well, not well supported but possible.
-- Throttle on a Lambda level
+- Can not do method-level throttling. But this seems to be a mission in the CDK/CFN as well, not well supported but possible.
+- We will throttle on a Lambda level
 
 ### Number size limits
 
-The different size for numbers used in the project:
+The different sizes for numbers used in the project:
 - Athena: `2^63 - 1`
 - JS: `2^53 - 1`
 - JSON: Arbitrary large
@@ -155,9 +154,9 @@ and [here](https://www.smashingmagazine.com/2019/07/essential-guide-javascript-n
 Dates are passed in ISO format in all DTOs and are assumed to be UTC. They are then parsed and used as UTC in the
 backend when making queries to Athena.
 
-### The TS
+### TypeScript
 
-Tests are using mocha + chai and written in TS as well. TSC is too slow, so we are using
+Tests are using mocha + chai and are written in TS as well. TSC is too slow, so we are using
 [esbuild-runner](https://www.npmjs.com/package/esbuild-runner) instead. Mocha needs to transpile the TS before it can
 run the JS it produces. The `.src/src//tests/esbuild-runner-compile.js` file is registered in the `./.mocharc.json` file.
 

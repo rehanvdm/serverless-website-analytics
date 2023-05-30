@@ -39,7 +39,7 @@ export const handler = async (event: APIGatewayProxyEventV2, context: Context): 
 
   LambdaEnvironment.TRACE_ID = context.awsRequestId;
   logger.start(LambdaEnvironment.LOG_LEVEL, LambdaEnvironment.TRACE_ID);
-  logger.info('Init', event);
+  // logger.info('Init', event);
   event = removeCloudFrontProxyPath(event, '/api');
   const audit: AuditLog = {
     app_version: LambdaEnvironment.VERSION,

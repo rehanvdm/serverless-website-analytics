@@ -14,7 +14,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   packageManager: javascript.NodePackageManager.NPM,
   releaseToNpm: true,
   npmAccess: NpmAccess.PUBLIC,
-  repositoryUrl: 'https://github.com/rehan.merwe/serverless-website-analytics.git',
+  repositoryUrl: 'https://github.com/rehanvdm/serverless-website-analytics.git',
   excludeTypescript: ['src/src/**/*'],
   devDeps: ['husky', 'execa@5', 'fs-extra', '@types/fs-extra', 'esbuild', 'yargs', 'esbuild-runner'],
   eslint: true,
