@@ -55,7 +55,7 @@ project.jest!.config.transform = {
   '\\.ts$': 'esbuild-runner/jest',
 };
 
-project.package.setScript('postinstall', 'husky install');
+// project.package.setScript('postinstall', 'husky install');
 project.package.addEngine('node', '~18.*');
 project.package.addEngine('npm', '~9.*');
 project.npmignore!.exclude('scripts/**/*');

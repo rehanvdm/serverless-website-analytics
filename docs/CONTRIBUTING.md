@@ -13,7 +13,12 @@ Available PR name types:
    - docs
    - ci
    - chore
-5. Run the following command **before committing** to check if your changed code passes the linter, prettier, tsc and
+5. Install husky to run the git hooks on committing:
+```
+husky install
+```
+
+Alternatively run the following command **before committing** to check if your changed code passes the linter, prettier, tsc and
 jsii compiler:
 ```
 npm run pre-commit-check
