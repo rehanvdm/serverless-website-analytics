@@ -186,6 +186,14 @@ in a partitioned manner, by site, year and month. The data is saved in parquet f
 looking the IP address up in the [MaxMind GeoLite2](https://dev.maxmind.com/geoip/geoip2/geolite2/) database. We don't
 store any Personally Identifiable Information (PII) in the logs, the IP address is never stored.
 
+## Sponsors
+
+Proudly sponsored by:
+- [Cloud Glance](https://cloudglance.dev/?utm_source=github-sponsors) - A Single pane of glass for
+all your AWS credentials and more.
+- Interested in [sponsoring](https://rehanvdm.com/contact-me)?
+
+
 ## Contributing
 
 See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for more info on how to contribute + design decisions.
@@ -193,6 +201,7 @@ See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for more info on how to contribute +
 ## Roadmap
 
 Can be found in the [here](https://github.com/users/rehanvdm/projects/1/views/1)
+
 
 # API Reference <a name="API Reference" id="api-reference"></a>
 

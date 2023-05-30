@@ -44,12 +44,14 @@ async function nextPage()
   {
     if(pageCurrent.value < pageTotal.value && ((pageCurrent.value+1)*props.pageSize) <= props.rows.length)
     {
-      console.log("next page", ((pageCurrent.value+1)*props.pageSize), props.rows.length)
+      // console.log("next page", ((pageCurrent.value+1)*props.pageSize), props.rows.length)
       pageCurrent.value++;
       return;
     }
 
-    await props.loadMorePromise();
+    if(props.enablePageForward)
+      await props.loadMorePromise();
+
     pageCurrent.value++;
   }
 
@@ -68,10 +70,7 @@ const rowGridColumnCss = computed(() => {
 
 const canPageBackward = computed(() => pageCurrent.value > 1);
 const canPageForward = computed(() => {
-  if(!props.loadMorePromise)
-    return pageCurrent.value < pageTotal.value;
-  else
-    return props.enablePageForward || (pageCurrent.value < pageTotal.value);
+  return pageCurrent.value < pageTotal.value;
 });
 </script>
 

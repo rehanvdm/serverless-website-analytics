@@ -3,7 +3,6 @@ import { AppRouter } from '@backend/api-front/server';
 import { Ref } from 'vue';
 import { ElNotification } from 'element-plus';
 import { getSystemStore } from '@frontend/src/stores/system';
-import { TRPCError } from '@trpc/server';
 
 const frontendUrl = import.meta.env.VITE_FRONTEND_URL;
 

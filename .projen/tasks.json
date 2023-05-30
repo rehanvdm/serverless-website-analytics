@@ -236,6 +236,27 @@
       "name": "post-upgrade",
       "description": "Runs after upgrading dependencies"
     },
+    "pre-commit-check": {
+      "name": "pre-commit-check",
+      "description": "This check runs in husky and can also be run manually.",
+      "steps": [
+        {
+          "exec": "npm run default"
+        },
+        {
+          "exec": "npm run eslint"
+        },
+        {
+          "exec": "node_modules/.bin/ts-node ./scripts/index.ts -c validate-src"
+        },
+        {
+          "exec": "npm run build-jsii"
+        },
+        {
+          "exec": "npm run docgen"
+        }
+      ]
+    },
     "pre-compile": {
       "name": "pre-compile",
       "description": "Prepare the project for compilation"

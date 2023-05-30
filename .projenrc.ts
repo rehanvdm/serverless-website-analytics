@@ -89,4 +89,13 @@ project.tasks.addTask('build-jsii', {
   exec: 'jsii --silence-warnings=reserved-word',
 });
 
+const preCommitChecks = project.tasks.addTask('pre-commit-check', {
+  description: 'This check runs in husky and can also be run manually.',
+  exec: 'npm run default',
+});
+preCommitChecks.exec('npm run eslint');
+preCommitChecks.exec('node_modules/.bin/ts-node ./scripts/index.ts -c validate-src');
+preCommitChecks.exec('npm run build-jsii');
+preCommitChecks.exec('npm run docgen');
+
 project.synth();
