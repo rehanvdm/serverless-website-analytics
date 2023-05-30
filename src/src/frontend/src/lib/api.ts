@@ -55,10 +55,6 @@ export async function apiWrapper<T>(func: Promise<T>, loadingState?: Ref<boolean
         console.log('Not authenticated, redirecting to login', systemStore.cognitoLoginUrlWithRedirect);
         document.location.href = systemStore.cognitoLoginUrlWithRedirect;
         return false;
-      } else if (err instanceof TRPCError && err.code === 'UNAUTHORIZED' && systemStore.cognitoLoginUrlWithRedirect) {
-        console.log('UNAUTHORIZED, redirecting to login', systemStore.cognitoLoginUrlWithRedirect);
-        document.location.href = systemStore.cognitoLoginUrlWithRedirect;
-        return false;
       }
     }
 

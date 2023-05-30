@@ -47,6 +47,8 @@ const project = new awscdk.AwsCdkConstructLibrary({
       },
     },
   },
+  docsDirectory: './docs',
+  docgenFilePath: './docs/API.md',
 });
 
 project.jest!.config.transform = {
