@@ -21,6 +21,9 @@ export type TestConfig = {
     ALLOWED_ORIGINS: string;
     ANALYTICS_GLUE_DB_NAME: string;
 
+    TRACK_OWN_DOMAIN?: string;
+    IS_DEMO_PAGE?: string;
+
     COGNITO_USER_POOL_ID?: string;
     COGNITO_CLIENT_ID?: string;
     COGNITO_HOSTED_UI_URL?: string;
@@ -33,7 +36,7 @@ export type TestConfig = {
   };
 };
 
-const sites = ['example.com', 'tests1', 'tests2'];
+const sites = ['example.com', 'tests1', 'tests2', 'localhost'];
 const allowedOrigns = ['*']; // localhost:3000 localhost:5173
 
 export const TestConfig: TestConfig = {
@@ -58,6 +61,11 @@ export const TestConfig: TestConfig = {
     SITES: JSON.stringify(sites),
     ALLOWED_ORIGINS: JSON.stringify(allowedOrigns),
     ANALYTICS_GLUE_DB_NAME: 'swa-demo-db',
+
+    // TRACK_OWN_DOMAIN: 'true',
+    // TRACK_OWN_DOMAIN: 'false',
+    // IS_DEMO_PAGE: 'true',
+    // IS_DEMO_PAGE: 'false',
 
     // Uncomment for no auth
     // COGNITO_USER_POOL_ID: 'us-east-1_tvl0sw7Ei',

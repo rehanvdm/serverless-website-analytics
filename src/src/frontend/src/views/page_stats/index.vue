@@ -10,13 +10,17 @@ import ChartLocations from "@frontend/src/views/page_stats/components/chart_loca
 import Referrers from "@frontend/src/views/page_stats/components/referrers.vue";
 import UserInfo from "@frontend/src/views/page_stats/components/user_info.vue";
 import UTM from "@frontend/src/views/page_stats/components/utm.vue";
-import assert from "assert";
+import {getSystemStore} from "@frontend/src/stores/system";
 
 /* ================================================================================================================== */
 /* ==================================================== Settings  =================================================== */
 /* ================================================================================================================== */
 const isDark = useDark();
 const showSettings = ref(false);
+const showDemoBanner = computed(() => {
+  const systemStore = getSystemStore();
+  return !!systemStore.frontendEnvironment.isDemoPage;
+});
 
 /* ================================================================================================================== */
 /* ================================================== Date Filter =================================================== */
@@ -158,8 +162,26 @@ async function refresh()
 
 
 <template>
-  <el-container class="h100" style="display: flex; justify-content: center" >
+  <el-container class="h100" style="display: flex; justify-content: center">
+
     <div style="width: 1280px; ">
+
+      <el-alert v-if="showDemoBanner" class="demo" type="warning" style="margin-top: 10px; width: 100%" >
+        <div style="display: flex; justify-content: space-between; width: 100%">
+          <div>
+            This is the open source CDK <a style="font-weight: bold; color: inherit" href="https://github.com/rehanvdm/serverless-website-analytics" target="_blank">serverless-website-analytics</a> demo page, it tracks this page and some simulated traffic.
+          </div>
+          <div>
+            <a style="margin-left: 20px" href="https://github.com/rehanvdm/serverless-website-analytics" target="_blank">
+              <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/rehanvdm/serverless-website-analytics?label=Github&style=social">
+            </a>
+            <a style="margin-left: 20px" href="https://www.npmjs.com/package/serverless-website-analytics" target="_blank">
+              <img alt="npm" src="https://img.shields.io/npm/dw/serverless-website-analytics">
+            </a>
+          </div>
+        </div>
+      </el-alert>
+
       <el-header>
         <div style="display: flex; justify-content: space-between; padding-top:23px">
           <div>
