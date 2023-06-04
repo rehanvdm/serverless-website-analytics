@@ -75,9 +75,10 @@ npm run watch-local-api-ingest-watch
 ## Highlights
 
 ### Record storage strategy
-Events/logs/records are stored in S3 in a partitioned manner. The partitioning is done by site, month and day by
-Kinesis Firehose. The records are stored in parquet format. We are currently using an Append Only Log (AOL) pattern.
-This means that we are never updating the logs, we are only adding new ones.
+Events/logs/records are stored in S3 in a partitioned manner. The partitioning is dynamic, so all that is left is to store
+the data correctly and that is done by Kinesis Firehose in the format of: site, month and day. The records are buffered
+and stored in parquet format. We are currently using an Append Only Log (AOL) pattern. This means that we are never
+updating the logs, we are only adding new ones.
 
 In order to track the time the user has been on the page we do the following:
 - Create a unique `page_id` for the current page view
