@@ -62,9 +62,9 @@ export const TestConfig: TestConfig = {
     ALLOWED_ORIGINS: JSON.stringify(allowedOrigns),
     ANALYTICS_GLUE_DB_NAME: 'swa-demo-db',
 
-    // TRACK_OWN_DOMAIN: 'true',
+    TRACK_OWN_DOMAIN: 'true',
     // TRACK_OWN_DOMAIN: 'false',
-    // IS_DEMO_PAGE: 'true',
+    IS_DEMO_PAGE: 'true',
     // IS_DEMO_PAGE: 'false',
 
     // Uncomment for no auth

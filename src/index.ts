@@ -161,6 +161,7 @@ export class Swa extends Construct {
 
     if (props?.domain?.trackOwnDomain) {
       props.sites.push(props.domain.name);
+      props.allowedOrigins.push(`https://${props.domain.name}`);
     }
 
     const authProps = auth(scope, name, props);
