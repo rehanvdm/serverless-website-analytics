@@ -1,6 +1,6 @@
 import { initTRPC, TRPCError } from '@trpc/server';
 import { getFrontendEnvironment } from '@backend/api-front/routes/env';
-import { sites, sitesGetPartitions, sitesUpdatePartition } from '@backend/api-front/routes/sites';
+import { sites } from '@backend/api-front/routes/sites';
 import {
   getTopLevelStats,
   getPageViews,
@@ -31,8 +31,6 @@ export type TrpcInstance = typeof trpcInstance;
 export const appRouter = trpcInstance.router({
   getFrontendEnvironment: getFrontendEnvironment(trpcInstance),
   sites: sites(trpcInstance),
-  sitesGetPartitions: sitesGetPartitions(trpcInstance),
-  sitesUpdatePartition: sitesUpdatePartition(trpcInstance),
   getTopLevelStats: getTopLevelStats(trpcInstance),
   getPageViews: getPageViews(trpcInstance),
   getChartViews: getChartViews(trpcInstance),

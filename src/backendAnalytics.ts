@@ -202,6 +202,17 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
           },
         ],
       },
+      parameters: {
+        'projection.enabled': 'true',
+        'projection.year.type': 'integer',
+        'projection.year.range': '2023,3023',
+        'projection.year.interval': '1',
+        'projection.month.type': 'integer',
+        'projection.month.range': '1,12',
+        'projection.month.interval': '1',
+        'projection.site.type': 'enum',
+        'projection.site.values': props.sites.join(','),
+      },
     },
   });
   glueTablePageViews.addDependency(glueDb);

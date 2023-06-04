@@ -100,10 +100,6 @@ You can see an example implementation of the demo site [here](https://github.com
 
 ### Client side setup
 
-> ⚠️ IMPORTANT! **After** the client sent the first page data, you have to click on the "Add Partitions" button in the
-> frontend to auto-discover and add the site, month and day partitions. Otherwise, the data will not show up in the charts.
-> This operation has to be repeated at the beginning of every month.
-
 Install the [client-side library](https://www.npmjs.com/package/serverless-website-analytics-client):
 ```
 npm install serverless-website-analytics-client
@@ -169,16 +165,12 @@ This is a Lambda-lith hit through the Lambda Function URLs (FURL) by reverse pro
 in TypeScript and uses [tRPC](https://trpc.io/) to handle API requests.
 
 The Queries to Athena are synchronous, the connection timeout between CloudFront and the FURL has been increased
-to 60 seconds.
+to 60 seconds. Partitions are dynamic, they do not need to be added manually.
 
 There are three available authentication configurations:
 - **None**, it is open to the public
 - **Basic Authentication**, basic protection for the index.html file
 - **AWS Cogntio**, recommended for production
-
-⚠️ Partitions are not automatically created in Athena, they have to be created manually by the user by clicking the
-"Create/Refresh Partitions" button in the frontend. This has to be done whenever a new site is added or a new month
-starts.
 
 ### Ingestion API
 

@@ -2,7 +2,6 @@
 import { useDark } from '@vueuse/core';
 import {computed, onMounted, Ref, ref, unref, watch} from "vue";
 import {api, apiWrapper} from "@frontend/src/lib/api";
-import {SitePartition} from "@backend/lib/models/site";
 import Totals from "@frontend/src/views/page_stats/components/totals.vue";
 import ChartViews from "@frontend/src/views/page_stats/components/chart_views.vue";
 import {DateUtils} from "@frontend/src/lib/date_utils";
@@ -14,25 +13,10 @@ import UTM from "@frontend/src/views/page_stats/components/utm.vue";
 import assert from "assert";
 
 /* ================================================================================================================== */
-/* ============================================= Settings & Partitions ============================================== */
+/* ==================================================== Settings  =================================================== */
 /* ================================================================================================================== */
 const isDark = useDark();
 const showSettings = ref(false);
-let partitions: Ref<SitePartition[]> = ref([]);
-let loadingPartitions = ref(false);
-onMounted(async () => {
-  const resp = await apiWrapper(api.sitesGetPartitions.query(), loadingPartitions);
-  if(!resp)
-    return;
-  partitions.value = resp;
-});
-async function refreshPartitions(forceRepair: boolean)
-{
-  const resp = await apiWrapper(api.sitesUpdatePartition.mutate({forceRepair}), loadingPartitions);
-  if(!resp)
-    return;
-  partitions.value = resp;
-}
 
 /* ================================================================================================================== */
 /* ================================================== Date Filter =================================================== */
@@ -135,7 +119,7 @@ const loadingReferrers = ref(false);
 const loadingUserInfo = ref(false);
 const loadingUtm = ref(false);
 const loadingComponents = computed(() => {
-  return loadingSites.value || loadingPartitions.value || loadingTotals.value || loadingPageViews.value ||
+  return loadingSites.value || loadingTotals.value || loadingPageViews.value ||
     loadingChartViews.value || loadingChartLocations.value || loadingUserInfo.value || loadingUtm.value;
 });
 
@@ -214,12 +198,6 @@ async function refresh()
 
             <el-divider direction="vertical" style="height: 1.5rem; top: -3px;"></el-divider>
 
-            <el-tooltip content="Refresh partitions">
-              <el-button class="menu-button" text round plain @click="refreshPartitions(false)" :disabled="loadingPartitions">
-                <mdi-inbox-multiple class="menu-button__icon"></mdi-inbox-multiple>
-              </el-button>
-            </el-tooltip>
-
             <el-tooltip content="Settings">
               <el-button class="menu-button" text round plain @click="showSettings = !showSettings" >
                 <mdi-cog class="menu-button__icon"></mdi-cog>
@@ -270,50 +248,10 @@ async function refresh()
     </div>
 
     <el-drawer class="hidden-sm-and-down" v-model="showSettings" title="Settings" direction="rtl" size="100%" style="max-width: 500px" >
-
       <div class="settings-label-single" style="display: flex; justify-content: space-between">
         <span class="settings-label">Theme</span>
         <el-switch class="header__switch" v-model="isDark" inactive-text="Light" active-text="Dark" />
       </div>
-
-      <el-collapse>
-        <el-collapse-item>
-          <template #title>
-            <span class="settings-label">
-              Partitions ({{partitions.length}})
-              <el-button-group>
-                <el-button style="margin-left: 100px;" plain type="primary"
-                           @click.stop="refreshPartitions(false)" :loading="loadingPartitions">
-                  Refresh
-                </el-button>
-                <el-popover popper-style="padding: 3px;" trigger="hover" placement="bottom-end">
-                  <template #reference>
-                    <el-button plain type="primary" style="padding-left: 5px; padding-right: 5px;"
-                               @click.stop="" :disabled="loadingPartitions">
-                      <mdi-chevron-down></mdi-chevron-down>
-                    </el-button>
-                  </template>
-                  <template #default style="padding: 0">
-                    <el-button plain type="primary" text
-                               @click.stop="refreshPartitions(true)" :loading="loadingPartitions">
-                        Force Repair
-                    </el-button>
-                  </template>
-                </el-popover>
-
-              </el-button-group>
-            </span>
-          </template>
-
-          <el-table :data="partitions" style="width: 100%" stripe v-loading="loadingPartitions">
-            <el-table-column prop="site" label="Site" sortable />
-            <el-table-column prop="year" label="Year" width="100" sortable />
-            <el-table-column prop="month" label="Month" width="100" sortable />
-          </el-table>
-
-        </el-collapse-item>
-      </el-collapse>
-
     </el-drawer>
 
   </el-container>
