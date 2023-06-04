@@ -80,3 +80,7 @@ p {
   padding: 0 15px;
   min-height: 470px;
 }
+
+.demo > .el-alert__content > .el-alert__description {
+  font-size: small;
+}

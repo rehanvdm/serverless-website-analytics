@@ -107,7 +107,11 @@ export function backend(
     ...defaultNodeJsFuncOpt,
     memorySize: 1024,
     timeout: Duration.seconds(frontLambdaTimeOut),
-    environment: env,
+    environment: {
+      ...env,
+      TRACK_OWN_DOMAIN: props?.domain?.trackOwnDomain ? 'true' : 'false',
+      IS_DEMO_PAGE: props.isDemoPage ? 'true' : 'false',
+    },
     reservedConcurrentExecutions: 100,
   });
   apiFrontLambda.addToRolePolicy(

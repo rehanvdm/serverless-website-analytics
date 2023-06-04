@@ -90,6 +90,12 @@ export interface Domain {
    * the domain, for example: `{auth.cognito.loginSubDomain}.{domain.name}`.
    */
   readonly hostedZone?: route53.IHostedZone;
+
+  /**
+   * Optional, if specified, it adds tracking to the dashboard. This is useful if you want to see the usage of
+   * the serverless-website-analytics dashboard page.
+   */
+  readonly trackOwnDomain?: boolean;
 }
 
 export interface SwaProps {
@@ -131,6 +137,11 @@ export interface SwaProps {
    * Cognito(`auth.us-east-1.amazoncognito.com`) domains. You can read the website URL from the stack output.
    */
   readonly domain?: Domain;
+
+  /**
+   * If specified, adds the banner at the top of the page linking back to the open source project.
+   */
+  readonly isDemoPage?: boolean;
 }
 
 export class Swa extends Construct {
@@ -146,6 +157,11 @@ export class Swa extends Construct {
       if (certRegion !== 'us-east-1') {
         throw new Error(`Certificate must be in us-east-1, not in ${certRegion}, this is a requirement for CloudFront`);
       }
+    }
+
+    if (props?.domain?.trackOwnDomain) {
+      props.sites.push(props.domain.name);
+      props.allowedOrigins.push(`https://${props.domain.name}`);
     }
 
     const authProps = auth(scope, name, props);

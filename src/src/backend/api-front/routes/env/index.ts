@@ -4,6 +4,8 @@ import { LambdaEnvironment } from '@backend/api-front/environment';
 
 const FrontendEnvironmentSchema = z.object({
   cognitoLoginUrl: z.string().optional(),
+  trackOwnDomain: z.boolean().optional(),
+  isDemoPage: z.boolean().optional(),
 });
 export type FrontendEnvironment = z.infer<typeof FrontendEnvironmentSchema>;
 
@@ -20,6 +22,8 @@ export function getFrontendEnvironment(trpcInstance: TrpcInstance) {
       }
       return {
         cognitoLoginUrl,
+        trackOwnDomain: LambdaEnvironment.TRACK_OWN_DOMAIN,
+        isDemoPage: LambdaEnvironment.IS_DEMO_PAGE,
       };
     });
 }

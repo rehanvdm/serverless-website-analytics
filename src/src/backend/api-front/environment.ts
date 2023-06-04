@@ -18,25 +18,37 @@ export class LambdaEnvironment {
   static COGNITO_CLIENT_ID: string | undefined;
   static COGNITO_HOSTED_UI_URL: string | undefined;
 
+  static TRACK_OWN_DOMAIN: boolean;
+  static IS_DEMO_PAGE: boolean;
+
   static init() {
     const schema = z.object({
       AWS_REGION: z.string(),
       ENVIRONMENT: z.string(),
       VERSION: z.string(),
-      TIMEOUT: z.string(),
+      TIMEOUT: z.string().transform((v) => Number(v)),
       LOG_LEVEL: z.string(),
-      ENRICH_RETURNED_ERRORS: z.string(),
+      ENRICH_RETURNED_ERRORS: z.string().transform((v) => Boolean(v) && v !== 'false'),
 
       ANALYTICS_BUCKET: z.string(),
       ANALYTICS_GLUE_DB_NAME: z.string(),
-      SITES: z.string(),
+      SITES: z.string().transform((v) => JSON.parse(v) as string[]),
 
       COGNITO_USER_POOL_ID: z.string().optional(),
       COGNITO_CLIENT_ID: z.string().optional(),
       COGNITO_HOSTED_UI_URL: z.string().optional(),
-    });
 
+      TRACK_OWN_DOMAIN: z
+        .string()
+        .optional()
+        .transform((v) => Boolean(v) && v !== 'false'),
+      IS_DEMO_PAGE: z
+        .string()
+        .optional()
+        .transform((v) => Boolean(v) && v !== 'false'),
+    });
     const parsed = schema.safeParse(process.env);
+
     if (!parsed.success) {
       console.error(parsed.error);
       throw new Error('Environment Variable Parse Error');
@@ -45,13 +57,9 @@ export class LambdaEnvironment {
     for (const key in parsed.data) {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore we know this is safe
-      this[key] = process.env[key];
+      this[key] = parsed.data[key];
     }
 
-    this.TIMEOUT = Number(this.TIMEOUT);
     this.ANALYTICS_BUCKET_ATHENA_PATH = 's3://' + this.ANALYTICS_BUCKET + '/athena-results';
-    this.ENRICH_RETURNED_ERRORS = Boolean(this.ENRICH_RETURNED_ERRORS);
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.SITES = JSON.parse(process.env.SITES!) as string[];
   }
 }
