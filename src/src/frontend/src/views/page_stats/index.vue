@@ -164,12 +164,13 @@ async function refresh()
 <template>
   <el-container class="h100" style="display: flex; justify-content: center">
 
-    <div style="width: 1280px; ">
+    <div style="width: 1280px;">
 
       <el-alert v-if="showDemoBanner" class="demo" type="warning" style="margin-top: 10px; width: 100%" >
         <div style="display: flex; justify-content: space-between; width: 100%">
           <div>
-            This is the open source CDK <a style="font-weight: bold; color: inherit" href="https://github.com/rehanvdm/serverless-website-analytics" target="_blank">serverless-website-analytics</a> demo page, it tracks this page and some simulated traffic.
+            This is the open source CDK <a style="font-weight: bold; color: inherit" href="https://github.com/rehanvdm/serverless-website-analytics" target="_blank">serverless-website-analytics</a>
+            demo page, it tracks this page and some <a style="font-weight: bold; color: inherit" href="https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/DEMO-TRAFFIC.md" target="_blank">simulated traffic.</a>.
           </div>
           <div>
             <a style="margin-left: 20px" href="https://github.com/rehanvdm/serverless-website-analytics" target="_blank">
