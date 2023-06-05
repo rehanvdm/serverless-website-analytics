@@ -7,15 +7,18 @@ This solution was designed for multiple websites with low to moderate traffic. I
 possible, but it is not free. The cost is mostly driven by the ingestion API that saves the data to S3 through a
 Kinesis Firehose.
 
-You can see a LIVE DEMO [HERE](https://demo.serverless-website-analytics.com/).
+You can see a LIVE DEMO [HERE](https://demo.serverless-website-analytics.com/) and read about the simulated traffic
+[here](https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/DEMO-TRAFFIC.md)
 
 ## Objectives
-- Easy to deploy in your AWS account, any *region
-- The target audience is small to medium websites with low to moderate traffic (less than 10M views)
+- Low frequency of dashboard views
+- The target audience is small to medium website(s) with low to moderate page view traffic (equal or less than 10M views)
 - Lowest possible cost
 - KISS
 - No direct server-side state
 - Low maintenance
+- Easy to deploy in your AWS account, any *region
+- Don't store any Personally Identifiable Information (PII)
 
 The main objective is to keep it simple and the operational cost low, keeping true to "scale to 0" tenants of serverless,
 even if it goes against "best practices".
