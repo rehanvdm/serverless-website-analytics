@@ -94,8 +94,8 @@ export function auth(scope: Construct, name: (name: string) => string, props: Sw
         },
       });
       userPoolDomain = domain.baseUrl();
-      new cdk.CfnOutput(scope, name('COGNITO_HOSTED_UI_URL'), {
-        description: 'COGNITO_HOSTED_UI_URL',
+      new cdk.CfnOutput(scope, name('CognitoHostedUrl'), {
+        description: 'Cognito Hosted Url',
         value: userPoolDomain,
       });
     } else {
@@ -118,9 +118,12 @@ export function auth(scope: Construct, name: (name: string) => string, props: Sw
       });
     }
 
-    new cdk.CfnOutput(scope, name('USER_POOL_ID'), { description: 'USER_POOL_ID', value: userPool.userPoolId });
-    new cdk.CfnOutput(scope, name('USER_POOL_CLIENT_ID'), {
-      description: 'USER_POOL_CLIENT_ID',
+    new cdk.CfnOutput(scope, name('CognitoUserPoolId'), {
+      description: 'Cognito UserPoolId',
+      value: userPool.userPoolId,
+    });
+    new cdk.CfnOutput(scope, name('CognitoUserPoolClientId'), {
+      description: 'Cognito UserPool ClientId',
       value: userPoolClient.userPoolClientId,
     });
   } else {

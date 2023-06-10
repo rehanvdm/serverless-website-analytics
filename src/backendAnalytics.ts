@@ -9,6 +9,7 @@ import { CfnLogGroup } from 'aws-cdk-lib/aws-logs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { SwaProps } from './index';
+import { CwBucket, CwFirehose } from './lib/cloudwatch-helper';
 
 export function backendAnalytics(scope: Construct, name: (name: string) => string, props: SwaProps) {
   /* ======================================================================= */
@@ -464,22 +465,25 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
   firehoseEvents.addDependency(firehoseDeliveryRole.node.defaultChild as CfnRole);
   firehoseEvents.addDependency(logGroup.node.defaultChild as CfnLogGroup);
 
-  new cdk.CfnOutput(scope, name('ANALYTICS_BUCKET'), {
-    description: 'ANALYTICS_BUCKET',
+  new cdk.CfnOutput(scope, name('AnalyticsBucket'), {
+    description: 'Analytics Bucket',
     value: analyticsBucket.bucketName,
   });
-  new cdk.CfnOutput(scope, name('FIREHOSE_PAGE_VIEWS_NAME'), {
-    description: 'FIREHOSE_PAGE_VIEWS_NAME',
+  new cdk.CfnOutput(scope, name('FirehosePageViewsName'), {
+    description: 'Firehose Page Views Name',
     value: firehosePageViews.deliveryStreamName!,
   });
-  new cdk.CfnOutput(scope, name('FIREHOSE_EVENTS_NAME'), {
-    description: 'FIREHOSE_EVENTS_NAME',
+  new cdk.CfnOutput(scope, name('FirehoseEventsName'), {
+    description: 'Firehose Events Name',
     value: firehoseEvents.deliveryStreamName!,
   });
-  new cdk.CfnOutput(scope, name('ANALYTICS_GLUE_DB_NAME'), {
-    description: 'ANALYTICS_GLUE_DB_NAME',
+  new cdk.CfnOutput(scope, name('AnalyticsGlueDbName'), {
+    description: 'Analytics Glue DB Name',
     value: glueDbName,
   });
+
+  const cwBuckets: CwBucket[] = [{ bucket: analyticsBucket }];
+  const cwFirehoses: CwFirehose[] = [{ firehose: firehosePageViews }, { firehose: firehoseEvents }];
 
   return {
     glueDbName,
@@ -488,5 +492,9 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
     analyticsBucket,
     firehosePageViews,
     firehoseEvents,
+    observability: {
+      cwBuckets,
+      cwFirehoses,
+    },
   };
 }

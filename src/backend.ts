@@ -5,10 +5,12 @@ import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Effect } from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as logs from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 import { auth } from './auth';
 import { backendAnalytics } from './backendAnalytics';
 import { SwaProps } from './index';
+import { CwLambda } from './lib/cloudwatch-helper';
 
 export function backend(
   scope: Construct,
@@ -194,8 +196,33 @@ export function backend(
     authType: lambda.FunctionUrlAuthType.NONE,
   });
 
+  const cwLambdas: CwLambda[] = [
+    {
+      func: apiIngestLambda,
+      alarm: {
+        hardError: true,
+        softErrorFilter: logs.FilterPattern.all(
+          logs.FilterPattern.stringValue('$.level', '=', 'audit'),
+          logs.FilterPattern.stringValue('$.success', '=', 'false')
+        ),
+      },
+    },
+    {
+      func: apiFrontLambda,
+      alarm: {
+        hardError: true,
+        softErrorFilter: logs.FilterPattern.all(
+          logs.FilterPattern.stringValue('$.level', '=', 'audit'),
+          logs.FilterPattern.stringValue('$.success', '=', 'false')
+        ),
+      },
+    },
+  ];
   return {
     apiIngestOrigin: cdk.Fn.select(2, cdk.Fn.split('/', apiIngestLambdaUrl.url)),
     apiFrontOrigin: cdk.Fn.select(2, cdk.Fn.split('/', apiFrontLambdaUrl.url)),
+    observability: {
+      cwLambdas,
+    },
   };
 }
