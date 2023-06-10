@@ -19,9 +19,8 @@ import { Construct } from 'constructs';
 import { auth } from './auth';
 import { backend } from './backend';
 import { SwaProps } from './index';
+import { CwCloudFront } from './lib/cloudwatch-helper';
 
-//eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 export function frontend(
   scope: Construct,
   name: (name: string) => string,
@@ -201,8 +200,8 @@ export function frontend(
           certificate: props.domain.certificate,
         },
       });
-      new cdk.CfnOutput(scope, name('COGNITO_HOSTED_UI_URL'), {
-        description: 'COGNITO_HOSTED_UI_URL',
+      new cdk.CfnOutput(scope, name('CognitoHostedUrl'), {
+        description: 'Cognito Hosted URL',
         value: cognitoDomain.baseUrl(),
       });
       if (cloudFrontRecord) cognitoDomain.node.addDependency(cloudFrontRecord);
@@ -232,29 +231,34 @@ export function frontend(
     if (manualRecords.length) {
       cdk.Annotations.of(scope).addInfo('DNS records need to be created manually, see all CloudFormation Outputs');
       for (const record of manualRecords) {
-        new cdk.CfnOutput(scope, name(`DNS_${record.description}`), {
-          description: `DNS_${record.description}`,
+        new cdk.CfnOutput(scope, name(`Dns_${record.description}`), {
+          description: `DNS ${record.description}`,
           value: `Manually Create DNS Record: ${record.name} ${record.type} ${record.value}`,
         });
       }
     }
   }
 
-  new cdk.CfnOutput(scope, name('CFD_ID'), { description: 'CFD_ID', value: frontendDist.distributionId });
-  new cdk.CfnOutput(scope, name('FRONTEND_URL'), {
-    description: 'FRONTEND_URL',
+  new cdk.CfnOutput(scope, name('CloudFrontId'), { description: 'CloudFront Id', value: frontendDist.distributionId });
+  new cdk.CfnOutput(scope, name('FrontendUrl'), {
+    description: 'Frontend Url',
     value: cdk.Fn.join('', ['https://', props.domain?.name || frontendDist.distributionDomainName]),
   });
-  new cdk.CfnOutput(scope, name('apiIngestUrl'), {
-    description: 'apiIngestUrl',
+  new cdk.CfnOutput(scope, name('ApiIngestUrl'), {
+    description: 'Api Ingest Url',
     value: cdk.Fn.join('', ['https://', props.domain?.name || frontendDist.distributionDomainName, '/api-ingest']),
   });
-  new cdk.CfnOutput(scope, name('apiFrontLambdaUrl'), {
-    description: 'apiFrontLambdaUrl',
+  new cdk.CfnOutput(scope, name('ApiFrontLambdaUrl'), {
+    description: 'Api Front Lambda Url',
     value: cdk.Fn.join('', ['https://', props.domain?.name || frontendDist.distributionDomainName, '/api']),
   });
 
+  const cwCloudFronts: CwCloudFront[] = [{ distribution: frontendDist }];
+
   return {
     frontendDist,
+    observability: {
+      cwCloudFronts,
+    },
   };
 }

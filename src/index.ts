@@ -1,11 +1,13 @@
 import { Arn, ArnFormat } from 'aws-cdk-lib';
 import * as cert from 'aws-cdk-lib/aws-certificatemanager';
 import * as route53 from 'aws-cdk-lib/aws-route53';
+import * as sns from 'aws-cdk-lib/aws-sns';
 import { Construct } from 'constructs';
 import { auth } from './auth';
 import { backend } from './backend';
 import { backendAnalytics } from './backendAnalytics';
 import { frontend } from './frontend';
+import { observability } from './observability';
 
 export interface SwaAuthBasicAuth {
   /**
@@ -98,6 +100,46 @@ export interface Domain {
   readonly trackOwnDomain?: boolean;
 }
 
+export interface AlarmTypes {
+  /**
+   * Adds a hard and soft alarm to both Lambda functions;
+   */
+  readonly lambda: boolean;
+  /**
+   * Adds a throttle and s3 delivery failure alarms for both Firehoses.
+   */
+  readonly firehose: boolean;
+}
+
+export const AllAlarmTypes: AlarmTypes = {
+  lambda: true,
+  firehose: true,
+} as const;
+
+export interface AlarmProps {
+  /**
+   * The SNS topic to send alarms to.
+   */
+  readonly alarmTopic: sns.Topic;
+
+  /**
+   * Specify which alarms you want.
+   */
+  readonly alarmTypes: AlarmTypes;
+}
+
+export interface Observability {
+  /**
+   * Adds CloudWatch Alarms to the resources created by this construct.
+   */
+  readonly alarms?: AlarmProps;
+
+  /**
+   * Adds a CloudWatch dashboard with metrics for the resources created by this construct.
+   */
+  readonly dashboard?: boolean;
+}
+
 export interface SwaProps {
   /**
    * The AWS environment (account and region) to deploy to.
@@ -142,6 +184,11 @@ export interface SwaProps {
    * If specified, adds the banner at the top of the page linking back to the open source project.
    */
   readonly isDemoPage?: boolean;
+
+  /**
+   * Adds a CloudWatch Dashboard and Alarms if specified.
+   */
+  readonly observability?: Observability;
 }
 
 export class Swa extends Construct {
@@ -167,7 +214,19 @@ export class Swa extends Construct {
     const authProps = auth(scope, name, props);
     const backendAnalyticsProps = backendAnalytics(scope, name, props);
     const backendProps = backend(scope, name, props, authProps, backendAnalyticsProps);
-    frontend(scope, name, props, authProps, backendProps);
+    const frontendProps = frontend(scope, name, props, authProps, backendProps);
+
+    if (props.observability)
+      observability(
+        scope,
+        name,
+        props.awsEnv.account,
+        props.awsEnv.region,
+        props.observability,
+        backendAnalyticsProps,
+        backendProps,
+        frontendProps
+      );
   }
 }
 

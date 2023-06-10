@@ -310,6 +310,92 @@ The tree node.
 
 ## Structs <a name="Structs" id="Structs"></a>
 
+### AlarmProps <a name="AlarmProps" id="serverless-website-analytics.AlarmProps"></a>
+
+#### Initializer <a name="Initializer" id="serverless-website-analytics.AlarmProps.Initializer"></a>
+
+```typescript
+import { AlarmProps } from 'serverless-website-analytics'
+
+const alarmProps: AlarmProps = { ... }
+```
+
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#serverless-website-analytics.AlarmProps.property.alarmTopic">alarmTopic</a></code> | <code>aws-cdk-lib.aws_sns.Topic</code> | The SNS topic to send alarms to. |
+| <code><a href="#serverless-website-analytics.AlarmProps.property.alarmTypes">alarmTypes</a></code> | <code><a href="#serverless-website-analytics.AlarmTypes">AlarmTypes</a></code> | Specify which alarms you want. |
+
+---
+
+##### `alarmTopic`<sup>Required</sup> <a name="alarmTopic" id="serverless-website-analytics.AlarmProps.property.alarmTopic"></a>
+
+```typescript
+public readonly alarmTopic: Topic;
+```
+
+- *Type:* aws-cdk-lib.aws_sns.Topic
+
+The SNS topic to send alarms to.
+
+---
+
+##### `alarmTypes`<sup>Required</sup> <a name="alarmTypes" id="serverless-website-analytics.AlarmProps.property.alarmTypes"></a>
+
+```typescript
+public readonly alarmTypes: AlarmTypes;
+```
+
+- *Type:* <a href="#serverless-website-analytics.AlarmTypes">AlarmTypes</a>
+
+Specify which alarms you want.
+
+---
+
+### AlarmTypes <a name="AlarmTypes" id="serverless-website-analytics.AlarmTypes"></a>
+
+#### Initializer <a name="Initializer" id="serverless-website-analytics.AlarmTypes.Initializer"></a>
+
+```typescript
+import { AlarmTypes } from 'serverless-website-analytics'
+
+const alarmTypes: AlarmTypes = { ... }
+```
+
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#serverless-website-analytics.AlarmTypes.property.firehose">firehose</a></code> | <code>boolean</code> | Adds a throttle and s3 delivery failure alarms for both Firehoses. |
+| <code><a href="#serverless-website-analytics.AlarmTypes.property.lambda">lambda</a></code> | <code>boolean</code> | Adds a hard and soft alarm to both Lambda functions; |
+
+---
+
+##### `firehose`<sup>Required</sup> <a name="firehose" id="serverless-website-analytics.AlarmTypes.property.firehose"></a>
+
+```typescript
+public readonly firehose: boolean;
+```
+
+- *Type:* boolean
+
+Adds a throttle and s3 delivery failure alarms for both Firehoses.
+
+---
+
+##### `lambda`<sup>Required</sup> <a name="lambda" id="serverless-website-analytics.AlarmTypes.property.lambda"></a>
+
+```typescript
+public readonly lambda: boolean;
+```
+
+- *Type:* boolean
+
+Adds a hard and soft alarm to both Lambda functions;
+
+---
+
 ### AwsEnv <a name="AwsEnv" id="serverless-website-analytics.AwsEnv"></a>
 
 The AWS environment (account and region) to deploy to.
@@ -433,6 +519,49 @@ Optional, if specified, it adds tracking to the dashboard.
 
 This is useful if you want to see the usage of
 the serverless-website-analytics dashboard page.
+
+---
+
+### Observability <a name="Observability" id="serverless-website-analytics.Observability"></a>
+
+#### Initializer <a name="Initializer" id="serverless-website-analytics.Observability.Initializer"></a>
+
+```typescript
+import { Observability } from 'serverless-website-analytics'
+
+const observability: Observability = { ... }
+```
+
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#serverless-website-analytics.Observability.property.alarms">alarms</a></code> | <code><a href="#serverless-website-analytics.AlarmProps">AlarmProps</a></code> | Adds CloudWatch Alarms to the resources created by this construct. |
+| <code><a href="#serverless-website-analytics.Observability.property.dashboard">dashboard</a></code> | <code>boolean</code> | Adds a CloudWatch dashboard with metrics for the resources created by this construct. |
+
+---
+
+##### `alarms`<sup>Optional</sup> <a name="alarms" id="serverless-website-analytics.Observability.property.alarms"></a>
+
+```typescript
+public readonly alarms: AlarmProps;
+```
+
+- *Type:* <a href="#serverless-website-analytics.AlarmProps">AlarmProps</a>
+
+Adds CloudWatch Alarms to the resources created by this construct.
+
+---
+
+##### `dashboard`<sup>Optional</sup> <a name="dashboard" id="serverless-website-analytics.Observability.property.dashboard"></a>
+
+```typescript
+public readonly dashboard: boolean;
+```
+
+- *Type:* boolean
+
+Adds a CloudWatch dashboard with metrics for the resources created by this construct.
 
 ---
 
@@ -648,6 +777,7 @@ const swaProps: SwaProps = { ... }
 | <code><a href="#serverless-website-analytics.SwaProps.property.auth">auth</a></code> | <code><a href="#serverless-website-analytics.SwaAuth">SwaAuth</a></code> | The auth configuration which defaults to none. |
 | <code><a href="#serverless-website-analytics.SwaProps.property.domain">domain</a></code> | <code><a href="#serverless-website-analytics.Domain">Domain</a></code> | If specified, it will create the CloudFront and Cognito resources at the specified domain and optionally create the DNS records in the specified Route53 hosted zone. |
 | <code><a href="#serverless-website-analytics.SwaProps.property.isDemoPage">isDemoPage</a></code> | <code>boolean</code> | If specified, adds the banner at the top of the page linking back to the open source project. |
+| <code><a href="#serverless-website-analytics.SwaProps.property.observability">observability</a></code> | <code><a href="#serverless-website-analytics.Observability">Observability</a></code> | Adds a CloudWatch Dashboard and Alarms if specified. |
 
 ---
 
@@ -749,6 +879,18 @@ public readonly isDemoPage: boolean;
 - *Type:* boolean
 
 If specified, adds the banner at the top of the page linking back to the open source project.
+
+---
+
+##### `observability`<sup>Optional</sup> <a name="observability" id="serverless-website-analytics.SwaProps.property.observability"></a>
+
+```typescript
+public readonly observability: Observability;
+```
+
+- *Type:* <a href="#serverless-website-analytics.Observability">Observability</a>
+
+Adds a CloudWatch Dashboard and Alarms if specified.
 
 ---
 
