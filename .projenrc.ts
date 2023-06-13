@@ -98,4 +98,10 @@ preCommitChecks.exec('node_modules/.bin/ts-node ./scripts/index.ts -c validate-s
 preCommitChecks.exec('npm run build-jsii');
 preCommitChecks.exec('npm run docgen');
 
+project.tasks.addTask('copy-frontend-client-cdn-script', {
+  description:
+    'Copies the serverless-website-analytics-client/cdn/client-script.js to the frontend/src/src/assets/cdn folder',
+  exec: 'ts-node ./scripts/index.ts -c copy-frontend-client-cdn-script',
+});
+
 project.synth();

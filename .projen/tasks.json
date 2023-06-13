@@ -139,6 +139,15 @@
         }
       ]
     },
+    "copy-frontend-client-cdn-script": {
+      "name": "copy-frontend-client-cdn-script",
+      "description": "Copies the serverless-website-analytics-client/cdn/client-script.js to the frontend/src/src/assets/cdn folder",
+      "steps": [
+        {
+          "exec": "ts-node ./scripts/index.ts -c copy-frontend-client-cdn-script"
+        }
+      ]
+    },
     "default": {
       "name": "default",
       "description": "Synthesize project files",
