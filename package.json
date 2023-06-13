@@ -13,6 +13,7 @@
     "compat": "npx projen compat",
     "compile": "npx projen compile",
     "compile-package-locally": "npx projen compile-package-locally",
+    "copy-frontend-client-cdn-script": "npx projen copy-frontend-client-cdn-script",
     "default": "npx projen default",
     "docgen": "npx projen docgen",
     "eject": "npx projen eject",

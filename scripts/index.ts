@@ -40,6 +40,8 @@ const commands = [
     'validate-src',
     'build-src',
     'clean-lib',
+    'build-lib',
+    'copy-frontend-client-cdn-script',
 ] as const;
 export type Command = typeof commands[number];
 
@@ -62,7 +64,11 @@ const argv = yargs(hideBin(process.argv))
       await buildTsLambdas();
       await buildLambdas();
       await buildLambdaLayers();
+      await copyFrontendCdScript();
       await buildLFrontend();
+      break;
+    case "copy-frontend-client-cdn-script":
+      await copyFrontendCdScript();
       break;
     case "clean-lib":
       await cleanLib();
@@ -165,6 +171,13 @@ async function buildLambdaLayers()
   }
 
   console.log("BUILT LAMBDA LAYERS");
+}
+async function copyFrontendCdScript()
+{
+  //Copy the build client cdn script to the frontend assets
+  const clientCdnScript =  path.join(paths.srcFrontend, "node_modules", "serverless-website-analytics-client", "cdn", "client-script.js");
+  const clientCdnScriptOut =  path.join(paths.srcFrontend, "public", "cdn", "client-script.js");
+  await fse.copy(clientCdnScript, clientCdnScriptOut);
 }
 async function buildLFrontend()
 {

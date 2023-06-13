@@ -24,7 +24,7 @@ watch([getSystemStore().frontendEnvironment], () => {
   const systemStore = getSystemStore();
   console.log('frontendEnvironment', systemStore.frontendEnvironment);
   if (systemStore.frontendEnvironment && systemStore.frontendEnvironment.trackOwnDomain && !analyticsLoaded) {
-    const site = window.location.host.includes(':') ? window.location.host.split(':')[0] : window.location.host;
+    const site = window.location.hostname;
     swaClient.v1.analyticsPageInit({
       inBrowser: true,
       site,
