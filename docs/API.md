@@ -88,6 +88,8 @@ export class App extends cdk.Stack {
 Quick option rundown:
 - `sites`: The list of allowed sites. This does not have to be a domain name, it can also be string. It can be anything
   you want to use to identify a site. The client-side script that sends analytics will have to specify one of these names.
+- `firehoseBufferInterval`: The number in seconds for the Firehose buffer interval. The default is 15 minutes (900 seconds), minimum is 60 and
+  maximum is 900.
 - `allowedOrigins`: The origins that are allowed to make requests to the backend Ingest API. This CORS check is done as an extra
   security measure to prevent other sites from making requests to your backend. It must include the protocol and
   full domain. Ex: If your site is `example.com` and it can be accessed using `https://example.com` and
@@ -105,6 +107,7 @@ Quick option rundown:
   CloudFront(`cloudfront.net`) and Cognito(`auth.us-east-1.amazoncognito.com`) domains. You can read the website URL
   from the stack output.
 - `observability`: Adds a CloudWatch Dashboard and Alarms if specified.
+- `rateLimit`: Adds a rate limit to the Ingest API and Frontend/Dashboard API. Defaults to 200 and 100 respectively.
 
 For a full list of options see the [API.md](https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/API.md#api-reference-) docs.
 
