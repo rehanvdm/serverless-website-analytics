@@ -11,6 +11,8 @@ import { Construct } from 'constructs';
 import { SwaProps } from './index';
 import { CwBucket, CwFirehose } from './lib/cloudwatch-helper';
 
+const defaultFirehoseBufferInterval = 900;
+
 export function backendAnalytics(scope: Construct, name: (name: string) => string, props: SwaProps) {
   /* ======================================================================= */
   /* ============ Glue DB, Bucket and Firehose required service  =========== */
@@ -232,7 +234,7 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
         'page_views/site=!{partitionKeyFromQuery:site}/year=!{partitionKeyFromQuery:year}/month=!{partitionKeyFromQuery:month}/',
       errorOutputPrefix: 'error/!{firehose:error-output-type}/',
       bufferingHints: {
-        intervalInSeconds: 60,
+        intervalInSeconds: props.firehoseBufferInterval ?? defaultFirehoseBufferInterval,
       },
       dynamicPartitioningConfiguration: {
         enabled: true,
@@ -411,7 +413,7 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
         'events/site=!{partitionKeyFromQuery:site}/year=!{partitionKeyFromQuery:year}/month=!{partitionKeyFromQuery:month}/',
       errorOutputPrefix: 'error/!{firehose:error-output-type}/',
       bufferingHints: {
-        intervalInSeconds: 60,
+        intervalInSeconds: props.firehoseBufferInterval ?? defaultFirehoseBufferInterval,
       },
       dynamicPartitioningConfiguration: {
         enabled: true,

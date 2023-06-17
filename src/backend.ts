@@ -59,7 +59,7 @@ export function backend(
       SITES: JSON.stringify(props.sites),
       ALLOWED_ORIGINS: JSON.stringify(props.allowedOrigins),
     },
-    reservedConcurrentExecutions: 200,
+    reservedConcurrentExecutions: props.rateLimit?.ingestLambdaConcurrency ?? 200,
     layers: [geoLite2Layer],
   });
   apiIngestLambda.addToRolePolicy(
@@ -114,7 +114,7 @@ export function backend(
       TRACK_OWN_DOMAIN: props?.domain?.trackOwnDomain ? 'true' : 'false',
       IS_DEMO_PAGE: props.isDemoPage ? 'true' : 'false',
     },
-    reservedConcurrentExecutions: 100,
+    reservedConcurrentExecutions: props.rateLimit?.frontLambdaConcurrency ?? 100,
   });
   apiFrontLambda.addToRolePolicy(
     new iam.PolicyStatement({
