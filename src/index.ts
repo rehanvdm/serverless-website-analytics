@@ -140,6 +140,18 @@ export interface Observability {
   readonly dashboard?: boolean;
 }
 
+export interface RateLimitProps {
+  /**
+   * The number of concurrent requests to allow on the Ingest API.
+   */
+  readonly ingestLambdaConcurrency: number;
+
+  /**
+   * The number of concurrent requests to allow on the Front/Dashboard API.
+   */
+  readonly frontLambdaConcurrency: number;
+}
+
 export interface SwaProps {
   /**
    * The AWS environment (account and region) to deploy to.
@@ -152,6 +164,12 @@ export interface SwaProps {
    * names. Ex: example.com
    */
   readonly sites: string[];
+
+  /**
+   * The number in seconds for the Firehose buffer interval. The default is 15 minutes (900 seconds), minimum is 60 and
+   * maximum is 900.
+   */
+  readonly firehoseBufferInterval?: number;
 
   /**
    * The origins that are allowed to make requests to the backend `api-ingest` API. This CORS check is done as an extra
@@ -189,6 +207,11 @@ export interface SwaProps {
    * Adds a CloudWatch Dashboard and Alarms if specified.
    */
   readonly observability?: Observability;
+
+  /**
+   * Adds a rate limit to the Ingest API and Frontend/Dashboard API. Defaults to 200 and 100 respectively.
+   */
+  readonly rateLimit?: RateLimitProps;
 }
 
 export class Swa extends Construct {
@@ -204,6 +227,10 @@ export class Swa extends Construct {
       if (certRegion !== 'us-east-1') {
         throw new Error(`Certificate must be in us-east-1, not in ${certRegion}, this is a requirement for CloudFront`);
       }
+    }
+
+    if (props.firehoseBufferInterval && (props.firehoseBufferInterval < 60 || props.firehoseBufferInterval > 900)) {
+      throw new Error('`firehoseBufferInterval` must be between 60 and 900 seconds');
     }
 
     if (props?.domain?.trackOwnDomain) {

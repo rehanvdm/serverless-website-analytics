@@ -597,6 +597,49 @@ Adds a CloudWatch dashboard with metrics for the resources created by this const
 
 ---
 
+### RateLimitProps <a name="RateLimitProps" id="serverless-website-analytics.RateLimitProps"></a>
+
+#### Initializer <a name="Initializer" id="serverless-website-analytics.RateLimitProps.Initializer"></a>
+
+```typescript
+import { RateLimitProps } from 'serverless-website-analytics'
+
+const rateLimitProps: RateLimitProps = { ... }
+```
+
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#serverless-website-analytics.RateLimitProps.property.frontLambdaConcurrency">frontLambdaConcurrency</a></code> | <code>number</code> | The number of concurrent requests to allow on the Front/Dashboard API. |
+| <code><a href="#serverless-website-analytics.RateLimitProps.property.ingestLambdaConcurrency">ingestLambdaConcurrency</a></code> | <code>number</code> | The number of concurrent requests to allow on the Ingest API. |
+
+---
+
+##### `frontLambdaConcurrency`<sup>Required</sup> <a name="frontLambdaConcurrency" id="serverless-website-analytics.RateLimitProps.property.frontLambdaConcurrency"></a>
+
+```typescript
+public readonly frontLambdaConcurrency: number;
+```
+
+- *Type:* number
+
+The number of concurrent requests to allow on the Front/Dashboard API.
+
+---
+
+##### `ingestLambdaConcurrency`<sup>Required</sup> <a name="ingestLambdaConcurrency" id="serverless-website-analytics.RateLimitProps.property.ingestLambdaConcurrency"></a>
+
+```typescript
+public readonly ingestLambdaConcurrency: number;
+```
+
+- *Type:* number
+
+The number of concurrent requests to allow on the Ingest API.
+
+---
+
 ### SwaAuth <a name="SwaAuth" id="serverless-website-analytics.SwaAuth"></a>
 
 The auth configuration which defaults to none.
@@ -808,8 +851,10 @@ const swaProps: SwaProps = { ... }
 | <code><a href="#serverless-website-analytics.SwaProps.property.sites">sites</a></code> | <code>string[]</code> | The list of allowed sites. |
 | <code><a href="#serverless-website-analytics.SwaProps.property.auth">auth</a></code> | <code><a href="#serverless-website-analytics.SwaAuth">SwaAuth</a></code> | The auth configuration which defaults to none. |
 | <code><a href="#serverless-website-analytics.SwaProps.property.domain">domain</a></code> | <code><a href="#serverless-website-analytics.Domain">Domain</a></code> | If specified, it will create the CloudFront and Cognito resources at the specified domain and optionally create the DNS records in the specified Route53 hosted zone. |
+| <code><a href="#serverless-website-analytics.SwaProps.property.firehoseBufferInterval">firehoseBufferInterval</a></code> | <code>number</code> | The number in seconds for the Firehose buffer interval. |
 | <code><a href="#serverless-website-analytics.SwaProps.property.isDemoPage">isDemoPage</a></code> | <code>boolean</code> | If specified, adds the banner at the top of the page linking back to the open source project. |
 | <code><a href="#serverless-website-analytics.SwaProps.property.observability">observability</a></code> | <code><a href="#serverless-website-analytics.Observability">Observability</a></code> | Adds a CloudWatch Dashboard and Alarms if specified. |
+| <code><a href="#serverless-website-analytics.SwaProps.property.rateLimit">rateLimit</a></code> | <code><a href="#serverless-website-analytics.RateLimitProps">RateLimitProps</a></code> | Adds a rate limit to the Ingest API and Frontend/Dashboard API. |
 
 ---
 
@@ -902,6 +947,21 @@ Cognito(`auth.us-east-1.amazoncognito.com`) domains. You can read the website UR
 
 ---
 
+##### `firehoseBufferInterval`<sup>Optional</sup> <a name="firehoseBufferInterval" id="serverless-website-analytics.SwaProps.property.firehoseBufferInterval"></a>
+
+```typescript
+public readonly firehoseBufferInterval: number;
+```
+
+- *Type:* number
+
+The number in seconds for the Firehose buffer interval.
+
+The default is 15 minutes (900 seconds), minimum is 60 and
+maximum is 900.
+
+---
+
 ##### `isDemoPage`<sup>Optional</sup> <a name="isDemoPage" id="serverless-website-analytics.SwaProps.property.isDemoPage"></a>
 
 ```typescript
@@ -923,6 +983,20 @@ public readonly observability: Observability;
 - *Type:* <a href="#serverless-website-analytics.Observability">Observability</a>
 
 Adds a CloudWatch Dashboard and Alarms if specified.
+
+---
+
+##### `rateLimit`<sup>Optional</sup> <a name="rateLimit" id="serverless-website-analytics.SwaProps.property.rateLimit"></a>
+
+```typescript
+public readonly rateLimit: RateLimitProps;
+```
+
+- *Type:* <a href="#serverless-website-analytics.RateLimitProps">RateLimitProps</a>
+
+Adds a rate limit to the Ingest API and Frontend/Dashboard API.
+
+Defaults to 200 and 100 respectively.
 
 ---
 
