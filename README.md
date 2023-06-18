@@ -11,6 +11,7 @@ You can see a LIVE DEMO [HERE](https://demo.serverless-website-analytics.com/) a
 [here](https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/DEMO-TRAFFIC.md)
 
 ## Objectives
+- Multi site
 - Privacy focused, don't store any Personally Identifiable Information (PII).
 - Low frequency of dashboard views
 - The target audience is small to medium website(s) with low to moderate page view traffic (equal or less than 10M views)
@@ -19,6 +20,7 @@ You can see a LIVE DEMO [HERE](https://demo.serverless-website-analytics.com/) a
 - No direct server-side state
 - Low maintenance
 - Easy to deploy in your AWS account, any *region
+- Pay for what you use (scale to 0)
 
 The main objective is to keep it simple and the operational cost low, keeping true to "scale to 0" tenants of serverless,
 even if it goes against "best practices".
@@ -176,6 +178,20 @@ app.mount('#app');
 
 ..Any other framework
 
+## Worst case projected costs
+
+**SEE THE FULL COST BREAKDOWN AND SPREAD SHEET > [HERE](https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/COST.md)**
+
+The worst case projected costs are:
+
+| Views       | Cost($)  |
+|-------------|----------|
+| 10,000      | 2.01     |
+| 100,000     | 3.24     |
+| 1,000,000   | 14.64    |
+| 10,000,000  | 128.74   |
+| 100,000,000 | 1,288.39 |
+
 ## What's in the box
 
 The architecture consists of four components: frontend, backend, ingestion API and the client JS library.
@@ -195,7 +211,6 @@ and [Plotly.js](https://plotly.com/javascript/) for the charts.
 
 ![frontend_1.png](https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/imgs/frontend_1.png)
 ![frontend_2.png](https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/imgs/frontend_2.png)
-![frontend_3.png](https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/imgs/frontend_3.png)
 
 ### Backend
 
