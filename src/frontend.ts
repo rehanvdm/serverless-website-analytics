@@ -177,7 +177,7 @@ export function frontend(
     /* First CloudFront A record if we can */
     let cloudFrontRecord: route53.ARecord | undefined = undefined;
     if (props.domain.hostedZone) {
-      cloudFrontRecord = new route53.ARecord(scope, 'cloudfront-record', {
+      cloudFrontRecord = new route53.ARecord(scope, name('cloudfront-record'), {
         recordName: props.domain.name,
         target: route53.RecordTarget.fromAlias(new route53Targets.CloudFrontTarget(frontendDist)),
         zone: props.domain.hostedZone,
@@ -208,7 +208,7 @@ export function frontend(
 
       /* Add the Cognito A record if we can */
       if (props.domain.hostedZone) {
-        new route53.ARecord(scope, 'custom-domain-dns-record', {
+        new route53.ARecord(scope, name('custom-domain-dns-record'), {
           recordName: props.auth.cognito.loginSubDomain,
           target: route53.RecordTarget.fromAlias({
             bind: () => ({
