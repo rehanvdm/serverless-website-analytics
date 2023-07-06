@@ -97,15 +97,15 @@ describe('API Ingest', function () {
 
     const context = apiGwContext();
     const pageView: V1PageViewInput = {
-      site: 'example.com',
+      site: 'tests',
       user_id: 'test_user_id_1',
       session_id: 'test_session_id_1',
       page_id: 'test_page_id_1',
       page_url: '/test_page_id_1.html',
-      page_opened_at: '2022-12-03T07:15:00Z',
+      page_opened_at: '2023-06-01T01:02:03Z',
       time_on_page: 0,
       // referrer: "",
-      referrer: 'something.com',
+      // referrer: 'something.com',
       // referrer: "tests.com/something",
     };
     const event: ApiGwEventOptions = {

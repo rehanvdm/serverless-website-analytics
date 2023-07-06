@@ -25,14 +25,8 @@ export class AthenaPageViews extends AthenaBase {
    * @param sites
    */
   cteFilteredDataQuery(columns: string[], fromDate: Date, toDate: Date, sites: string[]) {
-    const months = DateUtils.getMonthsBetweenDates(fromDate, toDate);
-    const cteWhereClauseDates: string = months
-      // +1 to the month because months are 0-indexed in JS but Athena/Firehose is 1-indexed
-      .map((month) => `(year = ${month.getFullYear()} AND month = ${month.getMonth() + 1})`)
-      .join(' OR ');
     const cteWhereClauseSites = sites.map((site) => `site = '${site}'`).join(' OR ');
-
-    const cteWhereClause = `(${cteWhereClauseSites}) AND (${cteWhereClauseDates})`;
+    const cteWhereClause = `(${cteWhereClauseSites})`;
     const exactTimeFrom = DateUtils.stringifyFormat(fromDate, 'yyyy-MM-dd HH:mm:ss.SSS');
     const exactTimeTo = DateUtils.stringifyFormat(toDate, 'yyyy-MM-dd HH:mm:ss.SSS');
 

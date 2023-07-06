@@ -108,12 +108,8 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
           type: 'string',
         },
         {
-          name: 'year',
-          type: 'int',
-        },
-        {
-          name: 'month',
-          type: 'int',
+          name: 'page_opened_at_date',
+          type: 'string',
         },
       ],
       storageDescriptor: {
@@ -128,7 +124,9 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
         },
         parameters: {
           'storage.location.template':
-            's3://' + analyticsBucket.bucketName + '/page_views/site=${site}/year=${year}/month=${month}',
+            's3://' +
+            analyticsBucket.bucketName +
+            '/page_views/site=${site}/page_opened_at_date=${page_opened_at_date}',
         },
         columns: [
           {
@@ -207,12 +205,11 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
       },
       parameters: {
         'projection.enabled': 'true',
-        'projection.year.type': 'integer',
-        'projection.year.range': '2023,3023',
-        'projection.year.interval': '1',
-        'projection.month.type': 'integer',
-        'projection.month.range': '1,12',
-        'projection.month.interval': '1',
+        'projection.page_opened_at_date.type': 'date',
+        'projection.page_opened_at_date.format': 'yyyy-MM-dd',
+        'projection.page_opened_at_date.interval': '1',
+        'projection.page_opened_at_date.interval.unit': 'DAYS',
+        'projection.page_opened_at_date.range': '2023-01-01,NOW',
         'projection.site.type': 'enum',
         'projection.site.values': props.sites.join(','),
       },
@@ -231,7 +228,7 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
       bucketArn: analyticsBucket.bucketArn,
       roleArn: firehoseDeliveryRole.roleArn,
       prefix:
-        'page_views/site=!{partitionKeyFromQuery:site}/year=!{partitionKeyFromQuery:year}/month=!{partitionKeyFromQuery:month}/',
+        'page_views/site=!{partitionKeyFromQuery:site}/page_opened_at_date=!{partitionKeyFromQuery:page_opened_at_date}/',
       errorOutputPrefix: 'error/!{firehose:error-output-type}/',
       bufferingHints: {
         intervalInSeconds: props.firehoseBufferInterval ?? defaultFirehoseBufferInterval,
@@ -250,7 +247,7 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
             parameters: [
               {
                 parameterName: 'MetadataExtractionQuery',
-                parameterValue: '{site: .site,' + ' year: .year,' + ' month: .month}',
+                parameterValue: '{site: .site, page_opened_at_date: .page_opened_at_date}',
               },
               //Required as property it seems
               {
