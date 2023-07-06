@@ -74,15 +74,18 @@ export function frontend(
         domainNames: [props.domain.name],
         certificate: props.domain.certificate,
       };
+
+  const defaultBucketOrigin = new origins.HttpOrigin(frontendBucket.bucketWebsiteDomainName, {
+    protocolPolicy: OriginProtocolPolicy.HTTP_ONLY, //can not specify scope in the AWS console anymore :shrug:
+    customHeaders: {
+      Referer: bucketSecretReferer,
+    },
+  });
+
   const frontendDist = new cloudfront.Distribution(scope, name('web-dist'), {
     comment: name('web-dist'),
     defaultBehavior: {
-      origin: new origins.HttpOrigin(frontendBucket.bucketWebsiteDomainName, {
-        protocolPolicy: OriginProtocolPolicy.HTTP_ONLY, //can not specify scope in the AWS console anymore :shrug:
-        customHeaders: {
-          Referer: bucketSecretReferer,
-        },
-      }),
+      origin: defaultBucketOrigin,
       compress: true,
       viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
@@ -98,6 +101,13 @@ export function frontend(
           : undefined,
     },
     additionalBehaviors: {
+      '/cdn/*': {
+        origin: defaultBucketOrigin,
+        compress: true,
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+        cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+      },
       '/api-ingest/*': {
         origin: new origins.HttpOrigin(backendProps.apiIngestOrigin, {}),
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
