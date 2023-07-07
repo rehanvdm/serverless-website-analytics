@@ -2,6 +2,7 @@ import { awscdk, javascript } from 'projen';
 import { ArrowParens, NpmAccess, TrailingComma } from 'projen/lib/javascript';
 
 const project = new awscdk.AwsCdkConstructLibrary({
+  majorVersion: 1,
   projenrcTs: true,
   name: 'serverless-website-analytics',
   author: 'rehanvdm',
