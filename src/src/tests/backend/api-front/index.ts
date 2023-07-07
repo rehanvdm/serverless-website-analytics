@@ -196,9 +196,9 @@ describe('API Frontend', function () {
         // from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
         // to: new Date(2023, 3, 30, 23, 59, 59,999).toISOString(),
 
-        // Month 4 - April - Past so data fixed, not changing still
-        from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
-        to: new Date(2023, 3, 22, 23, 59, 59, 999).toISOString(),
+        // Month 5 - June
+        from: new Date(2023, 5, 1, 0, 0, 0).toISOString(),
+        to: new Date(2023, 5, 22, 23, 59, 59, 999).toISOString(),
       },
       authHeaders
     );

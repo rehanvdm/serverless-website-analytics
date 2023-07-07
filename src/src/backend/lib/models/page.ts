@@ -2,13 +2,12 @@ import { z } from 'zod';
 
 export const SchemaPage = z.object({
   site: z.string(),
-  year: z.number(),
-  month: z.number(),
   user_id: z.string(),
   session_id: z.string(),
   page_id: z.string(),
   page_url: z.string(),
   page_opened_at: z.string(),
+  page_opened_at_date: z.string().optional(),
   time_on_page: z.number(),
   country_iso: z.string().optional(),
   country_name: z.string().optional(),
