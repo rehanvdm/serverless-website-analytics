@@ -47,16 +47,16 @@ export function pageView(trpcInstance: TrpcInstance) {
       );
       const referrer = getCleanedUpReferrer(input.site, input.referrer);
       const pageOpenedAt = DateUtils.parseIso(input.page_opened_at);
+      const pageOpenedAtDate = DateUtils.stringifyFormat(pageOpenedAt, 'yyyy-MM-dd');
+
       const data: Page = {
         site: input.site,
-        year: pageOpenedAt.getFullYear(),
-        month: pageOpenedAt.getMonth() + 1,
-
         user_id: input.user_id,
         session_id: input.session_id,
         page_id: input.page_id,
         page_url: input.page_url,
         page_opened_at: input.page_opened_at,
+        page_opened_at_date: pageOpenedAtDate,
         time_on_page: input.time_on_page,
         country_iso: countryIso,
         country_name: countryName,

@@ -239,6 +239,51 @@ the date will be stored after about 1min ± 1min.
 Location data is obtained by looking the IP address up in the [MaxMind GeoLite2](https://dev.maxmind.com/geoip/geoip2/geolite2/) database.
 We don't store any Personally Identifiable Information (PII) in the logs or S3, the IP address is never stored.
 
+# Upgrading
+
+## From V0 to V1
+
+This upgrade brings two breaking changes:
+1. Daily partitions, querying is not backwards compatible. The data is still there, it is just in
+a different location so the dashboard will look empty after migrating.
+2. A change of Route53 record construct IDs that need manual intervention (only if you specified the `domains` property)
+
+Install the new version:
+```
+npm install npm install serverless-website-analytics@~1
+```
+
+### Data "loss" because of S3 path changes to accommodate daily partitions
+
+Data will seem lost after upgrading to V1 because of the S3 path changes to accommodate daily partitions. The data is
+still there, it is just in a different location. The backend won't know about the old location and only use the new location
+so your dashboard will look empty after migrating. You can possibly run an Athena CTAS query to migrate the data to the new
+location, but it would need to be crafted carefully. If this is really important for you, please create a ticket and I can
+see if I can help.
+
+### Recreate the old Route53 records (only if you specified the `domains' property)
+
+This is because we needed to change the CDK construct IDs of the Route53 records and Route53 can not create duplicate
+record names. See issue: https://github.com/rehanvdm/serverless-website-analytics/issues/26
+
+There will be some downtime, it should be less than 10 minutes. If downtime is not acceptable then use CDK escape
+hatches to hardcode the Route53 record IDs of your existing constructs.
+
+**IMPORTANT: Take note of the names and values of these DNS records as we need to recreate them manually after deleting them.**
+
+Order of operation:
+1. Delete DNS records with AWS CLI/Console
+   1.1 Delete the A record pointing to your CloudFront as defined by the `domain.name` property.
+   1.2 Optional, if using `auth.cognito` delete the Cognito login A record as well, which is defined as: `{auth.cognito.loginSubDomain}.{domain.name}`
+2. CDK deploy
+3. Recreate the DNS records with AWS CLI/Console that you deleted in step 1.
+
+If you do not delete them before upgrading, you will get one of these errors in CloudFormation and it will roll back.
+```
+[Tried to create resource record set [name='analytics.rehanvdm.com.', type='A'] but it already exists]
+[Tried to create resource record set [name='login.analytics.rehanvdm.com.', type='A'] but it already exists]
+```
+
 ## Sponsors
 
 Proudly sponsored by:
