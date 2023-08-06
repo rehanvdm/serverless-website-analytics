@@ -10,22 +10,26 @@ import { ArrowDown } from '@element-plus/icons-vue'
 import {useDark} from "@vueuse/core";
 import {DateUtils} from "@frontend/src/lib/date_utils";
 import {groupBy} from "lodash";
-
-const loading = ref(true);
+import {Filter} from "@backend/lib/models/filter";
 
 export interface Props {
   sites: string[],
   fromDate?: Date,
-  toDate?: Date
+  toDate?: Date,
+  filter: Filter
 }
 const props = withDefaults(defineProps<Props>(), { });
 
-//emit('loading', true);
 const emit = defineEmits<{
-  (e: 'loading', val: boolean): void
+  (e: 'loading', val: boolean): void,
 }>()
 
 let chartViews: Ref<ChartView[] | undefined> = ref();
+
+const loading = ref(true);
+watch(() => [loading.value], async () => {
+  emit('loading', loading.value)
+})
 
 function* getDatesInRange(startDate: string, endDate: string, hourly: boolean): Generator<string> {
   const currentDate = new Date(startDate);
@@ -81,6 +85,7 @@ async function loadData()
     sites: props.sites,
     from: props.fromDate?.toISOString(),
     to: props.toDate?.toISOString(),
+    filter: props.filter,
     period,
     timeZone
   }), loading);
@@ -258,9 +263,11 @@ async function loadData()
   //   props.sites, period === "hour");
   // console.log(filledIn);
 }
-watch(() => [props.sites, props.fromDate, props.toDate], async () =>{
+watch(() => [props.sites, props.fromDate, props.toDate, props.filter], async () => {
   await loadData();
-});
+}, {
+  deep: true
+})
 async function refresh() {
   await loadData();
 }

@@ -4,19 +4,25 @@ import {uniqBy} from 'lodash'
 import {api, apiWrapper} from "@frontend/src/lib/api";
 import {GetTopLevelStats, PageView} from "@backend/api-front/routes/stats";
 import TableData, {Column} from "@frontend/src/components/TableData.vue";
-
-const loading = ref(true);
+import {Filter} from "@backend/lib/models/filter";
 
 export interface Props {
   sites: string[],
   fromDate?: Date,
-  toDate?: Date
+  toDate?: Date,
+  filter: Filter
 }
 const props = withDefaults(defineProps<Props>(), { });
 
 const emit = defineEmits<{
-  (e: 'loading', val: boolean): void
+  (e: 'loading', val: boolean): void,
+  (e: 'filter-change', val: Filter): void
 }>()
+
+const loading = ref(true);
+watch(() => [loading.value], async () => {
+  emit('loading', loading.value)
+})
 
 let pageViews: Ref<PageView[] | undefined> = ref();
 let pageViewsQueryExecutionId: string | undefined = undefined;
@@ -32,6 +38,7 @@ async function loadData()
     sites: props.sites,
     from: props.fromDate?.toISOString(),
     to: props.toDate?.toISOString(),
+    filter: props.filter,
     queryExecutionId: pageViewsQueryExecutionId,
     nextToken: pageViewsNextToken
   }), loading);
@@ -6061,15 +6068,16 @@ async function loadData()
   // // pageViewsQueryExecutionId = "XXX";
   // // pageViewsNextToken = "YYY";
 }
-watch(() => [props.sites, props.fromDate, props.toDate], async () =>
-{
+watch(() => [props.sites, props.fromDate, props.toDate, props.filter], async () => {
   pageViews.value = [];
   pageViewsQueryExecutionId = undefined;
   pageViewsNextToken = undefined;
   await loadData();
+}, {
+  deep: true
 })
-async function refresh()
-{
+
+async function refresh() {
   pageViews.value = [];
   pageViewsQueryExecutionId = undefined;
   pageViewsNextToken = undefined;
@@ -6088,7 +6096,7 @@ onMounted(() => {
 
 const columns: ComputedRef<Column[]> = computed(()  => {
   const ret: Column[] = [
-    { name: "Page", type: "string", index: "page_url", gridColumn: "6fr" },
+    { name: "Page", type: "string", index: "page_url", gridColumn: "6fr", canFilter: true },
     { name: "Views", type: "number", index: "views", gridColumn: "1fr" },
     { name: "Time on Page", type: "number", index: "avg_time_on_page", gridColumn: "2fr" },
   ];
@@ -6099,15 +6107,16 @@ const columns: ComputedRef<Column[]> = computed(()  => {
   return ret;
 });
 
-
-
-
+function rowClick(rowText: any) {
+  emit('filter-change', { page_url: rowText })
+}
 </script>
 
 <template>
   <div class="container">
     <TableData :columns="columns" :rows="pageViews || []" :loading="loading" :page-size="16"
-               :load-more-promise="loadData" :enable-page-forward="!!pageViewsNextToken" ></TableData>
+               :load-more-promise="loadData" :enable-page-forward="!!pageViewsNextToken"
+               @click="rowClick"></TableData>
   </div>
 </template>
 

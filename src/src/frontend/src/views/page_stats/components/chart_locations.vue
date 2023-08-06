@@ -9,21 +9,29 @@ import {useDark} from "@vueuse/core";
 import TableData, {Column} from "@frontend/src/components/TableData.vue";
 import {api, apiWrapper} from "@frontend/src/lib/api";
 import {UsersGroupedByStat} from "@backend/api-front/routes/stats";
-
-const loading = ref(true);
+import {Filter} from "@backend/lib/models/filter";
 
 export interface Props {
   sites: string[],
   fromDate?: Date,
-  toDate?: Date
+  toDate?: Date,
+  filter: Filter
 }
 const props = withDefaults(defineProps<Props>(), { });
 
 const emit = defineEmits<{
-  (e: 'loading', val: boolean): void
+  (e: 'loading', val: boolean): void,
+  (e: 'filter-change', val: Filter): void
 }>()
 
+
 let chartLocations: Ref<UsersGroupedByStat[] | undefined> = ref();
+
+const loading = ref(true);
+watch(() => [loading.value], async () => {
+  emit('loading', loading.value)
+})
+
 async function loadData()
 {
   if (props.sites.length === 0 || !props.fromDate || !props.toDate)
@@ -33,6 +41,7 @@ async function loadData()
     sites: props.sites,
     from: props.fromDate?.toISOString(),
     to: props.toDate?.toISOString(),
+    filter: props.filter,
     groupBy: "country_name"
   }), loading);
 
@@ -70,9 +79,12 @@ async function loadData()
   // ];
   // loading.value = false;
 }
-watch(() => [props.sites, props.fromDate, props.toDate], async () =>{
+watch(() => [props.sites, props.fromDate, props.toDate, props.filter], async () => {
   await loadData();
-});
+}, {
+  deep: true
+})
+
 async function refresh() {
   await loadData();
 }
@@ -185,10 +197,13 @@ onMounted(() => {
 
 
 const columns: Column[] = [
-  { name: "Country", type: "string", index: "group", gridColumn: "6fr" },
+  { name: "Country", type: "string", index: "group", gridColumn: "6fr", canFilter: true },
   { name: "Visitors", type: "number", index: "visitors", gridColumn: "2fr" },
 ];
 
+function rowClick(rowText: any) {
+  emit('filter-change', { country_name: rowText })
+}
 </script>
 
 <template>
@@ -207,7 +222,8 @@ const columns: Column[] = [
           </template>
         </el-skeleton>
       </div>
-      <TableData :columns="columns" :rows="chartLocations || []" :loading="loading" :page-size="16" ></TableData>
+      <TableData :columns="columns" :rows="chartLocations || []" :loading="loading" :page-size="16"
+                 @click="rowClick"></TableData>
     </div>
 
   </div>

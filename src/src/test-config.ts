@@ -36,7 +36,7 @@ export type TestConfig = {
   };
 };
 
-const sites = ['example.com', 'tests1', 'tests2', 'localhost'];
+const sites = ['simulated', 'demo.serverless-website-analytics.com'];
 const allowedOrigns = ['*']; // localhost:3000 localhost:5173
 
 export const TestConfig: TestConfig = {

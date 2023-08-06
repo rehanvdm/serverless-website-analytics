@@ -2,7 +2,13 @@
 import { ref, computed } from "vue";
 import { humanizeNumber } from "@frontend/src/lib/ui_utils";
 
-export type Column = { name: string, index: string, type: "string" | "number", gridColumn: `${number}fr` };
+export type Column = {
+  name: string,
+  index: string,
+  type: "string" | "number",
+  gridColumn: `${number}fr`,
+  canFilter?: boolean,
+};
 export type Props = {
   columns: Column[];
   rows: any[] | undefined;
@@ -12,6 +18,11 @@ export type Props = {
   enablePageForward?: boolean;
 }
 const props = withDefaults(defineProps<Props>(), {});
+
+const emit = defineEmits<{
+  (e: 'click', val: any): void
+}>()
+
 
 const pageCurrent = ref(1);
 // const pageSize = 10;
@@ -72,6 +83,10 @@ const canPageBackward = computed(() => pageCurrent.value > 1);
 const canPageForward = computed(() => {
   return pageCurrent.value < pageTotal.value;
 });
+
+function rowClick(rowText: any) {
+  emit('click', rowText)
+}
 </script>
 
 <template>
@@ -86,7 +101,12 @@ const canPageForward = computed(() => {
           <template v-for="col of columns">
             <template v-if="col.type === 'string'">
               <el-tooltip :show-after="1000" :content="row[col.index]">
-                <div class="column column--overflow">{{ row[col.index] }}</div>
+                <div v-if="col.canFilter" class="column column--overflow column--click" @click="rowClick(row[col.index])">
+                  {{ row[col.index] }}
+                </div>
+                <div v-lese class="column column--overflow">
+                  {{ row[col.index] }}
+                </div>
               </el-tooltip>
             </template>
             <template v-if="col.type === 'number'">
@@ -179,5 +199,11 @@ const canPageForward = computed(() => {
 
 .pagination-button--next {
   margin-left: 5px;
+}
+
+.column--click:hover {
+  cursor: pointer;
+  text-decoration: underline;
+  /* font-weight: bold; */
 }
 </style>

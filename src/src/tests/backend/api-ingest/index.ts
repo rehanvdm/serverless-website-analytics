@@ -15,7 +15,7 @@ import { V1PageEventInput } from '@backend/api-ingest/v1/event/track';
 const TimeOut = 10;
 // Set in environment-hoist.ts
 // process.env.TEST_TYPE = TEST_TYPE.UNIT;
-process.env.TEST_TYPE = TEST_TYPE.E2E;
+// process.env.TEST_TYPE = TEST_TYPE.E2E;
 
 describe('API Ingest', function () {
   before(async function () {
