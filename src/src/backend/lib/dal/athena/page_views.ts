@@ -32,7 +32,10 @@ export class AthenaPageViews extends AthenaBase {
 
     if (filter) {
       const cteWhereClauseFilter = Object.entries(filter)
-        .map(([key, value]) => `${key} = '${value}'`)
+        .map(([key, value]) => {
+          if (value === null) return `${key} IS NULL`;
+          else return `${key} = '${value}'`;
+        })
         .join(' AND ');
       cteWhereClauseExtra += ` AND (${cteWhereClauseFilter})`;
     }

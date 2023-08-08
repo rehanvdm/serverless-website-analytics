@@ -74,6 +74,8 @@ const columns: Column[] = [
 ];
 
 function rowClick(rowText: any) {
+  if(rowText === "No Referrer")
+    rowText = null;
   emit('filter-change', { referrer: rowText })
 }
 </script>

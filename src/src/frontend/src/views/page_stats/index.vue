@@ -320,9 +320,14 @@ watch([sites, dateFilter, filter], () => {
           <el-tag class="filter-tag" v-if="filter.page_url" closable @close="filter.page_url = undefined">
             <b>Page</b> = {{filter.page_url}}
           </el-tag>
+
           <el-tag class="filter-tag" v-if="filter.referrer" closable @close="filter.referrer = undefined">
             <b>Referrer</b> = {{filter.referrer}}
           </el-tag>
+          <el-tag class="filter-tag" v-else-if="filter.referrer === null" closable @close="filter.referrer = undefined">
+            <b>Referrer</b> = No Referrer
+          </el-tag>
+
           <el-tag class="filter-tag" v-if="filter.country_name" closable @close="filter.country_name = undefined">
             <b>Country</b> = {{filter.country_name}}
           </el-tag>

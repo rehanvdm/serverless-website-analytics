@@ -71,7 +71,8 @@ function getStandardQueryArgs() {
     from: new Date(2023, 6, 1, 0, 0, 0).toISOString(),
     to: new Date(2023, 6, 31, 23, 59, 59, 999).toISOString(),
     filter: {
-      referrer: 'google.com',
+      // referrer: 'google.com',
+      referrer: null,
     },
   };
 }

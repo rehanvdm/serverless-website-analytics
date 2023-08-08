@@ -27,6 +27,8 @@ even if it goes against "best practices".
 
 ## Getting started
 
+> 📖 Alternatively, read a [step-by-step guide](https://dev.to/aws/deploying-a-serverless-web-analytics-solution-for-your-websites-5coh) written by Ricardo Sueiras
+
 ### Serverside setup
 
 > ⚠️ Requires your project `aws-cdk` and `aws-cdk-lib` packages to be greater than  2.79.1
@@ -184,13 +186,13 @@ app.mount('#app');
 
 The worst case projected costs are:
 
-| Views       | Cost($)  |
-|-------------|----------|
-| 10,000      | 2.01     |
-| 100,000     | 3.24     |
-| 1,000,000   | 14.64    |
-| 10,000,000  | 128.74   |
-| 100,000,000 | 1,288.39 |
+| Views       | Cost($) |
+|-------------|---------|
+| 10,000      | 0.52    |
+| 100,000     | 1.01    |
+| 1,000,000   | 10.18   |
+| 10,000,000  | 58.88   |
+| 100,000,000 | 550.32  |
 
 ## What's in the box
 

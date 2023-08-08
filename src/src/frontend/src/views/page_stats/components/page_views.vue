@@ -6101,7 +6101,8 @@ const columns: ComputedRef<Column[]> = computed(()  => {
     { name: "Time on Page", type: "number", index: "avg_time_on_page", gridColumn: "2fr" },
   ];
 
-  if(!isPageViewsSameSite.value)
+  const filterHasValues = Object.values(props.filter).some(v => v);
+  if(!isPageViewsSameSite.value || filterHasValues)
     ret.unshift({ name: "Site", type: "string", index: "site", gridColumn: "2fr" });
 
   return ret;
