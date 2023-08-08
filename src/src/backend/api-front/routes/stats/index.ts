@@ -3,6 +3,7 @@ import { assertAuthentication, TrpcInstance } from '@backend/api-front/server';
 import { SchemaSite } from '@backend/lib/models/site';
 import { DateUtils } from '@backend/lib/utils/date_utils';
 import { AthenaPageViews } from '@backend/lib/dal/athena/page_views';
+import { FilterSchema } from '@backend/lib/models/filter';
 
 const GetTopLevelStatsSchema = z.object({
   visitors: z.number(),
@@ -33,11 +34,14 @@ export function getTopLevelStats(trpcInstance: TrpcInstance) {
         from: z.string().datetime(),
         to: z.string().datetime(),
         sites: z.array(SchemaSite),
+        filter: FilterSchema.optional(),
       })
     )
     .output(GetTopLevelStatsSchema)
     .query(async ({ input, ctx }) => {
       assertAuthentication(ctx);
+
+      if (input.filter && Object.keys(input.filter).length === 0) input.filter = undefined;
 
       const athenaPageViews = new AthenaPageViews();
 
@@ -46,8 +50,8 @@ export function getTopLevelStats(trpcInstance: TrpcInstance) {
       const { prevStartDate, prevEndDate } = DateUtils.getPreviousPeriod(fromDate, toDate);
 
       const [totals, totalsPrev] = await Promise.all([
-        athenaPageViews.totalsForPeriod(fromDate, toDate, input.sites),
-        athenaPageViews.totalsForPeriod(prevStartDate, prevEndDate, input.sites),
+        athenaPageViews.totalsForPeriod(fromDate, toDate, input.sites, input.filter),
+        athenaPageViews.totalsForPeriod(prevStartDate, prevEndDate, input.sites, input.filter),
       ]);
 
       return {
@@ -92,6 +96,7 @@ export function getPageViews(trpcInstance: TrpcInstance) {
         sites: z.array(SchemaSite),
         queryExecutionId: z.string().optional(),
         nextToken: z.string().optional(),
+        filter: FilterSchema.optional(),
       })
     )
     .output(
@@ -104,6 +109,8 @@ export function getPageViews(trpcInstance: TrpcInstance) {
     .query(async ({ input, ctx }) => {
       assertAuthentication(ctx);
 
+      if (input.filter && Object.keys(input.filter).length === 0) input.filter = undefined;
+
       const athenaPageViews = new AthenaPageViews();
 
       const fromDate = DateUtils.parseIso(input.from);
@@ -114,7 +121,8 @@ export function getPageViews(trpcInstance: TrpcInstance) {
         toDate,
         input.sites,
         input.queryExecutionId,
-        input.nextToken
+        input.nextToken,
+        input.filter
       );
       return {
         queryExecutionId: pageViews.queryExecutionId,
@@ -140,11 +148,14 @@ export function getChartViews(trpcInstance: TrpcInstance) {
         sites: z.array(SchemaSite),
         period: z.enum(['hour', 'day']),
         timeZone: z.string(),
+        filter: FilterSchema.optional(),
       })
     )
     .output(z.array(ChartViewsSchema))
     .query(async ({ input, ctx }) => {
       assertAuthentication(ctx);
+
+      if (input.filter && Object.keys(input.filter).length === 0) input.filter = undefined;
 
       const athenaPageViews = new AthenaPageViews();
 
@@ -161,7 +172,8 @@ export function getChartViews(trpcInstance: TrpcInstance) {
         toDate,
         input.sites,
         input.period,
-        input.timeZone
+        input.timeZone,
+        input.filter
       );
       return chartViews.map((row) => ({ ...row, date_key: DateUtils.stringifyIso(row.date_key) }));
     });
@@ -206,18 +218,21 @@ export function getPageReferrers(trpcInstance: TrpcInstance) {
         from: z.string().datetime(),
         to: z.string().datetime(),
         sites: z.array(SchemaSite),
+        filter: FilterSchema.optional(),
       })
     )
     .output(z.array(PageReferrerSchema))
     .query(async ({ input, ctx }) => {
       assertAuthentication(ctx);
 
+      if (input.filter && Object.keys(input.filter).length === 0) input.filter = undefined;
+
       const athenaPageViews = new AthenaPageViews();
 
       const fromDate = DateUtils.parseIso(input.from);
       const toDate = DateUtils.parseIso(input.to);
 
-      const PageReferrers = await athenaPageViews.referrersForPeriod(fromDate, toDate, input.sites);
+      const PageReferrers = await athenaPageViews.referrersForPeriod(fromDate, toDate, input.sites, input.filter);
       return PageReferrers;
     });
 }
@@ -243,18 +258,27 @@ export function getUsersGroupedByStatForPeriod(trpcInstance: TrpcInstance) {
           'utm_term',
           'utm_content',
         ]), // TODO: Later: "browser", "os"
+        filter: FilterSchema.optional(),
       })
     )
     .output(z.array(UsersGroupedByStatSchema))
     .query(async ({ input, ctx }) => {
       assertAuthentication(ctx);
 
+      if (input.filter && Object.keys(input.filter).length === 0) input.filter = undefined;
+
       const athenaPageViews = new AthenaPageViews();
 
       const fromDate = DateUtils.parseIso(input.from);
       const toDate = DateUtils.parseIso(input.to);
 
-      const data = await athenaPageViews.usersGroupedByStatForPeriod(fromDate, toDate, input.sites, input.groupBy);
+      const data = await athenaPageViews.usersGroupedByStatForPeriod(
+        fromDate,
+        toDate,
+        input.sites,
+        input.groupBy,
+        input.filter
+      );
       return data;
     });
 }

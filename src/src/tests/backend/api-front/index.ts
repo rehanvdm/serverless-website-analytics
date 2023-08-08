@@ -65,6 +65,17 @@ async function getCognitoAuthHeaders() {
   return authHeaders;
 }
 
+function getStandardQueryArgs() {
+  return {
+    sites: ['simulated'],
+    from: new Date(2023, 6, 1, 0, 0, 0).toISOString(),
+    to: new Date(2023, 6, 31, 23, 59, 59, 999).toISOString(),
+    filter: {
+      // referrer: 'google.com',
+      referrer: null,
+    },
+  };
+}
 describe('API Frontend', function () {
   before(async function () {
     console.log('TEST_TYPE', process.env.TEST_TYPE);
@@ -132,7 +143,7 @@ describe('API Frontend', function () {
     expect(JSON.stringify(respData.result.data)).to.eq(JSON.stringify(expectedOutput));
   });
 
-  it('Get getTopLevelStats', async function () {
+  it('Get getTopLevelStats - Verify dates', async function () {
     this.timeout(TimeOut * 1000);
 
     const context = apiGwContext();
@@ -156,6 +167,10 @@ describe('API Frontend', function () {
         // Test differences between dates.
         // from: new Date(2023, 3, 14).toISOString(),
         // to: new Date(2023, 3, 21).toISOString(),
+
+        filter: {
+          // referrer: 'https://www.google.com/',
+        },
       },
       authHeaders
     );
@@ -183,23 +198,7 @@ describe('API Frontend', function () {
     const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter, 'getPageViews'>(
       'getPageViews',
       'query',
-      {
-        sites: ['tests'],
-        // From 2023-03-01 to 2023-04-01
-        // Meaning UTC backend 2023-02-28 22:00:00 to 2023-03-31 22:00:00
-
-        // // Month 3 - March
-        // from: new Date(2023, 2, 1, 0, 0, 0).toISOString(),
-        // to: new Date(2023, 2, 30, 23, 59, 59,999).toISOString(),
-
-        // //Month 4 - April
-        // from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
-        // to: new Date(2023, 3, 30, 23, 59, 59,999).toISOString(),
-
-        // Month 5 - June
-        from: new Date(2023, 5, 1, 0, 0, 0).toISOString(),
-        to: new Date(2023, 5, 22, 23, 59, 59, 999).toISOString(),
-      },
+      getStandardQueryArgs(),
       authHeaders
     );
 
@@ -213,6 +212,7 @@ describe('API Frontend', function () {
     expect(output.queryExecutionId).to.be.a('string');
     // expect(output.nextToken).to.be.a('string');
     expect(output.data).to.be.an('array');
+    console.log(output.data);
   });
 
   it('Get pageViews - Paginate', async function () {
@@ -404,12 +404,7 @@ describe('API Frontend', function () {
     const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter, 'getPageReferrers'>(
       'getPageReferrers',
       'query',
-      {
-        sites: ['tests'],
-        // Month 4 - April - Past so data fixed, not changing still
-        from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
-        to: new Date(2023, 3, 30, 23, 59, 59, 999).toISOString(),
-      },
+      getStandardQueryArgs(),
       authHeaders
     );
 

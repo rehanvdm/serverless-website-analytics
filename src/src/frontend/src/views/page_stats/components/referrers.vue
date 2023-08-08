@@ -1,28 +1,31 @@
 <script setup lang="ts">
 import {Ref, ref, watch, computed, onMounted} from 'vue'
 import {PageReferrer} from "@backend/api-front/routes/stats";
+import {Filter} from "@backend/lib/models/filter";
 import TableData, {Column} from "@frontend/src/components/TableData.vue";
 import {api, apiWrapper} from "@frontend/src/lib/api";
-
-
-const loading = ref(true);
 
 export interface Props {
   sites: string[],
   fromDate?: Date,
-  toDate?: Date
+  toDate?: Date,
+  filter: Filter
 }
 const props = withDefaults(defineProps<Props>(), { });
 
-//emit('loading', true);
 const emit = defineEmits<{
-  (e: 'loading', val: boolean): void
+  (e: 'loading', val: boolean): void,
+  (e: 'filter-change', val: Filter): void
 }>()
 
 let pageReferrers: Ref<PageReferrer[] | undefined> = ref();
 
-async function loadData()
-{
+const loading = ref(true);
+watch(() => [loading.value], async () => {
+  emit('loading', loading.value)
+})
+
+async function loadData() {
   if (props.sites.length === 0 || !props.fromDate || !props.toDate)
     return;
 
@@ -30,6 +33,7 @@ async function loadData()
     sites: props.sites,
     from: props.fromDate?.toISOString(),
     to: props.toDate?.toISOString(),
+    filter: props.filter,
   }), loading);
   if (!resp)
     return;
@@ -44,17 +48,16 @@ async function loadData()
   // ]
   // loading.value = false;
   // pageReferrers.value = data;
-
 }
-watch(() => [props.sites, props.fromDate, props.toDate], async () =>
-{
+watch(() => [props.sites, props.fromDate, props.toDate, props.filter], async () => {
   await loadData();
+}, {
+  deep: true
 })
-async function refresh()
-{
+
+async function refresh() {
   await loadData();
 }
-
 defineExpose({
   refresh
 });
@@ -66,15 +69,21 @@ onMounted(() => {
 })
 
 const columns: Column[] = [
-  { name: "Referrer", type: "string", index: "referrer", gridColumn: "6fr" },
+  { name: "Referrer", type: "string", index: "referrer", gridColumn: "6fr", canFilter: true },
   { name: "Views", type: "number", index: "views", gridColumn: "2fr" },
 ];
 
+function rowClick(rowText: any) {
+  if(rowText === "No Referrer")
+    rowText = null;
+  emit('filter-change', { referrer: rowText })
+}
 </script>
 
 <template>
   <div class="container">
-    <TableData :columns="columns" :rows="pageReferrers || []" :loading="loading" :page-size="16" ></TableData>
+    <TableData :columns="columns" :rows="pageReferrers || []" :loading="loading" :page-size="16"
+               @click="rowClick"></TableData>
   </div>
 </template>
 

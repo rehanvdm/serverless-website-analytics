@@ -3,13 +3,15 @@ import {Ref, ref, watch} from 'vue'
 import {GetTopLevelStats} from "@backend/api-front/routes/stats";
 import {humanizeNumber} from "@frontend/src/lib/ui_utils";
 import {api, apiWrapper} from "@frontend/src/lib/api";
+import {Filter} from "@backend/lib/models/filter";
 
 const loadingTotals = ref(true);
 
 export interface Props {
   sites: string[],
   fromDate?: Date,
-  toDate?: Date
+  toDate?: Date,
+  filter: Filter
 }
 const props = withDefaults(defineProps<Props>(), { });
 
@@ -19,6 +21,11 @@ const emit = defineEmits<{
 
 let stats: Ref<GetTopLevelStats | undefined> = ref();
 
+const loading = ref(true);
+watch(() => [loading.value], async () => {
+  emit('loading', loading.value)
+})
+
 async function loadData()
 {
   if (props.sites.length === 0 || !props.fromDate || !props.toDate)
@@ -27,7 +34,8 @@ async function loadData()
   const resp = await apiWrapper(api.getTopLevelStats.query({
     sites: props.sites,
     from: props.fromDate?.toISOString(),
-    to: props.toDate?.toISOString()
+    to: props.toDate?.toISOString(),
+    filter: props.filter,
   }), loadingTotals);
   if (!resp)
     return;
@@ -58,15 +66,15 @@ async function loadData()
   // };
   //
 }
-watch(() => [props.sites, props.fromDate, props.toDate], async () =>
-{
+watch(() => [props.sites, props.fromDate, props.toDate, props.filter], async () =>{
   await loadData();
+}, {
+  deep: true
 })
-async function refresh()
-{
+
+async function refresh(){
   await loadData();
 }
-
 defineExpose({
   refresh
 });

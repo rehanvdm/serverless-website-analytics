@@ -11,6 +11,11 @@ import Referrers from "@frontend/src/views/page_stats/components/referrers.vue";
 import UserInfo from "@frontend/src/views/page_stats/components/user_info.vue";
 import UTM from "@frontend/src/views/page_stats/components/utm.vue";
 import {getSystemStore} from "@frontend/src/stores/system";
+import {Filter} from "@backend/lib/models/filter";
+import {useRoute, useRouter} from "vue-router";
+
+const route = useRoute();
+const router = useRouter();
 
 /* ================================================================================================================== */
 /* ==================================================== Settings  =================================================== */
@@ -99,9 +104,45 @@ onMounted(async () => {
   if(!resp)
     return;
   sites.value = resp;
-  selectedSites.value = sites.value;
-  selectedSitesConfirmed.value = sites.value;
-  console.log(sites.value);
+
+  // watch(route.query, () => {
+  if(route.query.sites)
+  {
+    console.log("route.query.sites", route.query.sites)
+    const sitesParam = decodeURIComponent(route.query.sites as string);
+    selectedSites.value = sitesParam.split(',');
+    selectedSitesConfirmed.value = sitesParam.split(',');
+  }
+  else
+  {
+    selectedSites.value = sites.value;
+    selectedSitesConfirmed.value = sites.value;
+  }
+
+  if(route.query.date)
+  {
+    console.log("route.query.date", route.query.date)
+    const dateParam = decodeURIComponent(route.query.date as string);
+    const [startDate, endDate] = dateParam.split(',');
+    dateFilter.value = [new Date(startDate), new Date(endDate)];
+  }
+
+  if(route.query.filter)
+  {
+    console.log("route.query.filter", route.query.filter)
+    const validFilterKeys =  Object.keys(filter.value)
+    const filterParam = JSON.parse(decodeURIComponent(route.query.filter as string)) as Record<string, string>
+    for(const [key, val] of Object.entries(filterParam))
+    {
+      if(!validFilterKeys.includes(key))
+        continue;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      filter.value[key] = val;
+    }
+  }
+  // }, { deep: true, immediate: true });
+
 });
 
 const showUpdateSearch = computed(() => {
@@ -115,16 +156,17 @@ const showUpdateSearch = computed(() => {
 /* =========================================== Refresh and loading state ============================================ */
 /* ================================================================================================================== */
 
-const loadingTotals = ref(false);
-const loadingPageViews = ref(false);
-const loadingChartViews = ref(false);
-const loadingChartLocations = ref(false);
-const loadingReferrers = ref(false);
-const loadingUserInfo = ref(false);
-const loadingUtm = ref(false);
+
+let loadingTotals = ref(false);
+let loadingPageViews = ref(false);
+let loadingChartViews = ref(false);
+let loadingChartLocations = ref(false);
+let loadingReferrers = ref(false);
+let loadingUserInfo = ref(false);
+let loadingUtm = ref(false);
 const loadingComponents = computed(() => {
   return loadingSites.value || loadingTotals.value || loadingPageViews.value ||
-    loadingChartViews.value || loadingChartLocations.value || loadingUserInfo.value || loadingUtm.value;
+    loadingChartViews.value || loadingChartLocations.value || loadingReferrers.value || loadingUserInfo.value || loadingUtm.value;
 });
 
 const componentTotal = ref<InstanceType<typeof Totals>>();
@@ -158,6 +200,48 @@ async function refresh()
     componentUtm.value.refresh();
 }
 
+const filter: Ref<Filter> = ref({
+  page_url: undefined,
+  referrer: undefined,
+  country_name: undefined,
+  device_type: undefined,
+  utm_source: undefined,
+  utm_medium: undefined,
+  utm_campaign: undefined,
+  utm_term: undefined,
+  utm_content: undefined,
+})
+function filterChange(partialFilter: Filter) {
+  filter.value = { ...filter.value, ...partialFilter };
+}
+
+function clearFilters() {
+  filter.value = {
+    page_url: undefined,
+    referrer: undefined,
+    country_name: undefined,
+    device_type: undefined,
+    utm_source: undefined,
+    utm_medium: undefined,
+    utm_campaign: undefined,
+    utm_term: undefined,
+    utm_content: undefined,
+  };
+}
+const showClearFilters = computed(() => {
+  return filter.value.page_url || filter.value.referrer || filter.value.country_name || filter.value.device_type ||
+    filter.value.utm_source || filter.value.utm_medium || filter.value.utm_campaign || filter.value.utm_term ||
+    filter.value.utm_content;
+});
+
+watch([sites, dateFilter, filter], () => {
+  router.push({ query: {
+    sites: encodeURIComponent(selectedSites.value.join(',')),
+    date: encodeURIComponent(dateFilter.value.map(d => d.toISOString()).join(',')),
+    filter: Object.values(filter.value).filter(v => v).length ? encodeURIComponent(JSON.stringify(filter!.value)) : undefined,
+    }
+  });
+}, { deep: true });
 </script>
 
 
@@ -176,9 +260,9 @@ async function refresh()
             <a style="margin-left: 20px" href="https://github.com/rehanvdm/serverless-website-analytics" target="_blank">
               <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/rehanvdm/serverless-website-analytics?label=Github&style=social">
             </a>
-            <a style="margin-left: 20px" href="https://www.npmjs.com/package/serverless-website-analytics" target="_blank">
-              <img alt="npm" src="https://img.shields.io/npm/dw/serverless-website-analytics">
-            </a>
+<!--            <a style="margin-left: 20px" href="https://www.npmjs.com/package/serverless-website-analytics" target="_blank">-->
+<!--              <img alt="npm" src="https://img.shields.io/npm/dw/serverless-website-analytics">-->
+<!--            </a>-->
           </div>
         </div>
       </el-alert>
@@ -231,38 +315,86 @@ async function refresh()
 
           </div>
         </div>
+
+        <div style="margin-bottom: 10px">
+          <el-tag class="filter-tag" v-if="filter.page_url" closable @close="filter.page_url = undefined">
+            <b>Page</b> = {{filter.page_url}}
+          </el-tag>
+
+          <el-tag class="filter-tag" v-if="filter.referrer" closable @close="filter.referrer = undefined">
+            <b>Referrer</b> = {{filter.referrer}}
+          </el-tag>
+          <el-tag class="filter-tag" v-else-if="filter.referrer === null" closable @close="filter.referrer = undefined">
+            <b>Referrer</b> = No Referrer
+          </el-tag>
+
+          <el-tag class="filter-tag" v-if="filter.country_name" closable @close="filter.country_name = undefined">
+            <b>Country</b> = {{filter.country_name}}
+          </el-tag>
+          <el-tag class="filter-tag" v-if="filter.device_type" closable @close="filter.device_type = undefined">
+            <b>Device</b> = {{filter.device_type}}
+          </el-tag>
+          <el-tag class="filter-tag" v-if="filter.utm_source" closable @close="filter.utm_source = undefined">
+            <b>UTM Source</b> = {{filter.utm_source}}
+          </el-tag>
+          <el-tag class="filter-tag" v-if="filter.utm_medium" closable @close="filter.utm_medium = undefined">
+            <b>UTM Medium</b> = {{filter.utm_medium}}
+          </el-tag>
+          <el-tag class="filter-tag" v-if="filter.utm_campaign" closable @close="filter.utm_campaign = undefined">
+            <b>UTM Campaign</b> = {{filter.utm_campaign}}
+          </el-tag>
+          <el-tag class="filter-tag" v-if="filter.utm_term" closable @close="filter.utm_term = undefined">
+            <b>UTM Term</b> = {{filter.utm_term}}
+          </el-tag>
+          <el-tag class="filter-tag" v-if="filter.utm_content" closable @close="filter.utm_content = undefined">
+            <b>UTM Content</b> = {{filter.utm_content}}
+          </el-tag>
+          <el-button text size="small" v-if="showClearFilters" @click="clearFilters()">Clear filters</el-button>
+        </div>
+
       </el-header>
 
   <!--    v-if="selectedSites.length > 0 && fromDate && toDate"-->
       <el-main class="h100" style="overflow: visible;">
         <div class="main-row">
           <Totals ref="componentTotal" :sites="selectedSitesConfirmed" :from-date="fromDate" :to-date="toDate"
-                  @loading="(val) => loadingTotals = val" ></Totals>
+                  @loading="(val) => loadingTotals = val"
+                  :filter="filter"
+          ></Totals>
         </div>
 
         <div class="main-row">
           <ChartViews ref="componentChartViews" :sites="selectedSitesConfirmed" :from-date="fromDate" :to-date="toDate"
-                      @loading="(val) => loadingChartViews = val"></ChartViews>
+                      @loading="(val) => loadingChartViews = val"
+                      :filter="filter"
+          ></ChartViews>
         </div>
 
         <div class="main-row">
           <PageViews ref="componentPageViews" :sites="selectedSitesConfirmed" :from-date="fromDate" :to-date="toDate"
-                     @loading="(val) => loadingPageViews = val" ></PageViews>
+                     @loading="(val) => loadingPageViews = val"
+                     :filter="filter" @filter-change="filterChange"
+          ></PageViews>
           <Referrers ref="componentReferrers" :sites="selectedSitesConfirmed" :from-date="fromDate" :to-date="toDate"
-                     @loading="(val) => loadingReferrers = val"></Referrers>
+                     @loading="(val) => loadingReferrers = val"
+                     :filter="filter" @filter-change="filterChange"
+          ></Referrers>
         </div>
 
 
         <div class="main-row">
           <ChartLocations ref="componentChartLocations" :sites="selectedSitesConfirmed" :from-date="fromDate" :to-date="toDate"
-                      @loading="(val) => loadingChartLocations = val"></ChartLocations>
+                      @loading="(val) => loadingChartLocations = val"
+                      :filter="filter" @filter-change="filterChange"></ChartLocations>
         </div>
 
         <div class="main-row">
           <UserInfo ref="componentUserInfo" :sites="selectedSitesConfirmed" :from-date="fromDate" :to-date="toDate"
-                    @loading="(val) => loadingUserInfo = val"></UserInfo>
+                    @loading="(val) => loadingUserInfo = val"
+                    :filter="filter" @filter-change="filterChange"></UserInfo>
           <UTM ref="componentUtm" :sites="selectedSitesConfirmed" :from-date="fromDate" :to-date="toDate"
-               @loading="(val) => loadingUtm = val"></UTM>
+               @loading="(val) => loadingUtm = val"
+               :filter="filter" @filter-change="filterChange"></UTM>
         </div>
 
         <div class="main-row" style="margin-bottom: 100px;"></div>
@@ -310,6 +442,10 @@ async function refresh()
 }
 .settings-label-single { /* No collapse */
  padding: 10px 0;
+}
+
+.filter-tag {
+  margin: 5px 5px 0 0;
 }
 
 </style>
