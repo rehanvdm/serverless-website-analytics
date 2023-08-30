@@ -68,7 +68,8 @@ export class App extends cdk.Stack {
       /* Optional, if not specified uses default CloudFront and Cognito domains */
       domain: {
         name: 'demo.serverless-website-analytics.com',
-        certificate: wildCardCertUsEast1,
+        /* The certificate must be in us-east-1 */
+        usEast1Certificate: wildCardCertUsEast1,
         /* Optional, if not specified then no DNS records will be created. You will have to create the DNS records yourself. */
         hostedZone: route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
           hostedZoneId: 'Z00387321EPPVXNC20CIS',
@@ -116,6 +117,19 @@ Quick option rundown:
 For a full list of options see the [API.md](https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/API.md#api-reference-) docs.
 
 You can see an example implementation of the demo site [here](https://github.com/rehanvdm/serverless-website-analytics-test)
+
+#### Certificate Requirements
+When specifying a domain, the certificate must be in `us-east-1` but your stack can be in ANY region. This is because
+CloudFront requires the certificate to be in `us-east-1`.
+
+You have one of two choices:
+  - Create the certificate in `us-east-1` manually (Click Ops) and import it from the Cert ARN as in the [demo example](https://github.com/rehanvdm/serverless-website-analytics-test/blob/main/lib/app.ts#L16).
+  - Create a `us-east-1` stack that your main stack (that contains this construct) depends. This main stack can be in any region.
+    Create the Certificate in the `us-east-1` stack and export the cert ARN. Then import the cert ARN in your main stack.
+    Ensure that you have the [crossRegionReferences](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.Stack.html#crossregionreferences) flag set
+    on both stacks so that the CDK can export and import the Cert ARN via SSM. This is necessary because CloudFormation
+    can not export and import values across regions. Alternatively you can DIY it, here is a blog from [AWS](https://aws.amazon.com/blogs/infrastructure-and-automation/read-parameters-across-aws-regions-with-aws-cloudformation-custom-resources/)
+    and a quick example from [SO](https://stackoverflow.com/questions/59774627/cloudformation-cross-region-reference).
 
 ### Client side setup
 
