@@ -234,9 +234,9 @@ const showClearFilters = computed(() => {
     filter.value.utm_content;
 });
 
-watch([sites, dateFilter, filter], () => {
+watch([selectedSitesConfirmed, dateFilter, filter], () => {
   router.push({ query: {
-    sites: encodeURIComponent(selectedSites.value.join(',')),
+    sites: encodeURIComponent(selectedSitesConfirmed.value.join(',')),
     date: encodeURIComponent(dateFilter.value.map(d => d.toISOString()).join(',')),
     filter: Object.values(filter.value).filter(v => v).length ? encodeURIComponent(JSON.stringify(filter!.value)) : undefined,
     }
