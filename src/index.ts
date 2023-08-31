@@ -1,4 +1,3 @@
-import { Arn, ArnFormat } from 'aws-cdk-lib';
 import * as cert from 'aws-cdk-lib/aws-certificatemanager';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as sns from 'aws-cdk-lib/aws-sns';
@@ -82,8 +81,17 @@ export interface Domain {
   /**
    * The certificate to use for the domain. This certificate must be in the `us-east-1` region. It must be for the
    * domain specified in `domain.name` and {auth.cognito.loginSubDomain}.{domain.name}`
+   * @deprecated Use `usEast1Certificate` instead.
    */
-  readonly certificate: cert.ICertificate;
+  readonly certificate?: cert.ICertificate;
+
+  /**
+   * The certificate to use for the domain. This certificate must be in the `us-east-1` region. It must be for the
+   * domain specified in `domain.name` and {auth.cognito.loginSubDomain}.{domain.name}`
+   *
+   * Required when specifying Domain.
+   */
+  readonly usEast1Certificate?: cert.ICertificate;
 
   /**
    * Optional, if not specified then no DNS records will be created. You will have to create the DNS records yourself.
@@ -222,12 +230,7 @@ export class Swa extends Construct {
       return id + '-' + resourceId;
     }
 
-    if (props.domain?.certificate) {
-      const certRegion = Arn.split(props.domain.certificate.certificateArn, ArnFormat.COLON_RESOURCE_NAME).region;
-      if (certRegion !== 'us-east-1') {
-        throw new Error(`Certificate must be in us-east-1, not in ${certRegion}, this is a requirement for CloudFront`);
-      }
-    }
+    /* Other pre-CloudFormation checks here */
 
     if (props.firehoseBufferInterval && (props.firehoseBufferInterval < 60 || props.firehoseBufferInterval > 900)) {
       throw new Error('`firehoseBufferInterval` must be between 60 and 900 seconds');
@@ -236,6 +239,23 @@ export class Swa extends Construct {
     if (props?.domain?.trackOwnDomain) {
       props.sites.push(props.domain.name);
       props.allowedOrigins.push(`https://${props.domain.name}`);
+    }
+
+    /* Remapping `domain.certificate` to `domain.usEast1Certificate` */
+    if (props.domain) {
+      if (!props.domain?.usEast1Certificate && !props.domain?.certificate)
+        throw new Error('`domain.usEast1Certificate` must be specified');
+
+      if (props.domain?.certificate) {
+        props = {
+          ...props,
+          domain: {
+            ...props.domain,
+            usEast1Certificate: props.domain.certificate,
+            certificate: undefined,
+          },
+        };
+      }
     }
 
     const authProps = auth(scope, name, props);
