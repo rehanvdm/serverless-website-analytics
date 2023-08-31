@@ -90,8 +90,8 @@ describe('Auth', () => {
           },
         },
       });
-      const assert = Template.fromStack(stack);
-    } catch (e) {
+      Template.fromStack(stack);
+    } catch (e: any) {
       expect(e.message).toBe('Specify only `basicAuth` or `cognito` for `auth` but not both');
     }
   });

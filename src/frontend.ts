@@ -72,7 +72,7 @@ export function frontend(
     ? {}
     : {
         domainNames: [props.domain.name],
-        certificate: props.domain.certificate,
+        certificate: props.domain.usEast1Certificate,
       };
 
   const defaultBucketOrigin = new origins.HttpOrigin(frontendBucket.bucketWebsiteDomainName, {
@@ -207,7 +207,7 @@ export function frontend(
       const cognitoDomain = authProps.userPool!.addDomain('custom-domain', {
         customDomain: {
           domainName: `${props.auth.cognito.loginSubDomain}.${props.domain.name}`,
-          certificate: props.domain.certificate,
+          certificate: props.domain.usEast1Certificate!,
         },
       });
       new cdk.CfnOutput(scope, name('CognitoHostedUrl'), {
