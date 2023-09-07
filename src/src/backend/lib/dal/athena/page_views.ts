@@ -21,9 +21,22 @@ export class AthenaPageViews extends AthenaBase {
    * @param filter
    */
   cteFilteredDataQuery(columns: string[], fromDate: Date, toDate: Date, sites: string[], filter?: Filter) {
-    const cteWhereClauseSites = sites.map((site) => `site = '${site}'`).join(' OR ');
-    let cteWhereClauseExtra = '';
+    const cteSiteWhereClauseSites = sites.map((site) => `site = '${site}'`).join(' OR ');
 
+    /* Partition dates are UTC and not TZ aware, we narrow them later. Here we add 1 day to the end date so that
+     * it is inclusive of the end date */
+    const datesToQuery: Date[] = [];
+    const inclusiveEndDate = DateUtils.addDays(toDate, 1);
+    let currentDate = fromDate;
+    while (currentDate <= inclusiveEndDate) {
+      datesToQuery.push(currentDate);
+      currentDate = DateUtils.addDays(currentDate, 1);
+    }
+    const cteDateWhereClauseDates: string = datesToQuery
+      .map((dt) => `page_opened_at_date = '${DateUtils.stringifyFormat(dt, 'yyyy-MM-dd')}'`)
+      .join(' OR ');
+
+    let cteWhereAndClauseExtra = '';
     if (filter) {
       const cteWhereClauseFilter = Object.entries(filter)
         .map(([key, value]) => {
@@ -31,7 +44,7 @@ export class AthenaPageViews extends AthenaBase {
           else return `${key} = '${value}'`;
         })
         .join(' AND ');
-      cteWhereClauseExtra += ` AND (${cteWhereClauseFilter})`;
+      cteWhereAndClauseExtra += ` AND (${cteWhereClauseFilter})`;
     }
 
     const exactTimeFrom = DateUtils.stringifyFormat(fromDate, 'yyyy-MM-dd HH:mm:ss.SSS');
@@ -42,13 +55,13 @@ export class AthenaPageViews extends AthenaBase {
               SELECT ${columns.join(', ')}, page_opened_at,
                      ROW_NUMBER() OVER (PARTITION BY page_id ORDER BY time_on_page DESC) rn
               FROM page_views
-              WHERE (${cteWhereClauseSites}) AND page_opened_at BETWEEN parse_datetime('${exactTimeFrom}','yyyy-MM-dd HH:mm:ss.SSS')
-                    AND parse_datetime('${exactTimeTo}','yyyy-MM-dd HH:mm:ss.SSS') ${cteWhereClauseExtra}
+              WHERE (${cteSiteWhereClauseSites}) AND (${cteDateWhereClauseDates}) ${cteWhereAndClauseExtra}
           ),
           cte_data_filtered AS (
               SELECT *
               FROM cte_data
-              WHERE rn = 1
+              WHERE rn = 1 AND page_opened_at BETWEEN parse_datetime('${exactTimeFrom}','yyyy-MM-dd HH:mm:ss.SSS')
+                    AND parse_datetime('${exactTimeTo}','yyyy-MM-dd HH:mm:ss.SSS')
           )`;
   }
 

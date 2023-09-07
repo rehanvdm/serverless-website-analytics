@@ -112,18 +112,6 @@ export class DateUtils {
     return localDate.toJSDate();
   }
 
-  static getMonthsBetweenDates(startDate: Date, endDate: Date) {
-    return (
-      Interval.fromDateTimes(
-        DateTime.fromJSDate(startDate).startOf('month'),
-        DateTime.fromJSDate(endDate).endOf('month')
-      )
-        .splitBy({ month: 1 })
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        .map((d) => DateUtils.toJSDate(d.start!))
-    );
-  }
-
   /**
    * Minus 1 millisecond from the end date because the interval is inclusive when used in Queries
    * @param startDate
