@@ -4,6 +4,7 @@ import { SchemaSite } from '@backend/lib/models/site';
 import { DateUtils } from '@backend/lib/utils/date_utils';
 import { AthenaPageViews } from '@backend/lib/dal/athena/page_views';
 import { FilterSchema } from '@backend/lib/models/filter';
+import { LambdaEnvironment } from '@backend/api-front/environment';
 
 const GetTopLevelStatsSchema = z.object({
   visitors: z.number(),
@@ -43,7 +44,10 @@ export function getTopLevelStats(trpcInstance: TrpcInstance) {
 
       if (input.filter && Object.keys(input.filter).length === 0) input.filter = undefined;
 
-      const athenaPageViews = new AthenaPageViews();
+      const athenaPageViews = new AthenaPageViews(
+        LambdaEnvironment.ANALYTICS_GLUE_DB_NAME,
+        LambdaEnvironment.ANALYTICS_BUCKET_ATHENA_PATH
+      );
 
       const fromDate = DateUtils.parseIso(input.from);
       const toDate = DateUtils.parseIso(input.to);
@@ -111,7 +115,10 @@ export function getPageViews(trpcInstance: TrpcInstance) {
 
       if (input.filter && Object.keys(input.filter).length === 0) input.filter = undefined;
 
-      const athenaPageViews = new AthenaPageViews();
+      const athenaPageViews = new AthenaPageViews(
+        LambdaEnvironment.ANALYTICS_GLUE_DB_NAME,
+        LambdaEnvironment.ANALYTICS_BUCKET_ATHENA_PATH
+      );
 
       const fromDate = DateUtils.parseIso(input.from);
       const toDate = DateUtils.parseIso(input.to);
@@ -157,7 +164,10 @@ export function getChartViews(trpcInstance: TrpcInstance) {
 
       if (input.filter && Object.keys(input.filter).length === 0) input.filter = undefined;
 
-      const athenaPageViews = new AthenaPageViews();
+      const athenaPageViews = new AthenaPageViews(
+        LambdaEnvironment.ANALYTICS_GLUE_DB_NAME,
+        LambdaEnvironment.ANALYTICS_BUCKET_ATHENA_PATH
+      );
 
       const fromDate = DateUtils.parseIso(input.from);
       const toDate = DateUtils.parseIso(input.to);
@@ -227,7 +237,10 @@ export function getPageReferrers(trpcInstance: TrpcInstance) {
 
       if (input.filter && Object.keys(input.filter).length === 0) input.filter = undefined;
 
-      const athenaPageViews = new AthenaPageViews();
+      const athenaPageViews = new AthenaPageViews(
+        LambdaEnvironment.ANALYTICS_GLUE_DB_NAME,
+        LambdaEnvironment.ANALYTICS_BUCKET_ATHENA_PATH
+      );
 
       const fromDate = DateUtils.parseIso(input.from);
       const toDate = DateUtils.parseIso(input.to);
@@ -267,7 +280,10 @@ export function getUsersGroupedByStatForPeriod(trpcInstance: TrpcInstance) {
 
       if (input.filter && Object.keys(input.filter).length === 0) input.filter = undefined;
 
-      const athenaPageViews = new AthenaPageViews();
+      const athenaPageViews = new AthenaPageViews(
+        LambdaEnvironment.ANALYTICS_GLUE_DB_NAME,
+        LambdaEnvironment.ANALYTICS_BUCKET_ATHENA_PATH
+      );
 
       const fromDate = DateUtils.parseIso(input.from);
       const toDate = DateUtils.parseIso(input.to);

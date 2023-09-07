@@ -38,7 +38,7 @@ export class AthenaBase {
     };
   }
 
-  async query(
+  protected async query(
     query: string,
     limit?: number,
     queryExecutionId?: string,
