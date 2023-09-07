@@ -1,21 +1,15 @@
 import { DateUtils } from '@backend/lib/utils/date_utils';
 import { AthenaBase } from '@backend/lib/utils/athena_base';
 import { getAthenaClient, getS3Client } from '@backend/lib/utils/lazy_aws';
-import { LambdaEnvironment } from '@backend/api-front/environment';
 import { Page } from '@backend/lib/models/page';
 import { Filter } from '@backend/lib/models/filter';
+import { v4 as uuidv4 } from 'uuid';
 
 export class AthenaPageViews extends AthenaBase {
-  constructor() {
+  constructor(glueDbName: string, athenaStorageBucket: string) {
     const athenaClient = getAthenaClient();
     const s3Client = getS3Client();
-    super(
-      athenaClient,
-      s3Client,
-      LambdaEnvironment.ANALYTICS_GLUE_DB_NAME,
-      LambdaEnvironment.ANALYTICS_BUCKET_ATHENA_PATH,
-      { bigIntAsNumber: true }
-    );
+    super(athenaClient, s3Client, glueDbName, athenaStorageBucket, { bigIntAsNumber: true });
   }
 
   /**
@@ -282,5 +276,48 @@ export class AthenaPageViews extends AthenaBase {
       group: string;
       visitors: number;
     }[];
+  }
+
+  async rollupPageViews(pageViewBucketName: string, site: string, date: string) {
+    const tempTableName = `rollup_temp_${uuidv4().replaceAll('-', '_')}`;
+    const queryCTAS = `
+      CREATE TABLE ${tempTableName}
+      WITH (
+        format = 'PARQUET',
+        partitioned_by=array['site','page_opened_at_date'],
+        external_location = 's3://${pageViewBucketName}/page_views/'
+      ) AS
+      WITH cte AS (
+        SELECT *, ROW_NUMBER() OVER (PARTITION BY page_id ORDER BY time_on_page DESC) rn
+        FROM page_views
+        WHERE site = '${site}' AND page_opened_at_date = '${date}'
+      )
+      SELECT
+        user_id,
+        session_id,
+        page_id,
+        page_url,
+        page_opened_at,
+        time_on_page,
+        country_iso,
+        country_name,
+        city_name,
+        device_type,
+        is_bot,
+        utm_source,
+        utm_medium,
+        utm_campaign,
+        utm_term,
+        utm_content,
+        querystring,
+        referrer,
+        site,
+        page_opened_at_date
+      FROM cte as a
+      WHERE rn = 1 `;
+
+    await this.query(queryCTAS);
+    await this.query(`DROP TABLE ${tempTableName}`);
+    return true;
   }
 }

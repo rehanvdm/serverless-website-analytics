@@ -107,6 +107,7 @@ async function buildTsLambdas()
   const tsLambdaDirectories = [
     "api-front",
     "api-ingest",
+    "cron-vacuum",
   ];
 
   for( let lambdaDir of tsLambdaDirectories)
