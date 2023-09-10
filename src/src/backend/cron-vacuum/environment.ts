@@ -24,9 +24,6 @@ export class LambdaEnvironment {
       ANALYTICS_BUCKET: z.string(),
       ANALYTICS_GLUE_DB_NAME: z.string(),
       SITES: z.string().transform((v) => JSON.parse(v) as string[]),
-
-      FIREHOSE_PAGE_VIEWS_NAME: z.string(),
-      FIREHOSE_EVENTS_NAME: z.string(),
     });
     const parsed = schema.safeParse(process.env);
 
