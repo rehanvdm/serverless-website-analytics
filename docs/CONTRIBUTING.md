@@ -76,7 +76,7 @@ npm run watch-local-api-ingest-watch
 
 ### Record storage strategy
 Events/logs/records are stored in S3 in a partitioned manner. The partitioning is dynamic, so all that is left is to store
-the data correctly and that is done by Kinesis Firehose in the format of: site, month and day. The records are buffered
+the data correctly and that is done by Kinesis Firehose in the format of: site and day(`2023-08-23`). The records are buffered
 and stored in parquet format. We are currently using an Append Only Log (AOL) pattern. This means that we are never
 updating the logs, we are only adding new ones.
 
@@ -89,10 +89,6 @@ This means we store almost twice as many records as opposed to updating the reco
 a single record inside a parquet file is not possible, or even if it is we would have to rewrite the whole file. We also
 do not want to do individual PUTs for each record as that would be too expensive.
 
-Technically we can do a CTAS query to remove the duplicate records, but my quick tests did not show much improvement on
-query speed. This is why we rather do the group by the page_id and then take the record with the largest time_on_page as
-the latest record for that page view.
-
 The reason for writing the first record is that we can not assume the second record will reach us when the user navigates
 away from the page. This is because the user might close the tab or browser before the record is sent. This is mitigated
 by the client that uses the `navigator.sendBeacon(...)` function instead of a normal HTTP request.
@@ -101,6 +97,34 @@ The `navigator.sendBeacon(...)` has type `ping` in Chrome or `beacon` in FireFox
 POST server side), it also does not send preflight `OPTION` calls even if it is not the same host. Browsers just handle
 it slightly differently and the probability of it being delivered is greater than fetch with `keepalive` set.
 More on the [topic](https://medium.com/fiverr-engineering/benefits-of-sending-analytical-information-with-sendbeacon-a959cb206a7a).
+
+### Vacuum and record format
+
+As mentioned above, we are using an AOL pattern. The `page_id` is used to group these records, the first records is when
+the page is navigated to and the second one when they leave. The only value that differs between the two is that the last
+one will have a higher `time_on_page`. So when we do queries we need to group by the `page_id` and then order by the
+biggest `time_on_page` and select the first one.
+
+Depending on the Firehose buffer time, we will have multiple records in a single parquet file. If the buffer time is set
+to say 1 minute and we get 1 view every 10 seconds, we will have 1440 parquet files per day. Athena reading S3 files
+can get expensive considering that we do about 8 queries per dashboard load. Let's also assume we look at 30 days data
+and that we view the dashboard 100 times that month. That means we will be scanning 1440 * 8 * 30 * 100 = 34,560,000 records.
+Let's use one of the cheapest region's, `us-east-1`, where 1000 S3 reads cost $0.0004. This means that we will be paying
+$13.82 for the S3 reads and as we know, is the biggest cost driver, see [COST](https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/COST.md)
+for more info on cost estimations.
+
+This is why we run a vacuum function that will for each site, run the group by and order function mentioned before.
+This results in less parquet files, it should be around 4, and it will also be magnitudes smaller.
+
+The vacuum function runs at 01:00 UTC when all the previous day's data has been written to S3. It runs as a CTAS query
+and stores the data back into the original S3 location the Athena query used to select from. This is by design as we
+then delete all the S3 files before the CTAS query ran, making the process idempotent.
+
+There will be a brief period when the Firehose parquet files and the CTAS parquet files are both in S3. This is fine
+because of how we query data, group by `page_id` and then order by `time_on_page`. There will just be slightly more
+records scanned before the Firehose parquet files are deleted.
+
+See benchmarks on this https://github.com/rehanvdm/serverless-website-analytics/pull/43
 
 ### Other
 

@@ -9,6 +9,10 @@ A **worst case cost analysis** is done in this [Google Sheet](https://docs.googl
 _To use this sheet, ONLY change the values in the yellow cells, these are the hyperparameters that you control. The rest of
 the values are calculated based on these hyperparameters or are constants._
 
+> [!IMPORTANT]
+> We make calculations without considering the daily vacuum cron process which reduces the S3 files stored by magnitudes.
+> Real costs will be 10x to 100x lower than the worst case costs.
+
 With the hyperparameters set to:
 - 1 site
 - 15 minutes of firehose buffer interval
@@ -37,20 +41,7 @@ sites this might be worth it, but on high volume sites it will be too expensive.
 The number of sites also influences the cost, because each site is a multiplier to the number of partitions written. In
 other words if we have 100 views and 1 site, then all 100 views are written into 1 partition. If we have 100 views and 2
 sites, assuming an equal split in views, then 50 views are written into 1 partition and 50 views are written into another,
-resulting in 2 partitions.
-
-## Improvements
-
-Currently, we are partitioning by month. This was because we were adding partitions manually and didn't want to burden the
-user with having to do this through the frontend on a daily basis. Since we switched to dynamic partitioning, we can change this to be
-daily. This will result in more partitions, but not more S3 files written because the firehose buffer interval is still
-less than a day. With this change we will limit the amount of data scanned by Athena significantly, which will reduce the
-cost. Given the assumption that on average, you do not query the full month's data, but only today or a few days, this will be a
-significant cost reduction.
-
-We will also create janitors/background workers that run daily to optimize the partitions. This will use the CTAS query
-of Athena to optimize the multiple daily Firehose parquet files into just a few files. This will also see a big reduction
-in the amount of data scanned by Athena, which will reduce the cost.
+resulting in 2 partitions
 
 ## FAQ
 

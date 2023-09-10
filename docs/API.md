@@ -198,6 +198,10 @@ app.mount('#app');
 
 **SEE THE FULL COST BREAKDOWN AND SPREAD SHEET > [HERE](https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/COST.md)**
 
+> [!IMPORTANT]
+> We make calculations without considering the daily vacuum cron process which reduces the S3 files stored by magnitudes.
+> Real costs will be 10x to 100x lower than the worst case costs.
+
 The worst case projected costs are:
 
 | Views       | Cost($) |
@@ -212,7 +216,7 @@ The worst case projected costs are:
 
 The architecture consists of four components: frontend, backend, ingestion API and the client JS library.
 
-![serverless-website-analytics.drawio.png](https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs%2Fimgs%2Fserverless-website-analytics.drawio.png)
+![serverless-website-analytics.drawio-2023-09-10.png](https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs%2Fimgs%2Fserverless-website-analytics.drawio-2023-09-10.png)
 
 See the [highlights](https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/CONTRIBUTING.md#highlights)
 and [design decisions](https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/CONTRIBUTING.md#design-decisions)
