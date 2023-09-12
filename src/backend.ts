@@ -282,12 +282,8 @@ export function backend(
       effect: Effect.ALLOW,
       actions: ['s3:DeleteObject'],
       resources: [
-        backendAnalyticsProps.analyticsBucket.arnForObjects(
-          'page_views/site=*/page_opened_at_date=*/' + backendAnalyticsProps.firehosePageViews.deliveryStreamName! + '*'
-        ),
-        backendAnalyticsProps.analyticsBucket.arnForObjects(
-          'page_views/site=*/page_opened_at_date=*/' + backendAnalyticsProps.firehoseEvents.deliveryStreamName! + '*'
-        ),
+        backendAnalyticsProps.analyticsBucket.arnForObjects('page_views/site=*/page_opened_at_date=*/*'),
+        backendAnalyticsProps.analyticsBucket.arnForObjects('page_views/site=*/page_opened_at_date=*/*'),
       ],
     })
   );

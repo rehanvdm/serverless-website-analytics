@@ -42,7 +42,7 @@ export class S3Base {
     for (const key of keys) {
       promises.push(
         limit(() => {
-          this.s3Client.send(
+          return this.s3Client.send(
             new DeleteObjectCommand({
               Bucket: this.bucketName,
               Key: key,
