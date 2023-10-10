@@ -246,4 +246,37 @@ describe('API Ingest', function () {
     const respData = JSON.parse(resp.body);
     expect(respData.message).to.equal('Site does not exist');
   });
+
+  it('View Page - can not lookup IP', async function () {
+    this.timeout(TimeOut * 1000);
+
+    const context = apiGwContext();
+    const pageView: V1PageViewInput = {
+      site: 'simulated',
+      user_id: 'test_user_id_1',
+      session_id: 'test_session_id_1',
+      page_id: 'test_page_id_1',
+      page_url: '/test_page_id_1.html',
+      page_opened_at: '2023-06-01T01:02:03Z',
+      time_on_page: 0,
+      // referrer: "",
+      // referrer: 'something.com',
+      // referrer: "tests.com/something",
+    };
+    const event: ApiGwEventOptions = {
+      contentType: 'text/plain;charset=UTF-8',
+      method: 'POST',
+      path: '/v1/page/view',
+      body: JSON.stringify(pageView),
+      origin: 'localhost',
+      // ip: '0.0.0.0',
+      ip: 'x',
+      ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6,2 Safari/605.1.15',
+    };
+
+    setEnvVariables(TestConfig.env);
+    const resp = await invokeLocalHandlerOrMakeAPICall(event, handler, TestConfig.apiIngestUrl, context);
+
+    expect(resp.statusCode).to.equal(200);
+  });
 });

@@ -146,6 +146,11 @@ export interface Observability {
    * Adds a CloudWatch dashboard with metrics for the resources created by this construct.
    */
   readonly dashboard?: boolean;
+
+  /**
+   * Sets the log level, defaults to `AUDIT`. Available options: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `AUDIT`.
+   */
+  readonly loglevel?: string;
 }
 
 export interface RateLimitProps {
@@ -256,6 +261,17 @@ export class Swa extends Construct {
           },
         };
       }
+    }
+
+    /* Set default log level if it is not defined */
+    if (!props?.observability?.loglevel) {
+      props = {
+        ...props,
+        observability: {
+          ...props.observability,
+          loglevel: 'AUDIT',
+        },
+      };
     }
 
     const authProps = auth(scope, name, props);

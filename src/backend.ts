@@ -27,7 +27,7 @@ export function backend(
     VERSION: '0.0.0',
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
     NODE_OPTIONS: '--enable-source-maps',
-    LOG_LEVEL: 'DEBUG', // isProd ? "AUDIT" : "DEBUG"
+    LOG_LEVEL: props.observability!.loglevel!,
   };
   let defaultNodeJsFuncOpt = {};
 
@@ -301,7 +301,7 @@ export function backend(
         hardError: true,
         softErrorFilter: logs.FilterPattern.all(
           logs.FilterPattern.stringValue('$.level', '=', 'audit'),
-          logs.FilterPattern.stringValue('$.success', '=', 'false')
+          logs.FilterPattern.booleanValue('$.success', false)
         ),
       },
     },
@@ -311,7 +311,7 @@ export function backend(
         hardError: true,
         softErrorFilter: logs.FilterPattern.all(
           logs.FilterPattern.stringValue('$.level', '=', 'audit'),
-          logs.FilterPattern.stringValue('$.success', '=', 'false')
+          logs.FilterPattern.booleanValue('$.success', false)
         ),
       },
     },
@@ -321,7 +321,7 @@ export function backend(
         hardError: true,
         softErrorFilter: logs.FilterPattern.all(
           logs.FilterPattern.stringValue('$.level', '=', 'audit'),
-          logs.FilterPattern.stringValue('$.success', '=', 'false')
+          logs.FilterPattern.booleanValue('$.success', false)
         ),
       },
     },
