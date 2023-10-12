@@ -24,7 +24,9 @@ watch(() => [loading.value], async () => {
   emit('loading', loading.value)
 })
 
-let pageViews: Ref<PageView[] | undefined> = ref();
+type PageViewExternal = PageView & { external_url: string }
+
+let pageViews: Ref<PageViewExternal[] | undefined> = ref();
 let pageViewsQueryExecutionId: string | undefined = undefined;
 let pageViewsNextToken: string | undefined = undefined;
 const isPageViewsSameSite = computed(() => !pageViews.value?.length ? true : uniqBy(pageViews.value, 'site').length === 1);
@@ -48,7 +50,15 @@ async function loadData()
   if(!pageViews.value)
     pageViews.value = [];
 
-  pageViews.value = pageViews.value.concat(resp.data);
+  pageViews.value = pageViews.value.concat(
+      resp.data.map((pv) => {
+        const pageUrl = pv.page_url.startsWith("/") ? pv.page_url : `/${pv.page_url}`;
+        return {
+          ...pv,
+          external_url: `https://${pv.site}${pageUrl}`
+        }
+      })
+  );
   // pageViews.value = pageViews.value.concat(resp.data.slice(0,20));
   pageViewsQueryExecutionId = resp.queryExecutionId;
   pageViewsNextToken = resp.nextToken;
@@ -6096,7 +6106,7 @@ onMounted(() => {
 
 const columns: ComputedRef<Column[]> = computed(()  => {
   const ret: Column[] = [
-    { name: "Page", type: "string", index: "page_url", gridColumn: "6fr", canFilter: true },
+    { name: "Page", type: "string", index: "page_url", gridColumn: "6fr", canFilter: true, openExternalColumn: "external_url" },
     { name: "Views", type: "number", index: "views", gridColumn: "1fr" },
     { name: "Time on Page", type: "number", index: "avg_time_on_page", gridColumn: "2fr" },
   ];

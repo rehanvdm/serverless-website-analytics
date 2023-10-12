@@ -181,3 +181,73 @@ test('Cert same stack', () => {
   });
   Template.fromStack(stack);
 });
+
+test('Default Lambda Log Level', () => {
+  const app = new App();
+  const stack = new Stack(app, 'test-build');
+
+  new Swa(stack, 'testing-swa', {
+    environment: 'dev',
+    awsEnv: {
+      account: '123456789012',
+      region: 'us-east-1',
+    },
+    sites: ['https://example.com'],
+    allowedOrigins: ['https://example.com'],
+    auth: {
+      // basicAuth: {
+      //   username: 'test',
+      //   password: 'test',
+      // },
+      cognito: {
+        loginSubDomain: 'login',
+        users: [
+          {
+            name: 'test',
+            email: 'test@gmail.com',
+          },
+        ],
+      },
+    },
+    // observability: { }
+  });
+  const template = Template.fromStack(stack);
+
+  template.hasResource('AWS::Lambda::Function', { Properties: { Environment: { Variables: { LOG_LEVEL: 'AUDIT' } } } });
+});
+
+test('Defined Lambda Log Level', () => {
+  const app = new App();
+  const stack = new Stack(app, 'test-build');
+
+  new Swa(stack, 'testing-swa', {
+    environment: 'dev',
+    awsEnv: {
+      account: '123456789012',
+      region: 'us-east-1',
+    },
+    sites: ['https://example.com'],
+    allowedOrigins: ['https://example.com'],
+    auth: {
+      // basicAuth: {
+      //   username: 'test',
+      //   password: 'test',
+      // },
+      cognito: {
+        loginSubDomain: 'login',
+        users: [
+          {
+            name: 'test',
+            email: 'test@gmail.com',
+          },
+        ],
+      },
+    },
+    observability: {
+      loglevel: 'WARN',
+    },
+  });
+  const template = Template.fromStack(stack);
+
+  template.hasResource('AWS::Lambda::Function', { Properties: { Environment: { Variables: { LOG_LEVEL: 'WARN' } } } });
+});

@@ -196,7 +196,7 @@ export class LambdaLog {
     if (message instanceof Error) {
       line = {
         date,
-        level: LogLevel.ERROR,
+        level: logLevel,
         env: this.env,
         msg: message.message,
         args: message.stack?.toString(),

@@ -23,9 +23,10 @@ export async function getInfoFromIpAndUa(ip: string, ua: string) {
   let cityName;
   let deviceType;
   let isBot;
-  try {
-    /* === IP === */
-    if (ip) {
+
+  /* === IP === */
+  if (ip) {
+    try {
       const response = maxMindReader.city(ip);
       if (response.country) {
         countryIso = response.country.isoCode;
@@ -34,8 +35,13 @@ export async function getInfoFromIpAndUa(ip: string, ua: string) {
           cityName = response.city.names.en;
         }
       }
+    } catch (err) {
+      logger.warning('Parsing failed for IP', ip);
+      logger.warning(err as Error);
     }
+  }
 
+  try {
     /* === Device Type === */
     const uaParsed = new UAParser(ua);
     const device = uaParsed.getDevice();
@@ -46,9 +52,10 @@ export async function getInfoFromIpAndUa(ip: string, ua: string) {
     /* === Is bot === */
     isBot = isbot(ua);
   } catch (err) {
-    logger.error('Parsing failed for IP/UA', ip, ua);
-    logger.error(err as Error);
+    logger.warning('Parsing failed for UA', ua);
+    logger.warning(err as Error);
   }
+
   return { countryIso, countryName, cityName, deviceType, isBot };
 }
 
