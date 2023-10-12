@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import {ref, computed, reactive} from "vue";
 import { humanizeNumber } from "@frontend/src/lib/ui_utils";
 
 export type Column = {
@@ -8,6 +8,8 @@ export type Column = {
   type: "string" | "number",
   gridColumn: `${number}fr`,
   canFilter?: boolean,
+  /* The column name to use for that row to open it as a URL */
+  openExternalColumn?: string
 };
 export type Props = {
   columns: Column[];
@@ -87,6 +89,9 @@ const canPageForward = computed(() => {
 function rowClick(rowText: any) {
   emit('click', rowText)
 }
+
+const hover = reactive<Record<any, boolean>>({});
+
 </script>
 
 <template>
@@ -97,12 +102,26 @@ function rowClick(rowText: any) {
       </div>
 
       <div v-if="!loading">
-        <div class="row" :style="rowGridColumnCss" v-for="row of pageData">
+        <div class="row" :style="rowGridColumnCss" v-for="(row, rowIndex) in pageData">
           <template v-for="col of columns">
             <template v-if="col.type === 'string'">
               <el-tooltip :show-after="1000" :content="row[col.index]">
-                <div v-if="col.canFilter" class="column column--overflow column--click" @click="rowClick(row[col.index])">
-                  {{ row[col.index] }}
+                <div v-if="col.canFilter" class="column column--overflow">
+
+                  <div style="display: flex;"
+                       @mouseover="hover[rowIndex] = true" @mouseleave="hover[rowIndex] = false">
+                    <!-- Column overflow is width 100% so will always push icon all the way to left, so the flex options won't work, which is fine for this -->
+                    <div class="column--overflow column--click" @click="rowClick(row[col.index])">
+                      {{ row[col.index] }}
+                    </div>
+<!--                    && hover[rowIndex]-->
+                    <div v-if="col.openExternalColumn && hover[rowIndex]">
+                      <a :href="row[col.openExternalColumn]" target="_blank" rel="noopener noreferrer">
+                        <mdi-open-in-new style="padding: 2px 5px 0; font-size: 14px"></mdi-open-in-new>
+                      </a>
+                    </div>
+                  </div>
+
                 </div>
                 <div v-lese class="column column--overflow">
                   {{ row[col.index] }}

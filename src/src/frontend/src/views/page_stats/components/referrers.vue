@@ -69,7 +69,7 @@ onMounted(() => {
 })
 
 const columns: Column[] = [
-  { name: "Referrer", type: "string", index: "referrer", gridColumn: "6fr", canFilter: true },
+  { name: "Referrer", type: "string", index: "referrer", gridColumn: "6fr", canFilter: true, openExternalColumn: "referrer" },
   { name: "Views", type: "number", index: "views", gridColumn: "2fr" },
 ];
 
