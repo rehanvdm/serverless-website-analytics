@@ -673,6 +673,7 @@ const observability: Observability = { ... }
 | --- | --- | --- |
 | <code><a href="#serverless-website-analytics.Observability.property.alarms">alarms</a></code> | <code><a href="#serverless-website-analytics.AlarmProps">AlarmProps</a></code> | Adds CloudWatch Alarms to the resources created by this construct. |
 | <code><a href="#serverless-website-analytics.Observability.property.dashboard">dashboard</a></code> | <code>boolean</code> | Adds a CloudWatch dashboard with metrics for the resources created by this construct. |
+| <code><a href="#serverless-website-analytics.Observability.property.loglevel">loglevel</a></code> | <code>string</code> | Sets the log level, defaults to `AUDIT`. |
 
 ---
 
@@ -697,6 +698,20 @@ public readonly dashboard: boolean;
 - *Type:* boolean
 
 Adds a CloudWatch dashboard with metrics for the resources created by this construct.
+
+---
+
+##### `loglevel`<sup>Optional</sup> <a name="loglevel" id="serverless-website-analytics.Observability.property.loglevel"></a>
+
+```typescript
+public readonly loglevel: string;
+```
+
+- *Type:* string
+
+Sets the log level, defaults to `AUDIT`.
+
+Available options: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `AUDIT`.
 
 ---
 
