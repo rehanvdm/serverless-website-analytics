@@ -15,6 +15,7 @@ const V1PageEventInputSchema = SchemaEvent.pick({
   site: true,
   user_id: true,
   session_id: true,
+  category: true,
   event: true,
   tracked_at: true,
   data: true,
@@ -26,6 +27,7 @@ const V1PageEventInputSchema = SchemaEvent.pick({
   querystring: true,
   referrer: true,
 }).partial({
+  category: true,
   data: true,
 });
 export type V1PageEventInput = z.infer<typeof V1PageEventInputSchema>;
@@ -40,7 +42,7 @@ export function eventTrack(trpcInstance: TrpcInstance) {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Site does not exist' });
       }
 
-      // TODO: Also whitelist the events that are allowed
+      // TODO: Also whitelist the events that are allowed ?
 
       const firehoseClient = getFirehoseClient();
 
@@ -55,13 +57,13 @@ export function eventTrack(trpcInstance: TrpcInstance) {
       }
 
       const trackedAt = DateUtils.parseIso(input.tracked_at);
+      const trackedAtDate = DateUtils.stringifyFormat(trackedAt, 'yyyy-MM-dd');
       const event: Event = {
         site: input.site,
-        year: trackedAt.getFullYear(),
-        month: trackedAt.getMonth() + 1,
-
+        tracked_at_date: trackedAtDate,
         user_id: input.user_id,
         session_id: input.session_id,
+        category: input.category,
         event: input.event,
         data,
         tracked_at: input.tracked_at,
@@ -85,7 +87,7 @@ export function eventTrack(trpcInstance: TrpcInstance) {
         new PutRecordCommand({
           DeliveryStreamName: LambdaEnvironment.FIREHOSE_EVENTS_NAME,
           Record: {
-            Data: Buffer.from(JSON.stringify(data)),
+            Data: Buffer.from(JSON.stringify(event)),
           },
         })
       );

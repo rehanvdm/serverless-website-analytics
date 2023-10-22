@@ -3,10 +3,10 @@ import { assertAuthentication, TrpcInstance } from '@backend/api-front/server';
 import { SchemaSite } from '@backend/lib/models/site';
 import { DateUtils } from '@backend/lib/utils/date_utils';
 import { AthenaPageViews } from '@backend/lib/dal/athena/page_views';
-import { FilterSchema } from '@backend/lib/models/filter';
+import { PageFilterSchema } from '@backend/lib/models/page_filter';
 import { LambdaEnvironment } from '@backend/api-front/environment';
 
-const GetTopLevelStatsSchema = z.object({
+const GetPageTopLevelStatsSchema = z.object({
   visitors: z.number(),
   page_views: z.number(),
   avg_time_on_page: z.number(),
@@ -27,18 +27,18 @@ const GetTopLevelStatsSchema = z.object({
     }),
   }),
 });
-export type GetTopLevelStats = z.infer<typeof GetTopLevelStatsSchema>;
-export function getTopLevelStats(trpcInstance: TrpcInstance) {
+export type GetPageTopLevelStats = z.infer<typeof GetPageTopLevelStatsSchema>;
+export function getPageTopLevelStats(trpcInstance: TrpcInstance) {
   return trpcInstance.procedure
     .input(
       z.object({
         from: z.string().datetime(),
         to: z.string().datetime(),
         sites: z.array(SchemaSite),
-        filter: FilterSchema.optional(),
+        filter: PageFilterSchema.optional(),
       })
     )
-    .output(GetTopLevelStatsSchema)
+    .output(GetPageTopLevelStatsSchema)
     .query(async ({ input, ctx }) => {
       assertAuthentication(ctx);
 
@@ -84,13 +84,13 @@ export function getTopLevelStats(trpcInstance: TrpcInstance) {
     });
 }
 
-const PageViewsSchema = z.object({
+const GetPageViewsSchema = z.object({
   site: z.string(),
   page_url: z.string(),
   views: z.number(),
   avg_time_on_page: z.number(),
 });
-export type PageView = z.infer<typeof PageViewsSchema>;
+export type GetPageView = z.infer<typeof GetPageViewsSchema>;
 export function getPageViews(trpcInstance: TrpcInstance) {
   return trpcInstance.procedure
     .input(
@@ -100,14 +100,14 @@ export function getPageViews(trpcInstance: TrpcInstance) {
         sites: z.array(SchemaSite),
         queryExecutionId: z.string().optional(),
         nextToken: z.string().optional(),
-        filter: FilterSchema.optional(),
+        filter: PageFilterSchema.optional(),
       })
     )
     .output(
       z.object({
         queryExecutionId: z.string(),
         nextToken: z.string().optional(),
-        data: z.array(PageViewsSchema),
+        data: z.array(GetPageViewsSchema),
       })
     )
     .query(async ({ input, ctx }) => {
@@ -139,14 +139,14 @@ export function getPageViews(trpcInstance: TrpcInstance) {
     });
 }
 
-const ChartViewsSchema = z.object({
+const GetChartViewsSchema = z.object({
   site: z.string(),
   date_key: z.string(),
   visitors: z.number(),
   views: z.number(),
 });
-export type ChartView = z.infer<typeof ChartViewsSchema>;
-export function getChartViews(trpcInstance: TrpcInstance) {
+export type GetChartView = z.infer<typeof GetChartViewsSchema>;
+export function getPageChartViews(trpcInstance: TrpcInstance) {
   return trpcInstance.procedure
     .input(
       z.object({
@@ -155,10 +155,10 @@ export function getChartViews(trpcInstance: TrpcInstance) {
         sites: z.array(SchemaSite),
         period: z.enum(['hour', 'day']),
         timeZone: z.string(),
-        filter: FilterSchema.optional(),
+        filter: PageFilterSchema.optional(),
       })
     )
-    .output(z.array(ChartViewsSchema))
+    .output(z.array(GetChartViewsSchema))
     .query(async ({ input, ctx }) => {
       assertAuthentication(ctx);
 
@@ -216,11 +216,11 @@ export function getChartViews(trpcInstance: TrpcInstance) {
 //     });
 // }
 
-const PageReferrerSchema = z.object({
+const GetPageReferrerSchema = z.object({
   referrer: z.string(),
   views: z.number(),
 });
-export type PageReferrer = z.infer<typeof PageReferrerSchema>;
+export type GetPageReferrer = z.infer<typeof GetPageReferrerSchema>;
 export function getPageReferrers(trpcInstance: TrpcInstance) {
   return trpcInstance.procedure
     .input(
@@ -228,10 +228,10 @@ export function getPageReferrers(trpcInstance: TrpcInstance) {
         from: z.string().datetime(),
         to: z.string().datetime(),
         sites: z.array(SchemaSite),
-        filter: FilterSchema.optional(),
+        filter: PageFilterSchema.optional(),
       })
     )
-    .output(z.array(PageReferrerSchema))
+    .output(z.array(GetPageReferrerSchema))
     .query(async ({ input, ctx }) => {
       assertAuthentication(ctx);
 
@@ -250,12 +250,12 @@ export function getPageReferrers(trpcInstance: TrpcInstance) {
     });
 }
 
-const UsersGroupedByStatSchema = z.object({
+const GetUsersGroupedByStatSchema = z.object({
   group: z.string(),
   visitors: z.number(),
 });
-export type UsersGroupedByStat = z.infer<typeof UsersGroupedByStatSchema>;
-export function getUsersGroupedByStatForPeriod(trpcInstance: TrpcInstance) {
+export type GetUsersGroupedByStat = z.infer<typeof GetUsersGroupedByStatSchema>;
+export function getPageUsersGroupedByStatForPeriod(trpcInstance: TrpcInstance) {
   return trpcInstance.procedure
     .input(
       z.object({
@@ -271,10 +271,10 @@ export function getUsersGroupedByStatForPeriod(trpcInstance: TrpcInstance) {
           'utm_term',
           'utm_content',
         ]), // TODO: Later: "browser", "os"
-        filter: FilterSchema.optional(),
+        filter: PageFilterSchema.optional(),
       })
     )
-    .output(z.array(UsersGroupedByStatSchema))
+    .output(z.array(GetUsersGroupedByStatSchema))
     .query(async ({ input, ctx }) => {
       assertAuthentication(ctx);
 

@@ -2,17 +2,17 @@
 import { useDark } from '@vueuse/core';
 import {computed, onMounted, Ref, ref, unref, watch} from "vue";
 import {api, apiWrapper} from "@frontend/src/lib/api";
-import Totals from "@frontend/src/views/page_stats/components/totals.vue";
-import ChartViews from "@frontend/src/views/page_stats/components/chart_views.vue";
+import Totals from "@frontend/src/views/event_stats/components/totals.vue";
+import ChartEvents from "@frontend/src/views/event_stats/components/chart_views.vue";
 import {DateUtils} from "@frontend/src/lib/date_utils";
-import PageViews from "@frontend/src/views/page_stats/components/page_views.vue";
-import ChartLocations from "@frontend/src/views/page_stats/components/chart_locations.vue";
-import Referrers from "@frontend/src/views/page_stats/components/referrers.vue";
-import UserInfo from "@frontend/src/views/page_stats/components/user_info.vue";
-import UTM from "@frontend/src/views/page_stats/components/utm.vue";
+import Events from "@frontend/src/views/event_stats/components/events.vue";
+import ChartLocations from "@frontend/src/views/event_stats/components/chart_locations.vue";
+import Referrers from "@frontend/src/views/event_stats/components/referrers.vue";
+import UserInfo from "@frontend/src/views/event_stats/components/user_info.vue";
+import UTM from "@frontend/src/views/event_stats/components/utm.vue";
 import {getSystemStore} from "@frontend/src/stores/system";
-import {Filter} from "@backend/lib/models/filter";
 import {useRoute, useRouter} from "vue-router";
+import {EventFilter} from "@backend/lib/models/event_filter";
 
 const route = useRoute();
 const router = useRouter();
@@ -158,34 +158,34 @@ const showUpdateSearch = computed(() => {
 
 
 let loadingTotals = ref(false);
-let loadingPageViews = ref(false);
-let loadingChartViews = ref(false);
+let loadingEvents = ref(false);
+let loadingChartEvents = ref(false);
 let loadingChartLocations = ref(false);
 let loadingReferrers = ref(false);
 let loadingUserInfo = ref(false);
 let loadingUtm = ref(false);
 const loadingComponents = computed(() => {
-  return loadingSites.value || loadingTotals.value || loadingPageViews.value ||
-    loadingChartViews.value || loadingChartLocations.value || loadingReferrers.value || loadingUserInfo.value || loadingUtm.value;
+  return loadingSites.value || loadingTotals.value || loadingEvents.value ||
+    loadingChartEvents.value || loadingChartLocations.value || loadingReferrers.value || loadingUserInfo.value || loadingUtm.value;
 });
 
 const componentTotal = ref<InstanceType<typeof Totals>>();
-const componentPageViews = ref<InstanceType<typeof PageViews>>();
-const componentChartViews = ref<InstanceType<typeof ChartViews>>();
+const componentEvents = ref<InstanceType<typeof Events>>();
+const componentChartEvents = ref<InstanceType<typeof ChartEvents>>();
 const componentChartLocations = ref<InstanceType<typeof ChartLocations>>();
 const componentReferrers = ref<InstanceType<typeof Referrers>>();
-const componentUserInfo = ref<InstanceType<typeof Referrers>>();
+const componentUserInfo = ref<InstanceType<typeof UserInfo>>();
 const componentUtm = ref<InstanceType<typeof UTM>>();
 async function refresh()
 {
   if(componentTotal.value)
     componentTotal.value.refresh();
 
-  if(componentPageViews.value)
-    componentPageViews.value.refresh();
+  if(componentEvents.value)
+    componentEvents.value.refresh();
 
-  if(componentChartViews.value)
-    componentChartViews.value.refresh();
+  if(componentChartEvents.value)
+    componentChartEvents.value.refresh();
 
   if(componentChartLocations.value)
     componentChartLocations.value.refresh();
@@ -200,8 +200,9 @@ async function refresh()
     componentUtm.value.refresh();
 }
 
-const filter: Ref<Filter> = ref({
-  page_url: undefined,
+const filter: Ref<EventFilter> = ref({
+  category: undefined,
+  event: undefined,
   referrer: undefined,
   country_name: undefined,
   device_type: undefined,
@@ -211,13 +212,14 @@ const filter: Ref<Filter> = ref({
   utm_term: undefined,
   utm_content: undefined,
 })
-function filterChange(partialFilter: Filter) {
+function filterChange(partialFilter: EventFilter) {
   filter.value = { ...filter.value, ...partialFilter };
 }
 
 function clearFilters() {
   filter.value = {
-    page_url: undefined,
+    category: undefined,
+    event: undefined,
     referrer: undefined,
     country_name: undefined,
     device_type: undefined,
@@ -229,7 +231,8 @@ function clearFilters() {
   };
 }
 const showClearFilters = computed(() => {
-  return filter.value.page_url || filter.value.referrer || filter.value.country_name || filter.value.device_type ||
+  return filter.value.category || filter.value.event ||
+    filter.value.referrer !== undefined || filter.value.country_name || filter.value.device_type ||
     filter.value.utm_source || filter.value.utm_medium || filter.value.utm_campaign || filter.value.utm_term ||
     filter.value.utm_content;
 });
@@ -249,23 +252,6 @@ watch([selectedSitesConfirmed, dateFilter, filter], () => {
   <el-container class="h100" style="display: flex; justify-content: center">
 
     <div style="width: 1280px;">
-
-      <el-alert v-if="showDemoBanner" class="demo" type="warning" style="margin-top: 10px; width: 100%" >
-        <div style="display: flex; justify-content: space-between; width: 100%">
-          <div>
-            This is the open source CDK <a style="font-weight: bold; color: inherit" href="https://github.com/rehanvdm/serverless-website-analytics" target="_blank">serverless-website-analytics</a>
-            demo page, it tracks this page and some <a style="font-weight: bold; color: inherit" href="https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/DEMO-TRAFFIC.md" target="_blank">simulated traffic.</a>.
-          </div>
-          <div>
-            <a style="margin-left: 20px" href="https://github.com/rehanvdm/serverless-website-analytics" target="_blank">
-              <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/rehanvdm/serverless-website-analytics?label=Github&style=social">
-            </a>
-<!--            <a style="margin-left: 20px" href="https://www.npmjs.com/package/serverless-website-analytics" target="_blank">-->
-<!--              <img alt="npm" src="https://img.shields.io/npm/dw/serverless-website-analytics">-->
-<!--            </a>-->
-          </div>
-        </div>
-      </el-alert>
 
       <el-header>
         <div style="display: flex; justify-content: space-between; padding-top:23px">
@@ -311,14 +297,20 @@ watch([selectedSitesConfirmed, dateFilter, filter], () => {
               </el-button>
             </el-tooltip>
 
-
-
           </div>
         </div>
 
         <div style="margin-bottom: 10px">
-          <el-tag class="filter-tag" v-if="filter.page_url" closable @close="filter.page_url = undefined">
-            <b>Page</b> = {{filter.page_url}}
+
+          <el-tag class="filter-tag" v-if="filter.category" closable @close="filter.category = undefined">
+            <b>Category</b> = {{filter.category}}
+          </el-tag>
+            <el-tag class="filter-tag" v-if="filter.category === null" closable @close="filter.category = undefined">
+            <b>Category</b> = No Category
+          </el-tag>
+
+          <el-tag class="filter-tag" v-if="filter.event" closable @close="filter.event = undefined">
+            <b>Event</b> = {{filter.event}}
           </el-tag>
 
           <el-tag class="filter-tag" v-if="filter.referrer" closable @close="filter.referrer = undefined">
@@ -364,17 +356,17 @@ watch([selectedSitesConfirmed, dateFilter, filter], () => {
         </div>
 
         <div class="main-row">
-          <ChartViews ref="componentChartViews" :sites="selectedSitesConfirmed" :from-date="fromDate" :to-date="toDate"
-                      @loading="(val) => loadingChartViews = val"
+          <ChartEvents ref="componentChartEvents" :sites="selectedSitesConfirmed" :from-date="fromDate" :to-date="toDate"
+                      @loading="(val) => loadingChartEvents = val"
                       :filter="filter"
-          ></ChartViews>
+          ></ChartEvents>
         </div>
 
         <div class="main-row">
-          <PageViews ref="componentPageViews" :sites="selectedSitesConfirmed" :from-date="fromDate" :to-date="toDate"
-                     @loading="(val) => loadingPageViews = val"
+          <Events ref="componentEvents" :sites="selectedSitesConfirmed" :from-date="fromDate" :to-date="toDate"
+                     @loading="(val) => loadingEvents = val"
                      :filter="filter" @filter-change="filterChange"
-          ></PageViews>
+          ></Events>
           <Referrers ref="componentReferrers" :sites="selectedSitesConfirmed" :from-date="fromDate" :to-date="toDate"
                      @loading="(val) => loadingReferrers = val"
                      :filter="filter" @filter-change="filterChange"

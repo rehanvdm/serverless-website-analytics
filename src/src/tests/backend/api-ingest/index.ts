@@ -165,7 +165,7 @@ describe('API Ingest', function () {
 
     const context = apiGwContext();
     const pageEvent: V1PageEventInput = {
-      site: 'example.com',
+      site: 'tests',
       user_id: 'test_user_id_1',
       session_id: 'test_session_id_1',
       event: 'TEST',
@@ -188,17 +188,47 @@ describe('API Ingest', function () {
     expect(resp.statusCode).to.equal(200);
   });
 
-  it('Event Track', async function () {
+  it('Event Track - data', async function () {
     this.timeout(TimeOut * 1000);
 
     const context = apiGwContext();
     const pageEvent: V1PageEventInput = {
-      site: 'example.com',
+      site: 'tests',
       user_id: 'test_user_id_1',
       session_id: 'test_session_id_1',
       event: 'TEST_CUSTOM_VALUE',
       tracked_at: '2023-04-21T02:00:00Z',
       data: 104,
+      referrer: '',
+    };
+    const event: ApiGwEventOptions = {
+      method: 'POST',
+      path: '/v1/event/track',
+      body: JSON.stringify(pageEvent),
+      origin: 'localhost',
+      ip: '169.0.15.7',
+      ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6,2 Safari/605.1.15',
+    };
+
+    setEnvVariables(TestConfig.env);
+    const resp = await invokeLocalHandlerOrMakeAPICall(event, handler, TestConfig.apiIngestUrl, context);
+
+    expect(resp.statusCode).to.equal(200);
+  });
+
+  it('Event Track - category', async function () {
+    this.timeout(TimeOut * 1000);
+
+    const context = apiGwContext();
+    const pageEvent: V1PageEventInput = {
+      site: 'tests',
+      user_id: 'test_user_id_1',
+      session_id: 'test_session_id_1',
+      // category: 'TEST_CATEGORY',
+      // event: 'CAT_EVENT',
+      event: 'TEST',
+      tracked_at: '2023-04-22T02:00:00Z',
+      // data: 104,
       referrer: '',
     };
     const event: ApiGwEventOptions = {

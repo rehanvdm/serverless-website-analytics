@@ -67,15 +67,18 @@ async function getCognitoAuthHeaders() {
 
 function getStandardQueryArgs() {
   return {
-    sites: ['simulated'],
-    from: new Date(2023, 6, 1, 0, 0, 0).toISOString(),
+    sites: ['tests'],
+    // from: new Date(2023, 6, 1, 0, 0, 0).toISOString(),
+    from: new Date(2023, 0, 1, 0, 0, 0).toISOString(),
     to: new Date(2023, 6, 31, 23, 59, 59, 999).toISOString(),
-    filter: {
-      // referrer: 'google.com',
-      referrer: null,
-    },
+    // filter: {
+    //   // referrer: 'google.com',
+    //   // referrer: null,
+    //   // category: null
+    // },
   };
 }
+
 describe('API Frontend', function () {
   before(async function () {
     console.log('TEST_TYPE', process.env.TEST_TYPE);
@@ -141,6 +144,12 @@ describe('API Frontend', function () {
     expect(resp.statusCode).to.eq(200);
     const respData = JSON.parse(resp.body);
     expect(JSON.stringify(respData.result.data)).to.eq(JSON.stringify(expectedOutput));
+  });
+});
+
+describe('API Frontend - Page Views', function () {
+  before(async function () {
+    console.log('TEST_TYPE', process.env.TEST_TYPE);
   });
 
   it('Get getTopLevelStats - Verify dates', async function () {
@@ -421,4 +430,275 @@ describe('API Frontend', function () {
     expect(output[0].referrer).to.be.a('string');
     expect(output[0].views).to.be.a('number');
   });
+});
+
+describe('API Frontend - Events', function () {
+  before(async function () {
+    console.log('TEST_TYPE', process.env.TEST_TYPE);
+  });
+
+  it('Get getEventsTopLevelStats - Verify dates', async function () {
+    this.timeout(TimeOut * 1000);
+
+    const context = apiGwContext();
+    const authHeaders = await getCognitoAuthHeaders();
+    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter, 'getEventTopLevelStats'>(
+      'getEventTopLevelStats',
+      'query',
+      {
+        sites: ['tests'],
+
+        // From 2023-03-01 to 2023-04-01
+        // Meaning UTC backend 2023-02-28 22:00:00 to 2023-03-31 22:00:00
+        from: new Date(2023, 2, 1, 0, 0, 0).toISOString(),
+        to: new Date(2023, 3, 1, 23, 59, 59, 999).toISOString(),
+
+        filter: {
+          // referrer: 'https://www.google.com/',
+        },
+      },
+      authHeaders
+    );
+
+    setEnvVariables(TestConfig.env);
+    const resp = await invokeLocalHandlerOrMakeAPICall(event, handler, TestConfig.apiFrontUrl, context);
+    ECHO_TEST_OUTPUTS && console.log(resp);
+
+    expect(resp.statusCode).to.eq(200);
+    const respData = JSON.parse(resp.body);
+    const output = respData.result.data as inferProcedureOutput<AppRouter['getEventTopLevelStats']>;
+    console.log(output);
+
+    expect(output.previous.period.from).to.eql('2023-01-27T22:00:00.000Z');
+    expect(output.previous.period.to).to.eql('2023-02-28T21:59:59.999Z');
+    expect(output.period.from).to.eql('2023-02-28T22:00:00.000Z');
+    expect(output.period.to).to.eql('2023-04-01T21:59:59.999Z');
+  });
+
+  it('Get events', async function () {
+    this.timeout(TimeOut * 1000);
+
+    const context = apiGwContext();
+    const authHeaders = await getCognitoAuthHeaders();
+    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter, 'getEvents'>(
+      'getEvents',
+      'query',
+      getStandardQueryArgs(),
+      authHeaders
+    );
+
+    setEnvVariables(TestConfig.env);
+    const resp = await invokeLocalHandlerOrMakeAPICall(event, handler, TestConfig.apiFrontUrl, context);
+    ECHO_TEST_OUTPUTS && console.log(resp);
+
+    expect(resp.statusCode).to.eq(200);
+    const respData = JSON.parse(resp.body);
+    const output = respData.result.data as inferProcedureOutput<AppRouter['getEvents']>;
+    expect(output.queryExecutionId).to.be.a('string');
+    // expect(output.nextToken).to.be.a('string');
+    expect(output.data).to.be.an('array');
+    console.log(output.data);
+  });
+
+  it('Get Events - Paginate', async function () {
+    this.timeout(TimeOut * 1000);
+
+    const context = apiGwContext();
+    const authHeaders = await getCognitoAuthHeaders();
+
+    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter, 'getEvents'>(
+      'getEvents',
+      'query',
+      getStandardQueryArgs(),
+      authHeaders
+    );
+
+    setEnvVariables(TestConfig.env);
+    const resp = await invokeLocalHandlerOrMakeAPICall(event, handler, TestConfig.apiFrontUrl, context);
+    ECHO_TEST_OUTPUTS && console.log(resp);
+
+    expect(resp.statusCode).to.eq(200);
+    const respData = JSON.parse(resp.body);
+    const output = respData.result.data as inferProcedureOutput<AppRouter['getEvents']>;
+    expect(output.queryExecutionId).to.be.a('string');
+    expect(output.nextToken).to.be.a('string');
+    expect(output.data).to.be.an('array');
+
+    const event2 = trpcToApiGwOptions<AppRouter, 'getEvents'>(
+      'getEvents',
+      'query',
+      {
+        ...getStandardQueryArgs(),
+        queryExecutionId: output.queryExecutionId,
+        nextToken: output.nextToken,
+      },
+      authHeaders
+    );
+    const resp2 = await invokeLocalHandlerOrMakeAPICall(event2, handler, TestConfig.apiFrontUrl, context);
+    ECHO_TEST_OUTPUTS && console.log(resp2);
+
+    expect(resp2.statusCode).to.eq(200);
+    const respData2 = JSON.parse(resp2.body);
+    const output2 = respData2.result.data as inferProcedureOutput<AppRouter['getEvents']>;
+    expect(output2.data).to.be.an('array');
+    expect(output2.queryExecutionId).to.eql(output.queryExecutionId);
+    expect(output2.nextToken).to.not.eql(output.nextToken);
+    expect(output.data[0].event).to.not.eql(output2.data[0].event);
+  });
+
+
+  it('Get getChartViews - hour', async function () {
+    this.timeout(TimeOut * 1000);
+
+    const context = apiGwContext();
+    const authHeaders = await getCognitoAuthHeaders();
+    const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter, 'getChartEvents'>(
+      'getChartEvents',
+      'query',
+      {
+        groupBy: 'site',
+        sites: ['tests'],
+        from: new Date(2023, 1, 1, 0, 0, 0).toISOString(),
+        to: new Date(2023, 7, 22, 23, 59, 59, 999).toISOString(),
+        period: 'hour',
+        timeZone: 'Africa/Johannesburg',
+      },
+      authHeaders
+    );
+
+    setEnvVariables(TestConfig.env);
+    const resp = await invokeLocalHandlerOrMakeAPICall(event, handler, TestConfig.apiFrontUrl, context);
+    ECHO_TEST_OUTPUTS && console.log(resp);
+
+    expect(resp.statusCode).to.eq(200);
+    const respData = JSON.parse(resp.body);
+    const output = respData.result.data as inferProcedureOutput<AppRouter['getChartEvents']>;
+    // console.log(output);
+
+    expect(output).to.be.an('array');
+    expect(output[0].groupedBy).to.be.a('string');
+    expect(output[0].date_key).to.be.a('string');
+    expect(output[0].sum).to.be.a('number');
+    expect(output[0].visitors).to.be.a('number');
+  });
+
+  //
+  // it('Get getChartViews - day', async function () {
+  //   this.timeout(TimeOut * 1000);
+  //
+  //   const context = apiGwContext();
+  //   const authHeaders = await getCognitoAuthHeaders();
+  //   const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter, 'getChartViews'>(
+  //     'getChartViews',
+  //     'query',
+  //     {
+  //       sites: ['tests'],
+  //       // Month 4 - April - Past so data fixed, not changing still
+  //       from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
+  //       to: new Date(2023, 3, 22, 23, 59, 59, 999).toISOString(),
+  //       period: 'day',
+  //       timeZone: 'Africa/Johannesburg',
+  //     },
+  //     authHeaders
+  //   );
+  //
+  //   setEnvVariables(TestConfig.env);
+  //   const resp = await invokeLocalHandlerOrMakeAPICall(event, handler, TestConfig.apiFrontUrl, context);
+  //   ECHO_TEST_OUTPUTS && console.log(resp);
+  //
+  //   expect(resp.statusCode).to.eq(200);
+  //   const respData = JSON.parse(resp.body);
+  //   const output = respData.result.data as inferProcedureOutput<AppRouter['getChartViews']>;
+  //   // console.log(output);
+  //
+  //   expect(output).to.be.an('array');
+  //   expect(output[0].site).to.be.a('string');
+  //   expect(output[0].date_key).to.be.a('string');
+  //   expect(output[0].views).to.be.a('number');
+  //   expect(output[0].visitors).to.be.a('number');
+  // });
+  //
+  // it('Get getChartViews - negative timezone does not exist', async function () {
+  //   this.timeout(TimeOut * 1000);
+  //
+  //   const context = apiGwContext();
+  //   const authHeaders = await getCognitoAuthHeaders();
+  //   const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter, 'getChartViews'>(
+  //     'getChartViews',
+  //     'query',
+  //     {
+  //       sites: ['tests'],
+  //       // Month 4 - April - Past so data fixed, not changing still
+  //       from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
+  //       to: new Date(2023, 3, 22, 23, 59, 59, 999).toISOString(),
+  //       period: 'day',
+  //       timeZone: 'XXXX',
+  //     },
+  //     authHeaders
+  //   );
+  //
+  //   setEnvVariables(TestConfig.env);
+  //   const resp = await invokeLocalHandlerOrMakeAPICall(event, handler, TestConfig.apiFrontUrl, context);
+  //   ECHO_TEST_OUTPUTS && console.log(resp);
+  //
+  //   expect(resp.statusCode).to.eq(500);
+  // });
+  //
+  // it('Get getChartLocations', async function () {
+  //   this.timeout(TimeOut * 1000);
+  //
+  //   const context = apiGwContext();
+  //   const authHeaders = await getCognitoAuthHeaders();
+  //   const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter, 'getUsersGroupedByStatForPeriod'>(
+  //     'getUsersGroupedByStatForPeriod',
+  //     'query',
+  //     {
+  //       sites: ['tests'],
+  //       // Month 4 - April - Past so data fixed, not changing still
+  //       from: new Date(2023, 3, 1, 0, 0, 0).toISOString(),
+  //       to: new Date(2023, 3, 22, 23, 59, 59, 999).toISOString(),
+  //       groupBy: 'country_name',
+  //     },
+  //     authHeaders
+  //   );
+  //
+  //   setEnvVariables(TestConfig.env);
+  //   const resp = await invokeLocalHandlerOrMakeAPICall(event, handler, TestConfig.apiFrontUrl, context);
+  //   ECHO_TEST_OUTPUTS && console.log(resp);
+  //
+  //   expect(resp.statusCode).to.eq(200);
+  //   const respData = JSON.parse(resp.body);
+  //   const output = respData.result.data as inferProcedureOutput<AppRouter['getUsersGroupedByStatForPeriod']>;
+  //   // console.log(output);
+  //
+  //   expect(output).to.be.an('array');
+  //   expect(output[0].group).to.be.a('string');
+  //   expect(output[0].visitors).to.be.a('number');
+  // });
+  //
+  // it('Get getPageReferrers', async function () {
+  //   this.timeout(TimeOut * 1000);
+  //
+  //   const context = apiGwContext();
+  //   const authHeaders = await getCognitoAuthHeaders();
+  //   const event: ApiGwEventOptions = trpcToApiGwOptions<AppRouter, 'getPageReferrers'>(
+  //     'getPageReferrers',
+  //     'query',
+  //     getStandardQueryArgs(),
+  //     authHeaders
+  //   );
+  //
+  //   setEnvVariables(TestConfig.env);
+  //   const resp = await invokeLocalHandlerOrMakeAPICall(event, handler, TestConfig.apiFrontUrl, context);
+  //   ECHO_TEST_OUTPUTS && console.log(resp);
+  //
+  //   expect(resp.statusCode).to.eq(200);
+  //   const respData = JSON.parse(resp.body);
+  //   const output = respData.result.data as inferProcedureOutput<AppRouter['getPageReferrers']>;
+  //   // console.log(output);
+  //
+  //   expect(output).to.be.an('array');
+  //   expect(output[0].referrer).to.be.a('string');
+  //   expect(output[0].views).to.be.a('number');
+  // });
 });

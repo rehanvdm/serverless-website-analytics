@@ -34,7 +34,7 @@ export class AthenaBase {
     this.queryStorageFullS3Path = queryStorageFullS3Path;
     this.defaultParseOptions = defaultParseOptions || {
       bigIntAsNumber: true,
-      falselyAs: 'undefined',
+      falselyAs: 'null',
     };
   }
 
@@ -135,6 +135,10 @@ export class AthenaBase {
         assert(column.Name);
         switch (column.Type) {
           case 'varchar':
+            if (cell === undefined || cell === null) {
+              resultRow[column.Name] = parseOptions?.falselyAs === 'null' ? null : undefined;
+              continue;
+            }
             resultRow[column.Name] = String(cell);
             break;
           case 'boolean':

@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import {Ref, ref, watch, computed, onMounted} from 'vue'
-import {PageReferrer, UsersGroupedByStat} from "@backend/api-front/routes/stats";
+import {Ref, ref, watch, onMounted} from 'vue'
+import {GetUsersGroupedByStat} from "@backend/api-front/routes/stats/page";
 import TableData, {Column} from "@frontend/src/components/TableData.vue";
 import {api, apiWrapper} from "@frontend/src/lib/api";
-import {Filter} from "@backend/lib/models/filter";
+import {PageFilter} from "@backend/lib/models/page_filter";
 
 export interface Props {
   sites: string[],
   fromDate?: Date,
   toDate?: Date,
-  filter: Filter
+  filter: PageFilter
 }
 const props = withDefaults(defineProps<Props>(), { });
 
@@ -17,12 +17,12 @@ const activeTab = ref('device')
 
 const emit = defineEmits<{
   (e: 'loading', val: boolean): void,
-  (e: 'filter-change', val: Filter): void
+  (e: 'filter-change', val: PageFilter): void
 }>()
 
-let pageDevices: Ref<UsersGroupedByStat[] | undefined> = ref();
-let pageBrowsers: Ref<UsersGroupedByStat[] | undefined> = ref();
-let pageOperatingSystem: Ref<UsersGroupedByStat[] | undefined> = ref();
+let pageDevices: Ref<GetUsersGroupedByStat[] | undefined> = ref();
+let pageBrowsers: Ref<GetUsersGroupedByStat[] | undefined> = ref();
+let pageOperatingSystem: Ref<GetUsersGroupedByStat[] | undefined> = ref();
 
 const loading = ref(true);
 watch(() => [loading.value], async () => {
@@ -34,7 +34,7 @@ async function loadData(groupBy: "device_type") {
   if (props.sites.length === 0 || !props.fromDate || !props.toDate)
     return;
 
-  const resp = await apiWrapper(api.getUsersGroupedByStatForPeriod.query({
+  const resp = await apiWrapper(api.getPageUsersGroupedByStatForPeriod.query({
     sites: props.sites,
     from: props.fromDate?.toISOString(),
     to: props.toDate?.toISOString(),
@@ -92,8 +92,11 @@ const columns: Column[] = [
   { name: "Visitors", type: "number", index: "visitors", gridColumn: "2fr" },
 ];
 
-function rowClick(rowText: any) {
-  emit('filter-change', { device_type: rowText })
+function rowClick(filterKey: string, cell: Record<string, any>) {
+  const keyName = Object.keys(cell)[0];
+  const keyValue = cell[keyName];
+
+  emit('filter-change', { [filterKey]: keyValue })
 }
 </script>
 
@@ -102,7 +105,7 @@ function rowClick(rowText: any) {
     <el-tabs v-model="activeTab" tab-position="top" style="margin-top: 10px;">
       <el-tab-pane name="device" label="Device" style="padding: 0 10px; margin-top: -10px;">
         <TableData :columns="columns" :rows="pageDevices || []" :loading="loading" :page-size="16"
-                   @click="rowClick"></TableData>
+                   @click="(cell) => rowClick('device_type', cell)"></TableData>
       </el-tab-pane>
       <el-tab-pane name="browser" disabled label="Browser">Browser</el-tab-pane>
       <el-tab-pane name="os" disabled label="Operating System">Operating System</el-tab-pane>

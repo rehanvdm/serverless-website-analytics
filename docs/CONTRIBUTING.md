@@ -195,3 +195,9 @@ enables us to use `@src/backend/api/server.ts` instead of those nasty relative p
 
 There is no separate TS config for the frontend, this is because the backend and frontend share the same TS paths and
 there were some strange results with tRPC not typing correctly.
+
+### null  vs undefined
+
+The API will always return `null` to indicate that a value is not set. A value of `undefined` will indicate that the
+value is not set and that the key is not present in the object. This is important for the PageFilter and EventFilter.
+A value of `null` will search where that column has no value and `undefined` will ignore that column from the search.

@@ -302,12 +302,8 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
           type: 'string',
         },
         {
-          name: 'year',
-          type: 'int',
-        },
-        {
-          name: 'month',
-          type: 'int',
+          name: 'tracked_at_date',
+          type: 'string',
         },
       ],
       storageDescriptor: {
@@ -319,7 +315,7 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
         },
         parameters: {
           'storage.location.template':
-            's3://' + analyticsBucket.bucketName + '/events/site=${site}/year=${year}/month=${month}',
+            's3://' + analyticsBucket.bucketName + '/events/site=${site}/tracked_at_date=${tracked_at_date}',
         },
         columns: [
           {
@@ -328,6 +324,10 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
           },
           {
             name: 'session_id',
+            type: 'string',
+          },
+          {
+            name: 'category',
             type: 'string',
           },
           {
@@ -392,6 +392,16 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
           },
         ],
       },
+      parameters: {
+        'projection.enabled': 'true',
+        'projection.tracked_at_date.type': 'date',
+        'projection.tracked_at_date.format': 'yyyy-MM-dd',
+        'projection.tracked_at_date.interval': '1',
+        'projection.tracked_at_date.interval.unit': 'DAYS',
+        'projection.tracked_at_date.range': '2023-01-01,NOW',
+        'projection.site.type': 'enum',
+        'projection.site.values': props.sites.join(','),
+      },
     },
   });
   glueTableEvents.addDependency(glueDb);
@@ -407,7 +417,7 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
       bucketArn: analyticsBucket.bucketArn,
       roleArn: firehoseDeliveryRole.roleArn,
       prefix:
-        'events/site=!{partitionKeyFromQuery:site}/year=!{partitionKeyFromQuery:year}/month=!{partitionKeyFromQuery:month}/',
+        'events/site=!{partitionKeyFromQuery:site}/tracked_at_date=!{partitionKeyFromQuery:tracked_at_date}/',
       errorOutputPrefix: 'error/!{firehose:error-output-type}/',
       bufferingHints: {
         intervalInSeconds: props.firehoseBufferInterval ?? defaultFirehoseBufferInterval,
@@ -426,7 +436,7 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
             parameters: [
               {
                 parameterName: 'MetadataExtractionQuery',
-                parameterValue: '{site: .site,' + ' year: .year,' + ' month: .month}',
+                parameterValue: '{site: .site, tracked_at_date: .tracked_at_date}',
               },
               //Required as property it seems
               {

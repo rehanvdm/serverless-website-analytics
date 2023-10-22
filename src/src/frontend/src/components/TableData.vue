@@ -22,7 +22,7 @@ export type Props = {
 const props = withDefaults(defineProps<Props>(), {});
 
 const emit = defineEmits<{
-  (e: 'click', val: any): void
+  (e: 'click', cell: Record<string, any>): void
 }>()
 
 
@@ -86,8 +86,8 @@ const canPageForward = computed(() => {
   return pageCurrent.value < pageTotal.value;
 });
 
-function rowClick(rowText: any) {
-  emit('click', rowText)
+function rowClick(cell: Record<string, any>) {
+  emit('click', cell)
 }
 
 const hover = reactive<Record<any, boolean>>({});
@@ -105,14 +105,14 @@ const hover = reactive<Record<any, boolean>>({});
         <div class="row" :style="rowGridColumnCss" v-for="(row, rowIndex) in pageData">
           <template v-for="col of columns">
             <template v-if="col.type === 'string'">
-              <el-tooltip :show-after="1000" :content="row[col.index]">
+              <el-tooltip :show-after="1000" :content="row[col.index] != undefined ? row[col.index] : '-'">
                 <div v-if="col.canFilter" class="column column--overflow">
 
                   <div style="display: flex;"
                        @mouseover="hover[rowIndex] = true" @mouseleave="hover[rowIndex] = false">
                     <!-- Column overflow is width 100% so will always push icon all the way to left, so the flex options won't work, which is fine for this -->
-                    <div class="column--overflow column--click" @click="rowClick(row[col.index])">
-                      {{ row[col.index] }}
+                    <div class="column--overflow column--click" @click="rowClick({ [col.index]: row[col.index] })">
+                      {{ row[col.index] != undefined ? row[col.index] : "-"  }}
                     </div>
 <!--                    && hover[rowIndex]-->
                     <div v-if="col.openExternalColumn && hover[rowIndex]">
@@ -124,7 +124,7 @@ const hover = reactive<Record<any, boolean>>({});
 
                 </div>
                 <div v-lese class="column column--overflow">
-                  {{ row[col.index] }}
+                  {{ row[col.index] != undefined ? row[col.index] : "-"  }}
                 </div>
               </el-tooltip>
             </template>

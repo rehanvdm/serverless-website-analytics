@@ -2,21 +2,21 @@
 import {Ref, ref, watch, computed, onMounted, ComputedRef} from 'vue'
 import {uniqBy} from 'lodash'
 import {api, apiWrapper} from "@frontend/src/lib/api";
-import {GetTopLevelStats, PageView} from "@backend/api-front/routes/stats";
+import {GetPageTopLevelStats, GetPageView} from "@backend/api-front/routes/stats/page";
 import TableData, {Column} from "@frontend/src/components/TableData.vue";
-import {Filter} from "@backend/lib/models/filter";
+import {PageFilter} from "@backend/lib/models/page_filter";
 
 export interface Props {
   sites: string[],
   fromDate?: Date,
   toDate?: Date,
-  filter: Filter
+  filter: PageFilter
 }
 const props = withDefaults(defineProps<Props>(), { });
 
 const emit = defineEmits<{
   (e: 'loading', val: boolean): void,
-  (e: 'filter-change', val: Filter): void
+  (e: 'filter-change', val: PageFilter): void
 }>()
 
 const loading = ref(true);
@@ -24,7 +24,7 @@ watch(() => [loading.value], async () => {
   emit('loading', loading.value)
 })
 
-type PageViewExternal = PageView & { external_url: string }
+type PageViewExternal = GetPageView & { external_url: string }
 
 let pageViews: Ref<PageViewExternal[] | undefined> = ref();
 let pageViewsQueryExecutionId: string | undefined = undefined;
@@ -6118,9 +6118,14 @@ const columns: ComputedRef<Column[]> = computed(()  => {
   return ret;
 });
 
-function rowClick(rowText: any) {
-  emit('filter-change', { page_url: rowText })
+
+function rowClick(cell: Record<string, any>) {
+  const keyName = Object.keys(cell)[0];
+  const keyValue = cell[keyName];
+
+  emit('filter-change', { page_url: keyValue })
 }
+
 </script>
 
 <template>

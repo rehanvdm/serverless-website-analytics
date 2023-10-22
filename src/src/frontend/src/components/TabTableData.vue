@@ -1,57 +1,28 @@
 <script setup lang="ts">
 import {Ref, ref, watch, computed, onMounted} from 'vue'
-import {PageReferrer, UsersGroupedByStat} from "@backend/api-front/routes/stats";
+import {GetPageReferrer, GetUsersGroupedByStat} from "@backend/api-front/routes/stats/page";
 import TableData, {Column} from "@frontend/src/components/TableData.vue";
 import {api, apiWrapper} from "@frontend/src/lib/api";
-import {Filter} from "@backend/lib/models/filter";
+import {PageFilter} from "@backend/lib/models/page_filter";
 
-const loadingSource = ref(false);
-const loadingMedium = ref(false);
-const loadingCampaign = ref(false);
-const loadingTerm = ref(false);
-const loadingContent = ref(false);
-
-const columnsSource: Column[] = [
-  { name: "Source", type: "string", index: "group", gridColumn: "6fr", canFilter: true },
-  { name: "Visitors", type: "number", index: "visitors", gridColumn: "2fr" },
-];
-const columnsMedium: Column[] = [
-  { name: "Medium", type: "string", index: "group", gridColumn: "6fr", canFilter: true },
-  { name: "Visitors", type: "number", index: "visitors", gridColumn: "2fr" },
-];
-const columnsCampaign: Column[] = [
-  { name: "Campaign", type: "string", index: "group", gridColumn: "6fr", canFilter: true },
-  { name: "Visitors", type: "number", index: "visitors", gridColumn: "2fr" },
-];
-const columnsTerm: Column[] = [
-  { name: "Term", type: "string", index: "group", gridColumn: "6fr", canFilter: true },
-  { name: "Visitors", type: "number", index: "visitors", gridColumn: "2fr" },
-];
-const columnsContent: Column[] = [
-  { name: "Content", type: "string", index: "group", gridColumn: "6fr", canFilter: true },
-  { name: "Visitors", type: "number", index: "visitors", gridColumn: "2fr" },
-];
-
-export interface Props {
+export interface Props<T> {
   sites: string[],
-  fromDate?: Date,
-  toDate?: Date,
-  filter: Filter
+  tabs: {
+    name: string,
+    label: string,
+    tableColumns: Column[],
+    data: T,
+    loading: boolean
+  }[]
 }
 const props = withDefaults(defineProps<Props>(), { });
 
 const activeTab = ref('source')
 
 const emit = defineEmits<{
-  (e: 'loading', val: boolean): void,
-  (e: 'filter-change', val: Filter): void
+  (e: 'tab-change', index: string): void,
 }>()
 
-let source: Ref<UsersGroupedByStat[] | undefined> = ref();
-let medium: Ref<UsersGroupedByStat[] | undefined> = ref();
-let campaign: Ref<UsersGroupedByStat[] | undefined> = ref();
-let term: Ref<UsersGroupedByStat[] | undefined> = ref();
-let content: Ref<UsersGroupedByStat[] | undefined> = ref();
 
 const loading = ref(true);
 watch(() => [loading.value], async () => {
@@ -60,7 +31,7 @@ watch(() => [loading.value], async () => {
 
 async function loadData(groupBy: "utm_source" | "utm_medium" | "utm_campaign" | "utm_term" | "utm_content",
                         loading: Ref<boolean>,
-                        data: Ref<UsersGroupedByStat[] | undefined>)
+                        data: Ref<GetUsersGroupedByStat[] | undefined>)
 {
   if (props.sites.length === 0 || !props.fromDate || !props.toDate)
     return;
@@ -102,16 +73,7 @@ watch(() => [props.sites, props.fromDate, props.toDate, activeTab.value, props.f
   deep: true
 })
 
-async function refresh() {
-  source.value = [];
-  medium.value = [];
-  campaign.value = [];
-  term.value = [];
-  content.value = [];
 
-  activeTab.value = "source";
-  await loadData("utm_source", loadingSource, source);
-}
 
 onMounted(() => {
   /* Fix for Vite HMR that will not fire loadData because the watch will not fire, the data it is watching did not change */
@@ -133,6 +95,7 @@ function rowClick(filterKey: string, rowText: any) {
 <template>
   <div class="container">
     <el-tabs v-model="activeTab" tab-position="top" style="margin-top: 10px;">
+
       <el-tab-pane name="source" label="Source" class="tab-pane">
         <TableData :columns="columnsSource" :rows="source || []" :loading="loadingSource" :page-size="16"
                    @click="(rowText) => rowClick('utm_source', rowText)"></TableData>
