@@ -6,12 +6,57 @@ import { v4 as uuidv4 } from 'uuid';
 import { DateUtils } from '@backend/lib/utils/date_utils';
 import { S3PageViews } from '@backend/lib/dal/s3/page_views';
 import { AthenaPageViews } from '@backend/lib/dal/athena/page_views';
+import { S3Events } from '@backend/lib/dal/s3/events';
+import { AthenaEvents } from '@backend/lib/dal/athena/events';
 
 /* Lazy loaded variables */
 let initialized = false;
+const logger = new LambdaLog();
+
+type VacuumEntity = {
+  name: string;
+  getAllSiteDateFiles: (site: string, date: string) => Promise<{ key: string }[]>;
+  rollupPageViews: (pageViewBucketName: string, site: string, date: string) => Promise<boolean>;
+  deleteAllObjects: (keys: string[], concurrency?: number) => Promise<void>;
+};
+async function vacuum(vacuumEntity: VacuumEntity) {
+  logger.info('Vacuuming', vacuumEntity.name);
+
+  /* Always rollup the previous day (for now) */
+  const previousDayDate = DateUtils.stringifyFormat(DateUtils.addDays(DateUtils.now(), -1), 'yyyy-MM-dd');
+
+  for (const site of LambdaEnvironment.SITES) {
+    const rawFiles = await vacuumEntity.getAllSiteDateFiles(site, previousDayDate);
+    if (!rawFiles.length) {
+      logger.info('No files to rollup', site, previousDayDate);
+      continue;
+    }
+
+    logger.info('Starting rollup', site, previousDayDate, rawFiles.length);
+    await vacuumEntity.rollupPageViews(LambdaEnvironment.ANALYTICS_BUCKET, site, previousDayDate);
+
+    /* Get all files again, only if there are more files than before we started does it mean the rollup was successful
+     * Considering that the rollup runs on the previous days data, nothing can be written to it via the Firehose
+     * under normal circumstances. Therefore, this is thus a safe assumption for data protection , preventing data
+     * deletion if the rollup failed. This is just extra safety as the CTAS query throws an error on failure */
+    const allFilesPostRollup = await vacuumEntity.getAllSiteDateFiles(site, previousDayDate);
+    if (allFilesPostRollup.length === rawFiles.length) {
+      logger.error('Rollup failed ', site, previousDayDate);
+      continue;
+    }
+    const rolledUpFileCount = allFilesPostRollup.length - rawFiles.length;
+    const fileReductionPercent = Math.round((1 - rolledUpFileCount / rawFiles.length) * 100);
+    logger.info(
+      `Reduced file count from ${rawFiles.length} to ${rolledUpFileCount} a ${fileReductionPercent}% reduction`
+    );
+
+    logger.info('Deleting all raw files', rawFiles.length);
+    await vacuumEntity.deleteAllObjects(rawFiles.map((f) => f.key));
+  }
+}
+
 export const handler = async (event: ScheduledEvent, context: Context): Promise<true> => {
   // console.log("EVENT", event);
-  const logger = new LambdaLog();
   const shouldInitialize = !initialized || process.env.TESTING_LOCAL_RE_INIT === 'true';
   if (shouldInitialize) {
     LambdaEnvironment.init();
@@ -43,31 +88,29 @@ export const handler = async (event: ScheduledEvent, context: Context): Promise<
       LambdaEnvironment.ANALYTICS_BUCKET_ATHENA_PATH
     );
 
-    /* Always rollup the previous day (for now) */
-    const previousDayDate = DateUtils.stringifyFormat(DateUtils.addDays(DateUtils.now(), -1), 'yyyy-MM-dd');
+    const eventsBucket = new S3Events(LambdaEnvironment.ANALYTICS_BUCKET);
+    const athenaEvents = new AthenaEvents(
+      LambdaEnvironment.ANALYTICS_GLUE_DB_NAME,
+      LambdaEnvironment.ANALYTICS_BUCKET_ATHENA_PATH
+    );
 
-    for (const site of LambdaEnvironment.SITES) {
-      const rawFiles = await pageViewBucket.getAllSiteDateFiles(site, previousDayDate);
-      if (!rawFiles.length) {
-        logger.info('No files to rollup', site, previousDayDate);
-        continue;
-      }
+    const vacuumEntities: VacuumEntity[] = [
+      // {
+      //   name: 'page',
+      //   getAllSiteDateFiles: pageViewBucket.getAllSiteDateFiles.bind(pageViewBucket),
+      //   rollupPageViews: athenaPageViews.rollupPageViews.bind(athenaPageViews),
+      //   deleteAllObjects: pageViewBucket.deleteAllObjects.bind(pageViewBucket),
+      // },
+      {
+        name: 'event',
+        getAllSiteDateFiles: eventsBucket.getAllSiteDateFiles.bind(eventsBucket),
+        rollupPageViews: athenaEvents.rollupEvents.bind(athenaEvents),
+        deleteAllObjects: eventsBucket.deleteAllObjects.bind(eventsBucket),
+      },
+    ];
 
-      logger.info('Starting rollup', site, previousDayDate, rawFiles.length);
-      await athenaPageViews.rollupPageViews(LambdaEnvironment.ANALYTICS_BUCKET, site, previousDayDate);
-
-      /* Get all files again, only if there are more files than before we started does it mean the rollup was successful
-       * Considering that the rollup runs on the previous days data, nothing can be written to it via the Firehose
-       * under normal circumstances. Therefore, this is thus a safe assumption for data protection , preventing data
-       * deletion if the rollup failed. This is just extra safety as the CTAS query throws an error on failure */
-      const allFilesPostRollup = await pageViewBucket.getAllSiteDateFiles(site, previousDayDate);
-      if (allFilesPostRollup.length === rawFiles.length) {
-        logger.error('Rollup failed ', site, previousDayDate);
-        continue;
-      }
-
-      logger.info('Deleting all raw files', rawFiles.length);
-      await pageViewBucket.deleteAllObjects(rawFiles.map((f) => f.key));
+    for (const vacuumEntity of vacuumEntities) {
+      await vacuum(vacuumEntity);
     }
 
     audit.success = true;

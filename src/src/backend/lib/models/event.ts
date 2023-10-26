@@ -2,12 +2,13 @@ import { z } from 'zod';
 
 export const SchemaEvent = z.object({
   site: z.string(),
-  year: z.number(),
-  month: z.number(),
   user_id: z.string(),
   session_id: z.string(),
+  event_id: z.string(),
+  category: z.string().optional(),
   event: z.string(),
   tracked_at: z.string(),
+  tracked_at_date: z.string().optional(),
   data: z.number(),
   country_iso: z.string().optional(),
   country_name: z.string().optional(),
