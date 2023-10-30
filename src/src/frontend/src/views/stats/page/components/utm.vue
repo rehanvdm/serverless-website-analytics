@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import {Ref, ref, watch, computed, onMounted} from 'vue'
-import {PageReferrer, UsersGroupedByStat} from "@backend/api-front/routes/stats";
+import {Ref, ref, watch, onMounted} from 'vue'
+import {GetPageUsersGroupedByStat} from "@backend/api-front/routes/stats/page";
 import TableData, {Column} from "@frontend/src/components/TableData.vue";
 import {api, apiWrapper} from "@frontend/src/lib/api";
-import {Filter} from "@backend/lib/models/filter";
+import {PageFilter} from "@backend/lib/models/page_filter";
 
 const loadingSource = ref(false);
 const loadingMedium = ref(false);
@@ -36,7 +36,7 @@ export interface Props {
   sites: string[],
   fromDate?: Date,
   toDate?: Date,
-  filter: Filter
+  filter: PageFilter
 }
 const props = withDefaults(defineProps<Props>(), { });
 
@@ -44,14 +44,14 @@ const activeTab = ref('source')
 
 const emit = defineEmits<{
   (e: 'loading', val: boolean): void,
-  (e: 'filter-change', val: Filter): void
+  (e: 'filter-change', val: PageFilter): void
 }>()
 
-let source: Ref<UsersGroupedByStat[] | undefined> = ref();
-let medium: Ref<UsersGroupedByStat[] | undefined> = ref();
-let campaign: Ref<UsersGroupedByStat[] | undefined> = ref();
-let term: Ref<UsersGroupedByStat[] | undefined> = ref();
-let content: Ref<UsersGroupedByStat[] | undefined> = ref();
+let source: Ref<GetPageUsersGroupedByStat[] | undefined> = ref();
+let medium: Ref<GetPageUsersGroupedByStat[] | undefined> = ref();
+let campaign: Ref<GetPageUsersGroupedByStat[] | undefined> = ref();
+let term: Ref<GetPageUsersGroupedByStat[] | undefined> = ref();
+let content: Ref<GetPageUsersGroupedByStat[] | undefined> = ref();
 
 const loading = ref(true);
 watch(() => [loading.value], async () => {
@@ -60,12 +60,12 @@ watch(() => [loading.value], async () => {
 
 async function loadData(groupBy: "utm_source" | "utm_medium" | "utm_campaign" | "utm_term" | "utm_content",
                         loading: Ref<boolean>,
-                        data: Ref<UsersGroupedByStat[] | undefined>)
+                        data: Ref<GetPageUsersGroupedByStat[] | undefined>)
 {
   if (props.sites.length === 0 || !props.fromDate || !props.toDate)
     return;
 
-  const resp = await apiWrapper(api.getUsersGroupedByStatForPeriod.query({
+  const resp = await apiWrapper(api.getPageUsersGroupedByStatForPeriod.query({
     sites: props.sites,
     from: props.fromDate?.toISOString(),
     to: props.toDate?.toISOString(),
@@ -125,8 +125,11 @@ defineExpose({
   refresh
 });
 
-function rowClick(filterKey: string, rowText: any) {
-  emit('filter-change', { [filterKey]: rowText })
+function rowClick(filterKey: string, cell: Record<string, any>) {
+  const keyName = Object.keys(cell)[0];
+  const keyValue = cell[keyName];
+
+  emit('filter-change', { [filterKey]: keyValue })
 }
 </script>
 
@@ -135,23 +138,23 @@ function rowClick(filterKey: string, rowText: any) {
     <el-tabs v-model="activeTab" tab-position="top" style="margin-top: 10px;">
       <el-tab-pane name="source" label="Source" class="tab-pane">
         <TableData :columns="columnsSource" :rows="source || []" :loading="loadingSource" :page-size="16"
-                   @click="(rowText) => rowClick('utm_source', rowText)"></TableData>
+                   @click="(cell) => rowClick('utm_source', cell)"></TableData>
       </el-tab-pane>
       <el-tab-pane name="medium" label="Medium" class="tab-pane">
         <TableData :columns="columnsMedium" :rows="medium || []" :loading="loadingMedium" :page-size="16"
-                   @click="(rowText) => rowClick('utm_medium', rowText)"></TableData>
+                   @click="(cell) => rowClick('utm_medium', cell)"></TableData>
       </el-tab-pane>
       <el-tab-pane name="campaign" label="Campaign" class="tab-pane">
         <TableData :columns="columnsCampaign" :rows="campaign || []" :loading="loadingCampaign" :page-size="16"
-                   @click="(rowText) => rowClick('utm_campaign', rowText)"></TableData>
+                   @click="(cell) => rowClick('utm_campaign', cell)"></TableData>
       </el-tab-pane>
       <el-tab-pane name="term" label="Term" class="tab-pane">
         <TableData :columns="columnsTerm" :rows="term || []" :loading="loadingTerm" :page-size="16"
-                   @click="(rowText) => rowClick('utm_term', rowText)"></TableData>
+                   @click="(cell) => rowClick('utm_term', cell)"></TableData>
       </el-tab-pane>
       <el-tab-pane name="content" label="Content" class="tab-pane">
         <TableData :columns="columnsContent" :rows="content || []" :loading="loadingContent" :page-size="16"
-                   @click="(rowText) => rowClick('utm_content', rowText)"></TableData>
+                   @click="(cell) => rowClick('utm_content', cell)"></TableData>
       </el-tab-pane>
     </el-tabs>
   </div>

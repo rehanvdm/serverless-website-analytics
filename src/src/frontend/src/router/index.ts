@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import loginCallback from '../views/login_callback.vue';
-import pageStats from '../views/page_stats/index.vue';
+import stats from '../views/stats/index.vue';
 import error from '../views/error.vue';
 
 const router = createRouter({
@@ -8,9 +8,21 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'page_stats',
-      component: pageStats,
+      redirect: '/stats/page',
     },
+    {
+      path: '/stats/page',
+      component: stats,
+    },
+    {
+      path: '/stats/event',
+      component: stats,
+    },
+    // {
+    //   path: '/',
+    //   name: 'page_stats',
+    //   component: eventStats,
+    // },
     {
       path: '/error',
       name: 'error',

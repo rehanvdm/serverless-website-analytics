@@ -2,49 +2,52 @@ import { z } from 'zod';
 import { assertAuthentication, TrpcInstance } from '@backend/api-front/server';
 import { SchemaSite } from '@backend/lib/models/site';
 import { DateUtils } from '@backend/lib/utils/date_utils';
-import { AthenaPageViews } from '@backend/lib/dal/athena/page_views';
-import { FilterSchema } from '@backend/lib/models/filter';
+import { AthenaEvents } from '@backend/lib/dal/athena/events';
+import { EventFilter, EventFilterSchema } from '@backend/lib/models/event_filter';
 import { LambdaEnvironment } from '@backend/api-front/environment';
 
-const GetTopLevelStatsSchema = z.object({
+const GetEventTopLevelStatsSchema = z.object({
   visitors: z.number(),
-  page_views: z.number(),
-  avg_time_on_page: z.number(),
-  bounce_rate: z.number(),
-  latest_page_opened_at: z.string().datetime().optional(),
+  count: z.number(),
+  avg: z.number(),
+  min: z.number(),
+  max: z.number(),
+  sum: z.number(),
   period: z.object({
     from: z.string().datetime(),
     to: z.string().datetime(),
   }),
   previous: z.object({
     visitors: z.number(),
-    page_views: z.number(),
-    avg_time_on_page: z.number(),
-    bounce_rate: z.number(),
+    count: z.number(),
+    avg: z.number(),
+    min: z.number(),
+    max: z.number(),
+    sum: z.number(),
     period: z.object({
       from: z.string().datetime(),
       to: z.string().datetime(),
     }),
   }),
 });
-export type GetTopLevelStats = z.infer<typeof GetTopLevelStatsSchema>;
-export function getTopLevelStats(trpcInstance: TrpcInstance) {
+export type GetEventTopLevelStats = z.infer<typeof GetEventTopLevelStatsSchema>;
+export function getEventTopLevelStats(trpcInstance: TrpcInstance) {
   return trpcInstance.procedure
     .input(
       z.object({
         from: z.string().datetime(),
         to: z.string().datetime(),
         sites: z.array(SchemaSite),
-        filter: FilterSchema.optional(),
+        filter: EventFilterSchema.optional(),
       })
     )
-    .output(GetTopLevelStatsSchema)
+    .output(GetEventTopLevelStatsSchema)
     .query(async ({ input, ctx }) => {
       assertAuthentication(ctx);
 
       if (input.filter && Object.keys(input.filter).length === 0) input.filter = undefined;
 
-      const athenaPageViews = new AthenaPageViews(
+      const athenaEvents = new AthenaEvents(
         LambdaEnvironment.ANALYTICS_GLUE_DB_NAME,
         LambdaEnvironment.ANALYTICS_BUCKET_ATHENA_PATH
       );
@@ -54,27 +57,28 @@ export function getTopLevelStats(trpcInstance: TrpcInstance) {
       const { prevStartDate, prevEndDate } = DateUtils.getPreviousPeriod(fromDate, toDate);
 
       const [totals, totalsPrev] = await Promise.all([
-        athenaPageViews.totalsForPeriod(fromDate, toDate, input.sites, input.filter),
-        athenaPageViews.totalsForPeriod(prevStartDate, prevEndDate, input.sites, input.filter),
+        athenaEvents.totalsForPeriod(fromDate, toDate, input.sites, input.filter),
+        athenaEvents.totalsForPeriod(prevStartDate, prevEndDate, input.sites, input.filter),
       ]);
 
       return {
         visitors: totals.users,
-        page_views: totals.views,
-        avg_time_on_page: totals.avg_time_on_page || 0,
-        bounce_rate: totals.bounce_rate || 0,
-        latest_page_opened_at: totals.latest_page_opened_at
-          ? DateUtils.stringifyIso(totals.latest_page_opened_at)
-          : undefined,
+        count: totals.count,
+        avg: totals.avg || 0,
+        min: totals.min || 0,
+        max: totals.max || 0,
+        sum: totals.sum || 0,
         period: {
           from: DateUtils.stringifyIso(fromDate),
           to: DateUtils.stringifyIso(toDate),
         },
         previous: {
-          visitors: totalsPrev.users,
-          page_views: totalsPrev.views,
-          avg_time_on_page: totalsPrev.avg_time_on_page || 0,
-          bounce_rate: totalsPrev.bounce_rate || 0,
+          visitors: totals.users,
+          count: totals.count,
+          avg: totals.avg || 0,
+          min: totals.min || 0,
+          max: totals.max || 0,
+          sum: totals.sum || 0,
           period: {
             from: DateUtils.stringifyIso(prevStartDate),
             to: DateUtils.stringifyIso(prevEndDate),
@@ -84,14 +88,18 @@ export function getTopLevelStats(trpcInstance: TrpcInstance) {
     });
 }
 
-const PageViewsSchema = z.object({
+const GetEventOutputSchema = z.object({
   site: z.string(),
-  page_url: z.string(),
-  views: z.number(),
-  avg_time_on_page: z.number(),
+  category: z.string().nullable(),
+  event: z.string(),
+  count: z.number(),
+  avg: z.number(),
+  min: z.number(),
+  max: z.number(),
+  sum: z.number(),
 });
-export type PageView = z.infer<typeof PageViewsSchema>;
-export function getPageViews(trpcInstance: TrpcInstance) {
+export type GetEventOutput = z.infer<typeof GetEventOutputSchema>;
+export function getEvents(trpcInstance: TrpcInstance) {
   return trpcInstance.procedure
     .input(
       z.object({
@@ -100,14 +108,14 @@ export function getPageViews(trpcInstance: TrpcInstance) {
         sites: z.array(SchemaSite),
         queryExecutionId: z.string().optional(),
         nextToken: z.string().optional(),
-        filter: FilterSchema.optional(),
+        filter: EventFilterSchema.optional(),
       })
     )
     .output(
       z.object({
         queryExecutionId: z.string(),
         nextToken: z.string().optional(),
-        data: z.array(PageViewsSchema),
+        data: z.array(GetEventOutputSchema),
       })
     )
     .query(async ({ input, ctx }) => {
@@ -115,7 +123,7 @@ export function getPageViews(trpcInstance: TrpcInstance) {
 
       if (input.filter && Object.keys(input.filter).length === 0) input.filter = undefined;
 
-      const athenaPageViews = new AthenaPageViews(
+      const athenaEvents = new AthenaEvents(
         LambdaEnvironment.ANALYTICS_GLUE_DB_NAME,
         LambdaEnvironment.ANALYTICS_BUCKET_ATHENA_PATH
       );
@@ -123,7 +131,7 @@ export function getPageViews(trpcInstance: TrpcInstance) {
       const fromDate = DateUtils.parseIso(input.from);
       const toDate = DateUtils.parseIso(input.to);
 
-      const pageViews = await athenaPageViews.pageViewsForPeriod(
+      const events = await athenaEvents.eventsForPeriod(
         fromDate,
         toDate,
         input.sites,
@@ -132,39 +140,44 @@ export function getPageViews(trpcInstance: TrpcInstance) {
         input.filter
       );
       return {
-        queryExecutionId: pageViews.queryExecutionId,
-        nextToken: pageViews.nextToken,
-        data: pageViews.data,
+        queryExecutionId: events.queryExecutionId,
+        nextToken: events.nextToken,
+        data: events.data,
       };
     });
 }
 
-const ChartViewsSchema = z.object({
-  site: z.string(),
+const GetEventChartSchema = z.object({
+  groupedBy: z.string(), // The value of the groupBy field in the input, so either the name of the site, category or event
   date_key: z.string(),
   visitors: z.number(),
-  views: z.number(),
+  count: z.number(),
+  avg: z.number(),
+  min: z.number(),
+  max: z.number(),
+  sum: z.number(),
 });
-export type ChartView = z.infer<typeof ChartViewsSchema>;
-export function getChartViews(trpcInstance: TrpcInstance) {
+export type GetEventChart = z.infer<typeof GetEventChartSchema>;
+export function getEventChart(trpcInstance: TrpcInstance) {
   return trpcInstance.procedure
     .input(
       z.object({
+        groupBy: z.enum(['site', 'category', 'event']),
         from: z.string().datetime(),
         to: z.string().datetime(),
         sites: z.array(SchemaSite),
         period: z.enum(['hour', 'day']),
         timeZone: z.string(),
-        filter: FilterSchema.optional(),
+        filter: EventFilterSchema.optional(),
       })
     )
-    .output(z.array(ChartViewsSchema))
+    .output(z.array(GetEventChartSchema))
     .query(async ({ input, ctx }) => {
       assertAuthentication(ctx);
 
       if (input.filter && Object.keys(input.filter).length === 0) input.filter = undefined;
 
-      const athenaPageViews = new AthenaPageViews(
+      const athenaEvents = new AthenaEvents(
         LambdaEnvironment.ANALYTICS_GLUE_DB_NAME,
         LambdaEnvironment.ANALYTICS_BUCKET_ATHENA_PATH
       );
@@ -177,7 +190,8 @@ export function getChartViews(trpcInstance: TrpcInstance) {
         throw new Error(`Invalid time zone: ${input.timeZone}`);
       }
 
-      const chartViews = await athenaPageViews.chartViewsForPeriod(
+      const chartEvents = await athenaEvents.chartViewsForPeriod(
+        input.groupBy,
         fromDate,
         toDate,
         input.sites,
@@ -185,59 +199,32 @@ export function getChartViews(trpcInstance: TrpcInstance) {
         input.timeZone,
         input.filter
       );
-      return chartViews.map((row) => ({ ...row, date_key: DateUtils.stringifyIso(row.date_key) }));
+      return chartEvents.map((row) => ({ ...row, date_key: DateUtils.stringifyIso(row.date_key) }));
     });
 }
 
-// const ChartLocationSchema = z.object({
-//   country_name: z.string(),
-//   visitors: z.number(),
-// });
-// export type ChartLocation = z.infer<typeof ChartLocationSchema>;
-// export function getChartLocations(trpcInstance: TrpcInstance)
-// {
-//   return trpcInstance.procedure
-//     .input(z.object({
-//       from: z.string().datetime(),
-//       to: z.string().datetime(),
-//       sites: z.array(SchemaSite),
-//     }))
-//     .output(z.array(ChartLocationSchema)
-//     )
-//     .query(async ({input}) =>
-//     {
-//       const athenaPageViews = new AthenaPageViews();
-//
-//       const fromDate = DateUtils.parseIso(input.from);
-//       const toDate = DateUtils.parseIso(input.to);
-//
-//       const chartLocations = await athenaPageViews.usersGroupedByStatForPeriod(fromDate, toDate, input.sites, "country_name");
-//       return chartLocations as ChartLocation[];
-//     });
-// }
-
-const PageReferrerSchema = z.object({
+const GetEventReferrerSchema = z.object({
   referrer: z.string(),
-  views: z.number(),
+  sum: z.number(),
 });
-export type PageReferrer = z.infer<typeof PageReferrerSchema>;
-export function getPageReferrers(trpcInstance: TrpcInstance) {
+export type GetEventReferrer = z.infer<typeof GetEventReferrerSchema>;
+export function getEventReferrers(trpcInstance: TrpcInstance) {
   return trpcInstance.procedure
     .input(
       z.object({
         from: z.string().datetime(),
         to: z.string().datetime(),
         sites: z.array(SchemaSite),
-        filter: FilterSchema.optional(),
+        filter: EventFilterSchema.optional(),
       })
     )
-    .output(z.array(PageReferrerSchema))
+    .output(z.array(GetEventReferrerSchema))
     .query(async ({ input, ctx }) => {
       assertAuthentication(ctx);
 
       if (input.filter && Object.keys(input.filter).length === 0) input.filter = undefined;
 
-      const athenaPageViews = new AthenaPageViews(
+      const athenaEvents = new AthenaEvents(
         LambdaEnvironment.ANALYTICS_GLUE_DB_NAME,
         LambdaEnvironment.ANALYTICS_BUCKET_ATHENA_PATH
       );
@@ -245,17 +232,17 @@ export function getPageReferrers(trpcInstance: TrpcInstance) {
       const fromDate = DateUtils.parseIso(input.from);
       const toDate = DateUtils.parseIso(input.to);
 
-      const PageReferrers = await athenaPageViews.referrersForPeriod(fromDate, toDate, input.sites, input.filter);
-      return PageReferrers;
+      const EventReferrers = await athenaEvents.referrersForPeriod(fromDate, toDate, input.sites, input.filter);
+      return EventReferrers;
     });
 }
 
-const UsersGroupedByStatSchema = z.object({
+const GetEventUsersGroupedByStatSchema = z.object({
   group: z.string(),
   visitors: z.number(),
 });
-export type UsersGroupedByStat = z.infer<typeof UsersGroupedByStatSchema>;
-export function getUsersGroupedByStatForPeriod(trpcInstance: TrpcInstance) {
+export type GetEventUsersGroupedByStat = z.infer<typeof GetEventUsersGroupedByStatSchema>;
+export function getEventUsersGroupedByStatForPeriod(trpcInstance: TrpcInstance) {
   return trpcInstance.procedure
     .input(
       z.object({
@@ -271,16 +258,16 @@ export function getUsersGroupedByStatForPeriod(trpcInstance: TrpcInstance) {
           'utm_term',
           'utm_content',
         ]), // TODO: Later: "browser", "os"
-        filter: FilterSchema.optional(),
+        filter: EventFilterSchema.optional(),
       })
     )
-    .output(z.array(UsersGroupedByStatSchema))
+    .output(z.array(GetEventUsersGroupedByStatSchema))
     .query(async ({ input, ctx }) => {
       assertAuthentication(ctx);
 
       if (input.filter && Object.keys(input.filter).length === 0) input.filter = undefined;
 
-      const athenaPageViews = new AthenaPageViews(
+      const athenaEvents = new AthenaEvents(
         LambdaEnvironment.ANALYTICS_GLUE_DB_NAME,
         LambdaEnvironment.ANALYTICS_BUCKET_ATHENA_PATH
       );
@@ -288,7 +275,7 @@ export function getUsersGroupedByStatForPeriod(trpcInstance: TrpcInstance) {
       const fromDate = DateUtils.parseIso(input.from);
       const toDate = DateUtils.parseIso(input.to);
 
-      const data = await athenaPageViews.usersGroupedByStatForPeriod(
+      const data = await athenaEvents.usersGroupedByStatForPeriod(
         fromDate,
         toDate,
         input.sites,

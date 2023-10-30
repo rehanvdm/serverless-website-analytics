@@ -3,7 +3,7 @@ import 'element-plus/dist/index.css';
 import 'element-plus/theme-chalk/dark/css-vars.css';
 import '@fontsource/nunito/latin.css';
 
-import { createApp, watch } from 'vue';
+import { createApp, ref, watch } from 'vue';
 import { createPinia } from 'pinia';
 import App from './views/app.vue';
 import router from './router';
@@ -20,6 +20,7 @@ app.use(createPinia());
 app.use(router);
 
 let analyticsLoaded = false;
+const shouldTrack = ref(false);
 watch([getSystemStore().frontendEnvironment], () => {
   const systemStore = getSystemStore();
   console.log('frontendEnvironment', systemStore.frontendEnvironment);
@@ -33,6 +34,7 @@ watch([getSystemStore().frontendEnvironment], () => {
     analyticsLoaded = true;
 
     swaClient.v1.analyticsPageChange('/');
+    shouldTrack.value = true;
   }
 });
 
@@ -41,3 +43,4 @@ router.afterEach((event) => {
 });
 
 app.mount('#app');
+export { swaClient, shouldTrack, router };

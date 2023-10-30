@@ -2,14 +2,17 @@ import { DateUtils } from '@backend/lib/utils/date_utils';
 import { AthenaBase } from '@backend/lib/utils/athena_base';
 import { getAthenaClient, getS3Client } from '@backend/lib/utils/lazy_aws';
 import { Page } from '@backend/lib/models/page';
-import { Filter } from '@backend/lib/models/filter';
+import { PageFilter } from '@backend/lib/models/page_filter';
 import { v4 as uuidv4 } from 'uuid';
 
 export class AthenaPageViews extends AthenaBase {
   constructor(glueDbName: string, athenaStorageBucket: string) {
     const athenaClient = getAthenaClient();
     const s3Client = getS3Client();
-    super(athenaClient, s3Client, glueDbName, athenaStorageBucket, { bigIntAsNumber: true });
+    super(athenaClient, s3Client, glueDbName, athenaStorageBucket, {
+      bigIntAsNumber: true,
+      falselyAs: 'null',
+    });
   }
 
   /**
@@ -20,7 +23,7 @@ export class AthenaPageViews extends AthenaBase {
    * @param sites
    * @param filter
    */
-  cteFilteredDataQuery(columns: string[], fromDate: Date, toDate: Date, sites: string[], filter?: Filter) {
+  cteFilteredDataQuery(columns: string[], fromDate: Date, toDate: Date, sites: string[], filter?: PageFilter) {
     const cteSiteWhereClauseSites = sites.map((site) => `site = '${site}'`).join(' OR ');
 
     /* Partition dates are UTC and not TZ aware, we narrow them later. Here we add 1 day to the end date so that
@@ -65,7 +68,7 @@ export class AthenaPageViews extends AthenaBase {
           )`;
   }
 
-  async totalsForPeriod(fromDate: Date, toDate: Date, sites: string[], filter?: Filter) {
+  async totalsForPeriod(fromDate: Date, toDate: Date, sites: string[], filter?: PageFilter) {
     const query = `
           WITH ${this.cteFilteredDataQuery(
             ['user_id', 'session_id', 'page_id', 'time_on_page'],
@@ -119,7 +122,7 @@ export class AthenaPageViews extends AthenaBase {
     sites: string[],
     queryExecutionId?: string,
     nextToken?: string,
-    filter?: Filter,
+    filter?: PageFilter,
     limit = 1000
   ) {
     if (queryExecutionId && !nextToken) {
@@ -160,7 +163,7 @@ export class AthenaPageViews extends AthenaBase {
     sites: string[],
     period: 'hour' | 'day',
     timeZone: string,
-    filter?: Filter
+    filter?: PageFilter
   ) {
     const query = `
           WITH ${this.cteFilteredDataQuery(['site', 'user_id', 'page_id'], fromDate, toDate, sites, filter)}
@@ -212,7 +215,7 @@ export class AthenaPageViews extends AthenaBase {
   //   }[];
   // }
 
-  async referrersForPeriod(fromDate: Date, toDate: Date, sites: string[], filter?: Filter) {
+  async referrersForPeriod(fromDate: Date, toDate: Date, sites: string[], filter?: PageFilter) {
     const query = `
           WITH ${this.cteFilteredDataQuery(['referrer'], fromDate, toDate, sites, filter)}
           SELECT
@@ -230,7 +233,13 @@ export class AthenaPageViews extends AthenaBase {
     }[];
   }
 
-  async usersGroupedByStatForPeriod(fromDate: Date, toDate: Date, sites: string[], stat: keyof Page, filter?: Filter) {
+  async usersGroupedByStatForPeriod(
+    fromDate: Date,
+    toDate: Date,
+    sites: string[],
+    stat: keyof Page,
+    filter?: PageFilter
+  ) {
     // Alternative query for getting country names grouped by visitors
     // TODO: Can be optimized to this. Scans half the amount of data then, will rework all of them later
     // SELECT

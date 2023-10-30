@@ -84,3 +84,10 @@ p {
 .demo > .el-alert__content > .el-alert__description {
   font-size: small;
 }
+
+.link-explicit {
+  text-decoration: underline;
+}
+.link-explicit:hover {
+  cursor: pointer;
+}

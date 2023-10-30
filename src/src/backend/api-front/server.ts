@@ -2,12 +2,19 @@ import { initTRPC, TRPCError } from '@trpc/server';
 import { getFrontendEnvironment } from '@backend/api-front/routes/env';
 import { sites } from '@backend/api-front/routes/sites';
 import {
-  getTopLevelStats,
+  getPageTopLevelStats,
   getPageViews,
-  getChartViews,
+  getPageChartViews,
   getPageReferrers,
-  getUsersGroupedByStatForPeriod,
-} from '@backend/api-front/routes/stats';
+  getPageUsersGroupedByStatForPeriod,
+} from '@backend/api-front/routes/stats/page';
+import {
+  getEventChart,
+  getEvents,
+  getEventTopLevelStats,
+  getEventReferrers,
+  getEventUsersGroupedByStatForPeriod,
+} from '@backend/api-front/routes/stats/event';
 import { CognitoIdTokenPayload } from 'aws-jwt-verify/jwt-model';
 
 export type Context = {
@@ -31,11 +38,18 @@ export type TrpcInstance = typeof trpcInstance;
 export const appRouter = trpcInstance.router({
   getFrontendEnvironment: getFrontendEnvironment(trpcInstance),
   sites: sites(trpcInstance),
-  getTopLevelStats: getTopLevelStats(trpcInstance),
+
+  getPageTopLevelStats: getPageTopLevelStats(trpcInstance),
   getPageViews: getPageViews(trpcInstance),
-  getChartViews: getChartViews(trpcInstance),
+  getPageChartViews: getPageChartViews(trpcInstance),
   getPageReferrers: getPageReferrers(trpcInstance),
-  getUsersGroupedByStatForPeriod: getUsersGroupedByStatForPeriod(trpcInstance),
+  getPageUsersGroupedByStatForPeriod: getPageUsersGroupedByStatForPeriod(trpcInstance),
+
+  getEventTopLevelStats: getEventTopLevelStats(trpcInstance),
+  getEvents: getEvents(trpcInstance),
+  getEventChart: getEventChart(trpcInstance),
+  getEventReferrers: getEventReferrers(trpcInstance),
+  getEventUsersGroupedByStatForPeriod: getEventUsersGroupedByStatForPeriod(trpcInstance),
 });
 
 export type AppRouter = typeof appRouter;

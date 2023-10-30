@@ -1,7 +1,8 @@
 import { z } from 'zod';
 
-export const FilterSchema = z.object({
+export const PageFilterSchema = z.object({
   page_url: z.string().optional(),
+
   referrer: z.string().optional().nullable(),
   country_name: z.string().optional(),
   device_type: z.string().optional(),
@@ -11,4 +12,5 @@ export const FilterSchema = z.object({
   utm_term: z.string().optional(),
   utm_content: z.string().optional(),
 });
-export type Filter = z.infer<typeof FilterSchema>;
+
+export type PageFilter = z.infer<typeof PageFilterSchema>;

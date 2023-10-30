@@ -1,5 +1,22 @@
 # Serverless Website Analytics
 
+- [Objectives](#objectives)
+- [Getting started](#getting-started)
+    * [Serverside setup](#serverside-setup)
+        + [Certificate Requirements](#certificate-requirements)
+    * [Client side setup](#client-side-setup)
+        + [Standalone Import Script Usage](#standalone-import-script-usage)
+        + [SDK Client Usage](#sdk-client-usage)
+- [Worst case projected costs](#worst-case-projected-costs)
+- [What's in the box](#what-s-in-the-box)
+    * [Frontend](#frontend)
+    * [Backend](#backend)
+    * [Ingestion API](#ingestion-api)
+- [Upgrading](#upgrading)
+- [Sponsors](#sponsors)
+- [Contributing](#contributing)
+- [Roadmap](#roadmap)
+
 This is a CDK serverless website analytics construct that can be deployed to AWS. This construct creates backend,
 frontend and the ingestion APIs.
 
@@ -145,10 +162,17 @@ Then include the standalone script in your HTML:
 <head> ... </head>
 <body>
 ...
-<script src="<YOUR BACKEND ORIGIN>/cdn/client-script.js" site="<THE SITE YOU ARE TRACKING>"></script>
+<script src="<YOUR BACKEND ORIGIN>/cdn/client-script.js" site="<THE SITE YOU ARE TRACKING>" attr-tracking="true"></script>
 </body>
 </html>
 ```
+You need to replace `<YOUR BACKEND ORIGIN>` with the origin of your deployed backend. Available attributes on the script
+are:
+- `site` - Required. The name of your site, this must correspond with the name you specified when deploying the
+  `serverless-website-analytics` backend.
+- `attr-tracking` - Optional. If `"true"`, the script will track all `button` and `a` HTML elements that have the
+  `swa-event` attribute on them. Example: `<button swa-event="download">Download</button>`, it is also possible to
+    specify a category(`swa-event-category`) and the data(`swa-event-data`).
 
 See the [client-side library](https://www.npmjs.com/package/serverless-website-analytics-client) for more options.
 
@@ -166,12 +190,12 @@ Irrelevant of the framework, you have to do the following to track page views on
    site's `Origin` is whitelisted in the backend config.
 2. On each route change call the `analyticsPageChange` function with the name of the new page.
 
-The following sections show you how to do it in Vue, see [the readme of the client](https://github.com/rehanvdm/serverless-website-analytics-client-development#usage)
+The following sections show you how to do it in Vue, see [the readme of the client](https://github.com/rehanvdm/serverless-website-analytics-client#usage)
 for React and Svelte usage, but again the SDK allows for usage in **ANY framework**.
 
 #### Vue
 
-[_./serverless-website-analytics-client/usage/vue/vue-project/src/main.ts_](https://github.com/rehanvdm/serverless-website-analytics-client-development/blob/master/usage/vue/vue-project/src/main.ts)
+[_./serverless-website-analytics-client/usage/vue/vue-project/src/main.ts_](https://github.com/rehanvdm/serverless-website-analytics-client/blob/master/usage/vue/vue-project/src/main.ts)
 ```typescript
 ...
 import * as swaClient from 'serverless-website-analytics-client';
@@ -190,9 +214,22 @@ router.afterEach((event) => {
 });
 
 app.mount('#app');
+
+export { swaClient };
 ```
 
-..Any other framework
+Event Tracking:
+
+[_./usage/vue/vue-project/src/App.vue_](https://github.com/rehanvdm/serverless-website-analytics-client/blob/master/usage/vue/vue-project/src/App.vue)
+```typescript
+import {swaClient} from "./main";
+...
+//                         (event: string, data?: number, category?: string)
+swaClient.v1.analyticsTrack("subscribe", 1, "clicks")
+```
+
+The `serverless-website-analytics` **any framework**. To demonstrate this, find examples for Svelte and React in the
+[_client project_](https://github.com/rehanvdm/serverless-website-analytics-client/tree/master/usage)
 
 ## Worst case projected costs
 
@@ -259,9 +296,9 @@ the date will be stored after about 1min ± 1min.
 Location data is obtained by looking the IP address up in the [MaxMind GeoLite2](https://dev.maxmind.com/geoip/geoip2/geolite2/) database.
 We don't store any Personally Identifiable Information (PII) in the logs or S3, the IP address is never stored.
 
-# Upgrading
+## Upgrading
 
-## From V0 to V1
+### From V0 to V1
 
 This upgrade brings two breaking changes:
 1. Daily partitions, querying is not backwards compatible. The data is still there, it is just in
@@ -273,7 +310,7 @@ Install the new version:
 npm install npm install serverless-website-analytics@~1
 ```
 
-### Data "loss" because of S3 path changes to accommodate daily partitions
+#### Data "loss" because of S3 path changes to accommodate daily partitions
 
 Data will seem lost after upgrading to V1 because of the S3 path changes to accommodate daily partitions. The data is
 still there, it is just in a different location. The backend won't know about the old location and only use the new location
@@ -281,7 +318,7 @@ so your dashboard will look empty after migrating. You can possibly run an Athen
 location, but it would need to be crafted carefully. If this is really important for you, please create a ticket and I can
 see if I can help.
 
-### Recreate the old Route53 records (only if you specified the `domains' property)
+#### Recreate the old Route53 records (only if you specified the `domains' property)
 
 This is because we needed to change the CDK construct IDs of the Route53 records and Route53 can not create duplicate
 record names. See issue: https://github.com/rehanvdm/serverless-website-analytics/issues/26

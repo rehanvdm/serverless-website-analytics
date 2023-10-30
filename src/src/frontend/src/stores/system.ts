@@ -9,14 +9,13 @@ export const getSystemStore = defineStore('counter', () => {
   const frontendEnvironmentQueried = ref(false);
   const frontendEnvironment: Ref<FrontendEnvironment> = ref({});
   const cognitoLoginUrlWithRedirect = computed(() => {
-    const urlSplitByQuery = window.location.href.split('?');
-
     let ret =
       frontendEnvironment.value.cognitoLoginUrl +
       '&redirect_uri=' +
-      encodeURIComponent(urlSplitByQuery[0]) +
-      'login_callback';
+      encodeURIComponent(window.location.origin) +
+      '/login_callback';
 
+    const urlSplitByQuery = window.location.href.split('?');
     if (urlSplitByQuery.length > 1) {
       // Have to double encode because Cognito decodes when sending this back and we need it preserved
       ret += '&state=' + encodeURIComponent(encodeURIComponent(urlSplitByQuery[1]));

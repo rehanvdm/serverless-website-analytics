@@ -25,7 +25,7 @@ onMounted(() => {
   {
     const systemStore = getSystemStore();
     systemStore.$patch({apiJwtToken: idToken});
-    router.push({name: 'page_stats', query: queryObject});
+    router.push({path: '/stats/page', query: queryObject});
   }
 
 });

@@ -284,6 +284,8 @@ export function backend(
       resources: [
         backendAnalyticsProps.analyticsBucket.arnForObjects('page_views/site=*/page_opened_at_date=*/*'),
         backendAnalyticsProps.analyticsBucket.arnForObjects('page_views/site=*/page_opened_at_date=*/*'),
+        backendAnalyticsProps.analyticsBucket.arnForObjects('events/site=*/tracked_at_date=*/*'),
+        backendAnalyticsProps.analyticsBucket.arnForObjects('events/site=*/tracked_at_date=*/*'),
       ],
     })
   );
