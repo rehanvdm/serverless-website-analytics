@@ -6,6 +6,7 @@ import PageStats from "@frontend/src/views/stats/page/index.vue";
 import EventStats from "@frontend/src/views/stats/event/index.vue";
 import {DateUtils} from "@frontend/src/lib/date_utils";
 import {useRoute, useRouter} from "vue-router";
+import {sendTrack, trackButtonClick} from "@frontend/src/lib/track";
 
 const route = useRoute();
 const router = useRouter();
@@ -24,6 +25,7 @@ const dateFilter: Ref<Date[]> = ref([startDate, endDate]); // Set default date a
 let fromDate: Ref<Date | undefined> = ref(startDate);
 let toDate: Ref<Date | undefined> = ref(endDate);
 watch(dateFilter, async () => {
+  sendTrack("date_filter_changed", "none");
   // const [_fromDate, _toDate] =  dateFilter.value;
   fromDate.value = DateUtils.startOfDay(dateFilter.value[0]);
   toDate.value = DateUtils.endOfDay(dateFilter.value[1]);
@@ -123,6 +125,11 @@ const showUpdateSearch = computed(() => {
   return selectedSitesSorted.join(',') !== selectedSitesConfirmedSorted.join(',');
 });
 
+function setSelectedSites() {
+  sendTrack("selected_sites_changed", "none");
+  selectedSitesConfirmed.value = selectedSites.value;
+}
+
 /* ================================================================================================================== */
 /* =========================================== Refresh and loading state ============================================ */
 /* ================================================================================================================== */
@@ -136,6 +143,7 @@ const componentPageStats = ref<InstanceType<typeof PageStats>>();
 const componentEventStats = ref<InstanceType<typeof EventStats>>();
 function refresh()
 {
+  trackButtonClick("refresh");
   if(componentPageStats.value)
     componentPageStats.value.refresh();
   if(componentEventStats.value)
@@ -191,7 +199,7 @@ watch(() => route.path, async () => {
                        style="width: 250px">
               <el-option  v-for="site in sites" :key="site" :label="site" :value="site" />
             </el-select>
-            <el-button v-if="showUpdateSearch" type="primary" text @click="selectedSitesConfirmed = selectedSites">Update search</el-button>
+            <el-button v-if="showUpdateSearch" type="primary" text @click="setSelectedSites()">Update search</el-button>
           </div>
         </div>
         <div>

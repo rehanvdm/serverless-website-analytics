@@ -87,7 +87,7 @@ const columns: ComputedRef<Column[]> = computed(()  => {
     { name: "Category", type: "string", index: "category", gridColumn: "3fr", canFilter: true },
     { name: "Event", type: "string", index: "event", gridColumn: "5fr", canFilter: true },
     { name: "Sum", type: "number", index: "sum", gridColumn: "1fr" },
-    { name: "Count", type: "number", index: "count", gridColumn: "1.1fr" },
+    { name: "Count", type: "number", index: "count", gridColumn: "1.3fr" },
     { name: "Avg", type: "number", index: "avg", gridColumn: "1fr" },
     { name: "Min", type: "number", index: "min", gridColumn: "1fr" },
     { name: "Max", type: "number", index: "max", gridColumn: "1fr" },

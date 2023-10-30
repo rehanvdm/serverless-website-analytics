@@ -128,7 +128,7 @@ export const handler = async (event: APIGatewayProxyEventV2, context: Context): 
         } else {
           /* navigator.sendBeacon(..) leaves the content type as text, by adding the request header here the handler
            * will interpret it as application/json correctly  */
-          if (event.rawPath === '/v1/page/view' || event.rawPath === '/v1/page/time') {
+          if (event.rawPath === '/v1/page/view' || event.rawPath === '/v1/event/track') {
             event.headers['content-type'] = 'application/json';
           }
 

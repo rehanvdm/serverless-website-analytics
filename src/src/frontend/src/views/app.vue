@@ -2,6 +2,7 @@
 
 import {computed} from "vue";
 import {getSystemStore} from "@frontend/src/stores/system";
+import {trackLinkClick, trackRouterClick} from "@frontend/src/lib/track";
 
 const showDemoBanner = computed(() => {
   const systemStore = getSystemStore();
@@ -16,11 +17,11 @@ const showDemoBanner = computed(() => {
     <div style="width: 1280px;">
       <div style="display: flex;">
         <div style="width: 140px">
-          <el-menu :default-active="$route.path" style="margin-top: 10px; border-right: none;" router>
-            <el-menu-item index="/stats/page">
+          <el-menu :default-active="$route.path" style="margin-top: 10px; border-right: none;">
+            <el-menu-item index="/stats/page" @click="trackRouterClick('menu_page', '/stats/page')">
               <template #title>Page Views</template>
             </el-menu-item>
-            <el-menu-item index="/stats/event">
+            <el-menu-item index="/stats/event" @click="trackRouterClick('menu_event', '/stats/event')">
               <template #title>Events</template>
             </el-menu-item>
           </el-menu>
@@ -34,7 +35,8 @@ const showDemoBanner = computed(() => {
                 demo page, it tracks this page and some <a style="font-weight: bold; color: inherit" href="https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/DEMO-TRAFFIC.md" target="_blank">simulated traffic.</a>.
               </div>
               <div>
-                <a style="margin-left: 20px" href="https://github.com/rehanvdm/serverless-website-analytics" target="_blank">
+                <a style="margin-left: 20px" class="link-explicit"
+                   @click="trackLinkClick('github', 'https://github.com/rehanvdm/serverless-website-analytics')">
                   <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/rehanvdm/serverless-website-analytics?label=Github&style=social">
                 </a>
                 <!--            <a style="margin-left: 20px" href="https://www.npmjs.com/package/serverless-website-analytics" target="_blank">-->
