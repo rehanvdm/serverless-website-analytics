@@ -95,12 +95,12 @@ export const handler = async (event: ScheduledEvent, context: Context): Promise<
     );
 
     const vacuumEntities: VacuumEntity[] = [
-      // {
-      //   name: 'page',
-      //   getAllSiteDateFiles: pageViewBucket.getAllSiteDateFiles.bind(pageViewBucket),
-      //   rollupPageViews: athenaPageViews.rollupPageViews.bind(athenaPageViews),
-      //   deleteAllObjects: pageViewBucket.deleteAllObjects.bind(pageViewBucket),
-      // },
+      {
+        name: 'page',
+        getAllSiteDateFiles: pageViewBucket.getAllSiteDateFiles.bind(pageViewBucket),
+        rollupPageViews: athenaPageViews.rollupPageViews.bind(athenaPageViews),
+        deleteAllObjects: pageViewBucket.deleteAllObjects.bind(pageViewBucket),
+      },
       {
         name: 'event',
         getAllSiteDateFiles: eventsBucket.getAllSiteDateFiles.bind(eventsBucket),
