@@ -9,6 +9,7 @@ import { TrpcInstance } from '@backend/api-ingest/server';
 import { TRPCError } from '@trpc/server';
 import { PutRecordCommand } from '@aws-sdk/client-firehose';
 import { v4 as uuidv4 } from 'uuid';
+import { APIGatewayProxyEventV2, APIGatewayProxyResult } from 'aws-lambda';
 
 const logger = new LambdaLog();
 
@@ -93,6 +94,101 @@ export function eventTrack(trpcInstance: TrpcInstance) {
           },
         })
       );
-      console.log(resp.RecordId);
     });
+}
+
+const V1EventTrackBeaconGifInputSchema = SchemaEvent.pick({
+  site: true,
+  user_id: true,
+  session_id: true,
+  category: true,
+  event: true,
+  data: true,
+  utm_source: true,
+  utm_medium: true,
+  utm_campaign: true,
+  utm_term: true,
+  utm_content: true,
+}).partial({
+  user_id: true,
+  session_id: true,
+  category: true,
+  data: true,
+  utm_source: true,
+  utm_medium: true,
+  utm_campaign: true,
+  utm_term: true,
+  utm_content: true,
+});
+export type V1EventTrackBeaconGifInput = z.infer<typeof V1EventTrackBeaconGifInputSchema>;
+export async function v1EventTrackBeaconGif(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResult> {
+  const preParsedQuery: Record<string, any> = event.queryStringParameters || {};
+  if (preParsedQuery.data) preParsedQuery.data = Number(preParsedQuery.data);
+
+  const query = V1EventTrackBeaconGifInputSchema.safeParse(preParsedQuery);
+  if (!query.success) {
+    return {
+      statusCode: 400,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ errors: query.error.issues }),
+    };
+  }
+  const input = query.data;
+
+  const firehoseClient = getFirehoseClient();
+  const { countryIso, countryName, cityName, deviceType, isBot } = await getInfoFromIpAndUa(
+    event.headers['x-forwarded-for'] || '',
+    event.requestContext.http.userAgent
+  );
+  const referrer = undefined;
+  let data = input.data;
+  if (!data) {
+    data = 1;
+  }
+
+  const trackedAt = DateUtils.now();
+  const trackedAtDate = DateUtils.stringifyFormat(trackedAt, 'yyyy-MM-dd');
+  const eventRecord: Event = {
+    site: input.site,
+    tracked_at_date: trackedAtDate,
+    user_id: input.user_id || uuidv4(),
+    session_id: input.session_id || uuidv4(),
+    event_id: uuidv4(),
+    category: input.category,
+    event: input.event,
+    data,
+    tracked_at: DateUtils.stringifyIso(trackedAt),
+    country_iso: countryIso,
+    country_name: countryName,
+    city_name: cityName,
+    device_type: deviceType,
+    is_bot: !!isBot,
+    utm_source: input.utm_source,
+    utm_medium: input.utm_medium,
+    utm_campaign: input.utm_campaign,
+    utm_term: input.utm_term,
+    utm_content: input.utm_content,
+    referrer,
+  };
+
+  logger.info('event beacon', eventRecord);
+  const resp = await firehoseClient.send(
+    new PutRecordCommand({
+      DeliveryStreamName: LambdaEnvironment.FIREHOSE_EVENTS_NAME,
+      Record: {
+        Data: Buffer.from(JSON.stringify(eventRecord)),
+      },
+    })
+  );
+
+  return {
+    isBase64Encoded: true,
+    statusCode: 200,
+    headers: {
+      'Content-Type': 'image/gif',
+    },
+    body: 'R0lGODlhAQABAAAAACH5BAEAAAAALAAAAAABAAEAAAI=',
+  };
 }
