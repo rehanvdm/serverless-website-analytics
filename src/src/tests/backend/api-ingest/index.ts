@@ -10,7 +10,7 @@ import {
 } from '@tests/helpers';
 import { expect } from 'chai';
 import { V1PageViewInput } from '@backend/api-ingest/v1/page/view';
-import { V1PageEventInput } from '@backend/api-ingest/v1/event/track';
+import { V1EventTrackBeaconGifInput, V1PageEventInput } from '@backend/api-ingest/v1/event/track';
 
 const TimeOut = 10;
 // Set in environment-hoist.ts
@@ -301,6 +301,36 @@ describe('API Ingest', function () {
       origin: 'localhost',
       // ip: '0.0.0.0',
       ip: 'x',
+      ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6,2 Safari/605.1.15',
+    };
+
+    setEnvVariables(TestConfig.env);
+    const resp = await invokeLocalHandlerOrMakeAPICall(event, handler, TestConfig.apiIngestUrl, context);
+
+    expect(resp.statusCode).to.equal(200);
+  });
+
+  it('Event Track - Beacon', async function () {
+    this.timeout(TimeOut * 1000);
+
+    const context = apiGwContext();
+    const pageEvent: V1EventTrackBeaconGifInput = {
+      site: 'tests',
+      // user_id: 'test_user_id_1',
+      // session_id: 'test_session_id_1',
+      event: 'beacon_test7',
+      data: 7,
+    };
+    const event: ApiGwEventOptions = {
+      method: 'GET',
+      path: '/v1/event/track/beacon.gif',
+      queryStringParameters: {
+        site: pageEvent.site,
+        event: pageEvent.event,
+        data: (pageEvent.data || '').toString(),
+      },
+      origin: 'localhost',
+      ip: '169.0.15.7',
       ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6,2 Safari/605.1.15',
     };
 

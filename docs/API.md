@@ -176,6 +176,13 @@ are:
 
 See the [client-side library](https://www.npmjs.com/package/serverless-website-analytics-client) for more options.
 
+Beacon/pixel tracking can be used as alternative to HTML attribute tracking. Beacon tracking is useful for
+tracking events outside your domain, like email opens, external blog views, etc.
+See the [client-side library](https://www.npmjs.com/package/serverless-website-analytics-client) for more info.
+```html
+<img src="<YOUR BACKEND ORIGIN>/api-ingest/v1/event/track/beacon.gif?site=<SITE>&event=<EVENT>" height="1" width="1" alt="">
+```
+
 #### SDK Client Usage
 
 Install the [client-side library](https://www.npmjs.com/package/serverless-website-analytics-client):
@@ -190,8 +197,9 @@ Irrelevant of the framework, you have to do the following to track page views on
    site's `Origin` is whitelisted in the backend config.
 2. On each route change call the `analyticsPageChange` function with the name of the new page.
 
-The following sections show you how to do it in Vue, see [the readme of the client](https://github.com/rehanvdm/serverless-website-analytics-client#usage)
-for React and Svelte usage, but again the SDK allows for usage in **ANY framework**.
+> [!IMPORTANT]
+> The `serverless-website-analytics` can be used in **ANY framework**. To demonstrate this, find examples for Svelte and React in the
+> [_client project_](https://github.com/rehanvdm/serverless-website-analytics-client#usage)
 
 #### Vue
 
@@ -206,7 +214,7 @@ app.use(router);
 swaClient.v1.analyticsPageInit({
   inBrowser: true, //Not SSR
   site: "<Friendly site name>", //example.com
-  apiUrl: "<Your serverless-website-analytics URL>", //https://my-serverless-website-analytics-backend.com
+  apiUrl: "<YOUR BACKEND ORIGIN>", //https://my-serverless-website-analytics-backend.com
   // debug: true,
 });
 router.afterEach((event) => {
@@ -228,8 +236,7 @@ import {swaClient} from "./main";
 swaClient.v1.analyticsTrack("subscribe", 1, "clicks")
 ```
 
-The `serverless-website-analytics` **any framework**. To demonstrate this, find examples for Svelte and React in the
-[_client project_](https://github.com/rehanvdm/serverless-website-analytics-client/tree/master/usage)
+Alternatively, you can use a beacon/pixel for tracking as described above in standalone import script usage.
 
 ## Worst case projected costs
 
@@ -266,8 +273,10 @@ AWS CloudFront is used to host the frontend. The frontend is a Vue 3 SPA app tha
 CloudFront. The [Element UI Plus](https://element-plus.org/en-US/) frontend framework is used for the UI components
 and [Plotly.js](https://plotly.com/javascript/) for the charts.
 
-![frontend_1.png](https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/imgs/frontend_1.png)
-![frontend_2.png](https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/imgs/frontend_2.png)
+![2_frontend_1.png](https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/imgs/2_frontend_1.png)
+![2_frontend_2.png](https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/imgs/2_frontend_2.png)
+
+![2_frontend_3.png](https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/imgs/2_frontend_3.png)
 
 ### Backend
 
@@ -286,7 +295,8 @@ There are three available authentication configurations:
 
 Similarly to the backend, it is also a TS Lambda-lith that is hit through the FURL by reverse proxying through CloudFront.
 It also uses [tRPC](https://trpc.io/) but uses the  [trpc-openapi](https://github.com/jlalmes/trpc-openapi) package to
-generate an OpenAPI spec. This is used to generate the API types used in the [client JS package](https://www.npmjs.com/package/serverless-website-analytics-client).
+generate an [OpenAPI spec](https://github.com/rehanvdm/serverless-website-analytics-client/blob/master/package/src/OpenAPI-Ingest.yaml).
+This is used to generate the API types used in the [client JS package](https://www.npmjs.com/package/serverless-website-analytics-client).
 and can also be used to generate other language client libraries.
 
 The lambda function then saves the data to S3 through a Kinesis Firehose. The Firehose is configured to save the data
@@ -295,6 +305,83 @@ the date will be stored after about 1min ± 1min.
 
 Location data is obtained by looking the IP address up in the [MaxMind GeoLite2](https://dev.maxmind.com/geoip/geoip2/geolite2/) database.
 We don't store any Personally Identifiable Information (PII) in the logs or S3, the IP address is never stored.
+
+### Querying data manually
+
+You can query the data manually using Athena. The data is partitioned by site and date. There are two tables,
+one for the page views (`page_views`) and another for the tracking data(`events`).
+
+Pages view query:
+```sql
+WITH
+cte_data AS (
+  SELECT site, page_url, time_on_page, page_opened_at,
+         ROW_NUMBER() OVER (PARTITION BY page_id ORDER BY time_on_page DESC) rn
+  FROM page_views
+  WHERE (site = 'site1' site = 'site2') AND (page_opened_at_date = '2023-10-26' OR page_opened_at_date = '2023-10-27')
+),
+cte_data_filtered AS (
+  SELECT *
+  FROM cte_data
+  WHERE rn = 1 AND page_opened_at BETWEEN parse_datetime('2023-10-26 22:00:00.000','yyyy-MM-dd HH:mm:ss.SSS')
+        AND parse_datetime('2023-11-03 21:59:59.999','yyyy-MM-dd HH:mm:ss.SSS')
+),
+cte_data_by_page_view AS (
+SELECT
+ site,
+ page_url,
+ COUNT(*) as "views",
+ ROUND(AVG(time_on_page),2) as "avg_time_on_page"
+FROM cte_data_filtered
+GROUP BY site, page_url
+)
+SELECT *
+FROM cte_data_by_page_view
+ORDER BY views DESC, page_url ASC
+```
+
+Events query:
+```sql
+WITH
+cte_data AS (
+  SELECT site, category, event, data, tracked_at,
+         ROW_NUMBER() OVER (PARTITION BY event_id) rn
+  FROM events
+  WHERE (site = 'site1' site = 'site2') AND (tracked_at_date = '2023-11-03' OR tracked_at_date = '2023-11-04')
+),
+cte_data_filtered AS (
+  SELECT *
+  FROM cte_data
+  WHERE rn = 1 AND tracked_at BETWEEN parse_datetime('2023-11-03 22:00:00.000','yyyy-MM-dd HH:mm:ss.SSS')
+        AND parse_datetime('2023-11-04 21:59:59.999','yyyy-MM-dd HH:mm:ss.SSS')
+),
+cte_data_by_event AS (
+SELECT
+ site,
+ category,
+ event,
+ COUNT(data) as "count",
+ ROUND(AVG(data),2) as "avg",
+ MIN(data) as "min",
+ MAX(data) as "max",
+ SUM(data) as "sum"
+FROM cte_data_filtered
+GROUP BY site, category, event
+)
+SELECT *
+FROM cte_data_by_event
+ORDER BY count DESC, category ASC, event ASC
+```
+
+A few things to note:
+- The first CTE query is used to get the latest page view/event for each page/event, but it is only in the second query
+where we select the top row of that query.
+- The first query specifies the partitions, the site and dates. The dates can be specified with a range query, but
+it is more performant to specify the exact partitions.
+- The second query along with selecting the latest row frm the first, specifies the date range exactly, taking into
+consideration the time zone. Within the code we over fetch the data to be returned by 2 days, this is to ensure that
+this secondary query has the data the specific time query that takes into consideration the zone.
+- The third query does the aggregation and the last one the ordering.
 
 ## Upgrading
 

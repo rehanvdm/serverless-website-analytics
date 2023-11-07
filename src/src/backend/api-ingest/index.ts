@@ -12,6 +12,7 @@ import { DateUtils } from '@backend/lib/utils/date_utils';
 import { TRPCError } from '@trpc/server';
 import assert from 'assert';
 import { removeCloudFrontProxyPath, TRPCHandlerError } from '@backend/lib/utils/api_utils';
+import { v1EventTrackBeaconGif } from '@backend/api-ingest/v1/event/track';
 
 /* Lazy loaded variables */
 let openApiDocument: OpenAPIV3.Document | undefined;
@@ -115,6 +116,8 @@ export const handler = async (event: APIGatewayProxyEventV2, context: Context): 
 
     if (event.rawPath === '/docs') {
       response = docsRoute();
+    } else if (event.rawPath === '/v1/event/track/beacon.gif') {
+      response = await v1EventTrackBeaconGif(event);
     } else {
       if (!corsValidOrigin) {
         logger.error('Invalid origin:', event.headers.origin);
