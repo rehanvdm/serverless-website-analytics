@@ -18,7 +18,7 @@ export type AuditLog = {
   origin: string;
   origin_path?: string;
   origin_method?: string;
-  type: 'api' | 'cron';
+  type: 'api' | 'cron' | 'worker';
   meta: string;
   created_at: string;
   run_time: number;

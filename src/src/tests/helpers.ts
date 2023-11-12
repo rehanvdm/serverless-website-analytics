@@ -1,4 +1,4 @@
-import { APIGatewayProxyEventV2, APIGatewayProxyResult, Context } from 'aws-lambda';
+import { APIGatewayProxyEventV2, APIGatewayProxyResult, Context, SQSEvent, S3Event } from 'aws-lambda';
 import aws from 'aws-sdk';
 import axios, { AxiosRequestConfig, AxiosError } from 'axios';
 import assert from 'assert';
@@ -133,6 +133,72 @@ export function apiGwEventV2(opts: ApiGwEventOptions): APIGatewayProxyEventV2 {
       timeEpoch: 1676787187031,
     },
     isBase64Encoded: false,
+  };
+}
+
+type S3EventObject = {
+  key: string;
+  size: number;
+  eTag: string;
+  versionId?: string | undefined;
+  sequencer: string;
+};
+export function s3CreateNotification(obj: S3EventObject): S3Event {
+  return {
+    Records: [
+      {
+        eventVersion: '2.1',
+        eventSource: 'aws:s3',
+        awsRegion: 'eu-west-1',
+        eventTime: '2023-11-10T04:57:04.425Z',
+        eventName: 'ObjectCreated:Put',
+        userIdentity: {
+          principalId: 'AWS:xxx:AWSFirehoseToS3',
+        },
+        requestParameters: {
+          sourceIPAddress: '0.0.0.0',
+        },
+        responseElements: {
+          'x-amz-request-id': 'xxx',
+          'x-amz-id-2': 'xxx',
+        },
+        s3: {
+          s3SchemaVersion: '1.0',
+          configurationId: 'xxx',
+          bucket: {
+            name: 'rehan-analytics-swa-analytics-data',
+            ownerIdentity: {
+              principalId: 'A9BIL594CU6ME',
+            },
+            arn: 'arn:aws:s3:::rehan-analytics-swa-analytics-data',
+          },
+          object: obj,
+        },
+      },
+    ],
+  };
+}
+
+export function sqsEvent(body: string): SQSEvent {
+  return {
+    Records: [
+      {
+        messageId: '7a2250c8-de50-4a72-9360-6d20a0e64309',
+        receiptHandle: 'xxxx',
+        body,
+        attributes: {
+          ApproximateFirstReceiveTimestamp: '1636534624456',
+          ApproximateReceiveCount: '1',
+          SenderId: 'xxx',
+          SentTimestamp: '1636534624455',
+        },
+        messageAttributes: {},
+        md5OfBody: '85cbbcdff1ece97175e2f4f1534be363',
+        eventSource: 'aws:sqs',
+        eventSourceARN: 'arn:aws:sqs:eu-west-1:xxx',
+        awsRegion: 'eu-west-1',
+      },
+    ],
   };
 }
 

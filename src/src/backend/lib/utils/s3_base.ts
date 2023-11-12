@@ -1,4 +1,10 @@
-import { DeleteObjectCommand, ListObjectsV2Command, ListObjectsV2CommandOutput, S3Client } from '@aws-sdk/client-s3';
+import {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  ListObjectsV2Command,
+  ListObjectsV2CommandOutput,
+  S3Client,
+} from '@aws-sdk/client-s3';
 import pLimit from 'p-limit';
 
 export class S3Base {
@@ -9,7 +15,33 @@ export class S3Base {
     this.bucketName = bucketName;
   }
 
-  protected async getAllObjects(prefix = '') {
+  public async getObjectString(key: string) {
+    const response = await this.s3Client.send(
+      new GetObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+      })
+    );
+
+    if (!response.Body) return undefined;
+
+    return await response.Body.transformToString();
+  }
+
+  public async getObjectBinary(key: string) {
+    const response = await this.s3Client.send(
+      new GetObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+      })
+    );
+
+    if (!response.Body) return undefined;
+
+    return await response.Body.transformToByteArray();
+  }
+
+  public async getAllObjects(prefix = '') {
     let allObjects: { key: string }[] = [];
     let continuationToken;
     do {

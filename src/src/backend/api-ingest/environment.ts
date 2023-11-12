@@ -17,6 +17,8 @@ export class LambdaEnvironment {
   static SITES: string[];
   static ALLOWED_ORIGINS: string[];
 
+  static TIMESTREAM_FIREHOSE: string;
+
   static init() {
     const schema = z.object({
       AWS_REGION: z.string(),
@@ -33,6 +35,8 @@ export class LambdaEnvironment {
 
       SITES: z.string(),
       ALLOWED_ORIGINS: z.string(),
+
+      TIMESTREAM_FIREHOSE: z.string(),
     });
 
     const parsed = schema.safeParse(process.env);

@@ -27,6 +27,11 @@ export type TestConfig = {
     COGNITO_USER_POOL_ID?: string;
     COGNITO_CLIENT_ID?: string;
     COGNITO_HOSTED_UI_URL?: string;
+
+    TIMESTREAM_ANALYTICS_BUCKET: string;
+    TIMESTREAM_DATABASE_NAME: string;
+    TIMESTREAM_TABLE_NAME: string;
+    TIMESTREAM_FIREHOSE: string;
   };
   cognitoAuthUser?: {
     userPoolId: string;
@@ -71,6 +76,11 @@ export const TestConfig: TestConfig = {
     // COGNITO_USER_POOL_ID: 'us-east-1_tvl0sw7Ei',
     // COGNITO_CLIENT_ID: '1lqovfns5d5000va207dc6hhmo',
     // COGNITO_HOSTED_UI_URL: 'https://swa-demo-login.demo.serverless-website-analytics.com',
+
+    TIMESTREAM_ANALYTICS_BUCKET: 'XXX',
+    TIMESTREAM_DATABASE_NAME: 'XXX',
+    TIMESTREAM_TABLE_NAME: 'XXX',
+    TIMESTREAM_FIREHOSE: 'XXX',
   },
   // Uncomment for no auth
   // cognitoAuthUser: {

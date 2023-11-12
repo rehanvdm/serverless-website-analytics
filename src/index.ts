@@ -5,6 +5,7 @@ import { Construct } from 'constructs';
 import { auth } from './auth';
 import { backend } from './backend';
 import { backendAnalytics } from './backendAnalytics';
+import { backendAnalyticsTimeStream } from './backendAnalyticsTimeStream';
 import { frontend } from './frontend';
 import { observability } from './observability';
 
@@ -276,7 +277,8 @@ export class Swa extends Construct {
 
     const authProps = auth(scope, name, props);
     const backendAnalyticsProps = backendAnalytics(scope, name, props);
-    const backendProps = backend(scope, name, props, authProps, backendAnalyticsProps);
+    const backendAnalyticsTimeStreamProps = backendAnalyticsTimeStream(scope, name, props);
+    const backendProps = backend(scope, name, props, authProps, backendAnalyticsProps, backendAnalyticsTimeStreamProps);
     const frontendProps = frontend(scope, name, props, authProps, backendProps);
 
     if (props.observability)

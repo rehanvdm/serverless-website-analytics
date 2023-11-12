@@ -12,6 +12,7 @@ import * as logs from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 import { auth } from './auth';
 import { backendAnalytics } from './backendAnalytics';
+import { backendAnalyticsTimeStream } from './backendAnalyticsTimeStream';
 import { SwaProps } from './index';
 import { CwLambda } from './lib/cloudwatch-helper';
 
@@ -20,7 +21,8 @@ export function backend(
   name: (name: string) => string,
   props: SwaProps,
   authProps: ReturnType<typeof auth>,
-  backendAnalyticsProps: ReturnType<typeof backendAnalytics>
+  backendAnalyticsProps: ReturnType<typeof backendAnalytics>,
+  backendAnalyticsTimeStreamProps: ReturnType<typeof backendAnalyticsTimeStream>
 ) {
   let defaultEnv = {
     ENVIRONMENT: props.environment,
@@ -60,6 +62,8 @@ export function backend(
 
       SITES: JSON.stringify(props.sites),
       ALLOWED_ORIGINS: JSON.stringify(props.allowedOrigins),
+
+      TIMESTREAM_FIREHOSE: backendAnalyticsTimeStreamProps.tsFirehose.deliveryStreamName!,
     },
     reservedConcurrentExecutions: props.rateLimit?.ingestLambdaConcurrency ?? 200,
     layers: [geoLite2Layer],
@@ -69,7 +73,11 @@ export function backend(
       sid: 'FirehosePermission',
       effect: Effect.ALLOW,
       actions: ['firehose:PutRecord'],
-      resources: [backendAnalyticsProps.firehosePageViews.attrArn, backendAnalyticsProps.firehoseEvents.attrArn],
+      resources: [
+        backendAnalyticsProps.firehosePageViews.attrArn,
+        backendAnalyticsProps.firehoseEvents.attrArn,
+        backendAnalyticsTimeStreamProps.tsFirehose.attrArn,
+      ],
     })
   );
 
@@ -213,6 +221,9 @@ export function backend(
       TIMEOUT: frontLambdaTimeOut.toString(),
       TRACK_OWN_DOMAIN: props?.domain?.trackOwnDomain ? 'true' : 'false',
       IS_DEMO_PAGE: props.isDemoPage ? 'true' : 'false',
+
+      TIMESTREAM_DATABASE_NAME: backendAnalyticsTimeStreamProps.dbName,
+      TIMESTREAM_TABLE_NAME: backendAnalyticsTimeStreamProps.tableName,
     },
     reservedConcurrentExecutions: props.rateLimit?.frontLambdaConcurrency ?? 100,
   });

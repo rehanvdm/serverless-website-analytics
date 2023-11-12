@@ -21,6 +21,9 @@ export class LambdaEnvironment {
   static TRACK_OWN_DOMAIN: boolean;
   static IS_DEMO_PAGE: boolean;
 
+  static TIMESTREAM_DATABASE_NAME: string;
+  static TIMESTREAM_TABLE_NAME: string;
+
   static init() {
     const schema = z.object({
       AWS_REGION: z.string(),
@@ -46,6 +49,9 @@ export class LambdaEnvironment {
         .string()
         .optional()
         .transform((v) => Boolean(v) && v !== 'false'),
+
+      TIMESTREAM_DATABASE_NAME: z.string(),
+      TIMESTREAM_TABLE_NAME: z.string(),
     });
     const parsed = schema.safeParse(process.env);
 

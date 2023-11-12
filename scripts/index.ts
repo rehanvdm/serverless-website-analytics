@@ -108,6 +108,7 @@ async function buildTsLambdas()
     "api-front",
     "api-ingest",
     "cron-vacuum",
+    "ts-process",
   ];
 
   for( let lambdaDir of tsLambdaDirectories)

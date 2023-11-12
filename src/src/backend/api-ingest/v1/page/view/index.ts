@@ -8,6 +8,7 @@ import { getFirehoseClient } from '@backend/lib/utils/lazy_aws';
 import { TrpcInstance } from '@backend/api-ingest/server';
 import { TRPCError } from '@trpc/server';
 import { PutRecordCommand } from '@aws-sdk/client-firehose';
+import { FirehoseDTO } from '@backend/lib/models/firehose_dto';
 
 const logger = new LambdaLog();
 
@@ -73,15 +74,29 @@ export function pageView(trpcInstance: TrpcInstance) {
       };
 
       logger.info('data', data);
+      const fireHoseDto: FirehoseDTO = {
+        type: 'page',
+        data,
+      };
 
-      const resp = await firehoseClient.send(
-        new PutRecordCommand({
-          DeliveryStreamName: LambdaEnvironment.FIREHOSE_PAGE_VIEWS_NAME,
-          Record: {
-            Data: Buffer.from(JSON.stringify(data)),
-          },
-        })
-      );
-      console.log(resp.RecordId);
+      const resp = await Promise.all([
+        firehoseClient.send(
+          new PutRecordCommand({
+            DeliveryStreamName: LambdaEnvironment.FIREHOSE_PAGE_VIEWS_NAME,
+            Record: {
+              Data: Buffer.from(JSON.stringify(data)),
+            },
+          })
+        ),
+        firehoseClient.send(
+          new PutRecordCommand({
+            DeliveryStreamName: LambdaEnvironment.TIMESTREAM_FIREHOSE,
+            Record: {
+              Data: Buffer.from(JSON.stringify(fireHoseDto) + '\n'),
+            },
+          })
+        ),
+      ]);
+      console.log(resp.map((r) => r.RecordId));
     });
 }
