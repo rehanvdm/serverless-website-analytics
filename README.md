@@ -443,3 +443,12 @@ See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for more info on how to contribute +
 
 Can be found in the [here](https://github.com/users/rehanvdm/projects/1/views/1)
 
+---
+
+Created a gue table from the a v2 of the Glue external table for experimentation manually, but it did not want to run:
+
+> I am trying to use the new Glue Table Statistics https://aws.amazon.com/blogs/big-data/enhance-query-performance-using-aws-glue-data-catalog-column-level-statistics/ but I get an error:
+Exception in User Class: java.lang.AssertionError : assertion failed: Conflicting partition column names detected: .Which does not help me at all :sweat_smile: Table details in the screenshots. I wonder if it is because I am using partition projection, but the limitations does not mention anything about it :thinking_face:
+Anyone that can help me out? I don't want to/can't open a support ticket for this, it's for an open-source project: serverless-website-analytics
+
+Not even selecting all columns individually except the partition columns worked, still got that error

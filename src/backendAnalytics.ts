@@ -217,6 +217,128 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
   });
   glueTablePageViews.addDependency(glueDb);
 
+  const glueTablePageViewsNameV2 = 'page_views_v2';
+  const glueTablePageViewsV2 = new glue.CfnTable(scope, name(glueTablePageViewsNameV2), {
+    databaseName: glueDbName,
+    catalogId: props.awsEnv.account,
+    tableInput: {
+      name: glueTablePageViewsNameV2,
+      tableType: 'EXTERNAL_TABLE',
+      partitionKeys: [
+        {
+          name: 'site',
+          type: 'string',
+        },
+        {
+          name: 'page_opened_at_date',
+          type: 'string',
+        },
+      ],
+      storageDescriptor: {
+        location: `s3://${analyticsBucket.bucketName}/page_views`,
+        inputFormat: 'org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat',
+        outputFormat: 'org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat',
+        serdeInfo: {
+          serializationLibrary: 'org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe',
+          // parameters: {
+          //   'serialization.format': '1',
+          // },
+        },
+        parameters: {
+          'storage.location.template':
+            's3://' +
+            analyticsBucket.bucketName +
+            '/page_views/site=${site}/page_opened_at_date=${page_opened_at_date}',
+        },
+        columns: [
+          {
+            name: 'user_id',
+            type: 'string',
+          },
+          {
+            name: 'session_id',
+            type: 'string',
+          },
+          {
+            name: 'page_id',
+            type: 'string',
+          },
+          {
+            name: 'page_url',
+            type: 'string',
+          },
+          {
+            name: 'page_opened_at',
+            type: 'timestamp',
+          },
+          {
+            name: 'time_on_page',
+            type: 'int',
+          },
+          {
+            name: 'country_iso',
+            type: 'string',
+          },
+          {
+            name: 'country_name',
+            type: 'string',
+          },
+          {
+            name: 'city_name',
+            type: 'string',
+          },
+          {
+            name: 'device_type',
+            type: 'string',
+          },
+          {
+            name: 'is_bot',
+            type: 'boolean',
+          },
+          {
+            name: 'utm_source',
+            type: 'string',
+          },
+          {
+            name: 'utm_medium',
+            type: 'string',
+          },
+          {
+            name: 'utm_campaign',
+            type: 'string',
+          },
+          {
+            name: 'utm_term',
+            type: 'string',
+          },
+          {
+            name: 'utm_content',
+            type: 'string',
+          },
+          {
+            name: 'querystring',
+            type: 'string',
+          },
+          {
+            name: 'referrer',
+            type: 'string',
+          },
+        ],
+      },
+      parameters: {
+        'projection.enabled': 'true',
+        'projection.page_opened_at_date.type': 'date',
+        'projection.page_opened_at_date.format': 'yyyy-MM-dd',
+        'projection.page_opened_at_date.interval': '1',
+        'projection.page_opened_at_date.interval.unit': 'DAYS',
+        'projection.page_opened_at_date.range': '2023-01-01,NOW',
+        'projection.site.type': 'enum',
+        'projection.site.values': props.sites.join(','),
+      },
+    },
+  });
+  glueTablePageViewsV2.addDependency(glueDb);
+
   const firehosePageViews = new CfnDeliveryStream(scope, name('analytic-page-views-firehose'), {
     deliveryStreamName: name('analytic-page-views-firehose'),
     extendedS3DestinationConfiguration: {
