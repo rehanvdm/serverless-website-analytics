@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import * as path from 'path';
 import { Duration } from 'aws-cdk-lib';
 import * as cdk from 'aws-cdk-lib';
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -240,6 +241,7 @@ export function backend(
       SITES: JSON.stringify(props.sites),
     },
     /* The lambda is idempotent, retry once */
+    retryAttempts: 1,
     reservedConcurrentExecutions: 1,
   });
   addAthenaPolicies(cronVacuumLambda);
@@ -275,7 +277,6 @@ export function backend(
       ],
     })
   );
-
   cronVacuumLambda.addToRolePolicy(
     new iam.PolicyStatement({
       sid: 'RollupPermissionsS3Delete',
@@ -289,11 +290,77 @@ export function backend(
       ],
     })
   );
-
   /* Executing 1 hour after midnight so that the previous day's data is done writing */
   new events.Rule(scope, name('cron-vacuum-rule'), {
     schedule: events.Schedule.cron({ minute: '0', hour: '1' }),
     targets: [new targets.LambdaFunction(cronVacuumLambda)],
+  });
+
+  // ANALYTICS_DDB_TABLE
+  // Create a DynamoDB Table pay as you go
+  const analyticsDdbTable = new dynamodb.Table(scope, name('analytics-table'), {
+    tableName: name('table'),
+    partitionKey: {
+      name: 'PK',
+      type: dynamodb.AttributeType.STRING,
+    },
+    sortKey: {
+      name: 'SK',
+      type: dynamodb.AttributeType.STRING,
+    },
+    billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+    removalPolicy: cdk.RemovalPolicy.DESTROY,
+  });
+
+  // TIME_ZONE
+
+  const cronAnomalyDetectionTimeOut = 900;
+  const cronAnomalyDetectionLambda = new lambda.Function(scope, name('lambda-cron-anomaly-detection'), {
+    functionName: name('cron-anomaly-detection'),
+    code: lambda.Code.fromAsset(path.join(__dirname, '../lib/build/backend/cron-anomaly-detection')),
+    handler: 'index.handler',
+    runtime: lambda.Runtime.NODEJS_16_X,
+    ...defaultNodeJsFuncOpt,
+    memorySize: 1024,
+    timeout: Duration.seconds(cronAnomalyDetectionTimeOut),
+    environment: {
+      ...defaultEnv,
+      LOG_LEVEL: 'INFO', // We don't produce a lot of logs, lets keep this on INFO for now
+
+      TIMEOUT: cronVacuumLambdaTimeOut.toString(),
+      ANALYTICS_BUCKET: backendAnalyticsProps.analyticsBucket.bucketName,
+      ANALYTICS_GLUE_DB_NAME: backendAnalyticsProps.glueDbName,
+      SITES: JSON.stringify(props.sites),
+
+      EVALUATION_WINDOW: '2',
+      BREACHING_STD_DEV: '2',
+      EVENT_BRIDGE_SOURCE: name(props.environment),
+    },
+    /* The lambda is NOT idempotent */
+    retryAttempts: 0,
+    reservedConcurrentExecutions: 1,
+  });
+  addAthenaPolicies(cronAnomalyDetectionLambda);
+  cronAnomalyDetectionLambda.addToRolePolicy(
+    new iam.PolicyStatement({
+      sid: 'RollupPermissionsS3Delete',
+      effect: Effect.ALLOW,
+      actions: ['events:PutEvents'],
+      resources: [
+        cdk.Arn.format({
+          partition: 'aws',
+          account: props.awsEnv.account,
+          region: props.awsEnv.region,
+          service: 'events',
+          resource: 'event-bus/default',
+        }),
+      ],
+    })
+  );
+  /* Execute 20 mins after every hour so that we are sure the previous hours data is done writing */
+  new events.Rule(scope, name('cron-anomaly-detection-rule'), {
+    schedule: events.Schedule.cron({ minute: '20' }),
+    targets: [new targets.LambdaFunction(cronAnomalyDetectionLambda)],
   });
 
   const cwLambdas: CwLambda[] = [

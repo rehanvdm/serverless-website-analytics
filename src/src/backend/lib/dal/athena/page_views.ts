@@ -342,4 +342,24 @@ export class AthenaPageViews extends AthenaBase {
     await this.query(`DROP TABLE ${tempTableName}`);
     return true;
   }
+
+  async totalViewsPerHour(fromDate: Date, toDate: Date, sites: string[]) {
+    const toDateWithLatestHour = new Date(toDate);
+    toDateWithLatestHour.setMinutes(59, 59, 999);
+    const query = `
+          WITH ${this.cteFilteredDataQuery(['site', 'user_id', 'page_id'], fromDate, toDateWithLatestHour, sites)}
+          SELECT
+              CAST(DATE_TRUNC('hour', page_opened_at) AS TIMESTAMP) as "date_key",
+              COUNT(*) as "views"
+          FROM cte_data_filtered
+          GROUP BY 1
+          ORDER BY 1`;
+
+    const resp = await this.query(query);
+
+    return resp.data as {
+      date_key: Date;
+      views: number;
+    }[];
+  }
 }

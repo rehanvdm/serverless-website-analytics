@@ -1,11 +1,15 @@
 import { S3Client } from '@aws-sdk/client-s3';
 import { AthenaClient } from '@aws-sdk/client-athena';
 import { FirehoseClient } from '@aws-sdk/client-firehose';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { EventBridgeClient } from '@aws-sdk/client-eventbridge';
 import assert from 'assert';
 
 const s3Client: Record<string, S3Client> = {};
 const firehoseClient: Record<string, FirehoseClient> = {};
 const athenaClient: Record<string, AthenaClient> = {};
+const dynamodbClient: Record<string, DynamoDBClient> = {};
+const eventBridgeClient: Record<string, EventBridgeClient> = {};
 
 function awsEnv() {
   return {
@@ -64,4 +68,36 @@ export function getFirehoseClient(region?: string) {
   }
 
   return firehoseClient[region];
+}
+
+export function getDdbClient(region?: string) {
+  if (!region) {
+    region = process.env.AWS_REGION;
+  }
+
+  assert(region);
+
+  if (!dynamodbClient[region]) {
+    dynamodbClient[region] = new DynamoDBClient({
+      region,
+      ...awsEnv(),
+    });
+  }
+  return dynamodbClient[region];
+}
+
+export function getEventBridgeClient(region?: string) {
+  if (!region) {
+    region = process.env.AWS_REGION;
+  }
+
+  assert(region);
+
+  if (!eventBridgeClient[region]) {
+    eventBridgeClient[region] = new EventBridgeClient({
+      region,
+      ...awsEnv(),
+    });
+  }
+  return eventBridgeClient[region];
 }
