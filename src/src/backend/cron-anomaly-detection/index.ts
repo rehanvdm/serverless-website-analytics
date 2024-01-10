@@ -5,12 +5,10 @@ import { AuditLog } from '@backend/lib/models/audit_log';
 import { v4 as uuidv4 } from 'uuid';
 import { DateUtils } from '@backend/lib/utils/date_utils';
 import { AthenaPageViews } from '@backend/lib/dal/athena/page_views';
-// import {DynamoDbAnalytics, PageHistory, PageHistoryCreateEntityItem, PageHistoryItem} from '@backend/lib/dal/dynamodb/analytics';
 import { groupBy } from 'lodash';
-import { calculateMSE, calculateStandardDeviation } from '@backend/cron-anomaly-detection/stat_functions';
-import { nelderMeadOptimization } from '@backend/cron-anomaly-detection/nelder_mead_optimization';
-import { holtWintersForecast } from '@backend/cron-anomaly-detection/holt_winters_forecast';
+import { calculateMSE, calculateStandardDeviation, expSmooth } from '@backend/cron-anomaly-detection/stat_functions';
 import { EventBridgeAnalytics } from '@backend/lib/dal/eventbridge';
+import assert from 'assert';
 
 /* Lazy loaded variables */
 let initialized = false;
@@ -55,10 +53,10 @@ export function fillMissingDates(data: Record[], minDate: Date, maxDate: Date, h
 }
 
 export type CleanedData = {
+  rawData: Record[];
   trainingData: Record[];
   trainingDataViews: number[];
   latest: {
-    stdDevDev24Hours: number;
     record: Record;
   };
 };
@@ -68,18 +66,17 @@ async function getData(
   eventDate: Date,
   sites: string[],
   seasonLength: number,
+  fetchSeasons: number,
   evaluationWindow: number
 ) {
   const toDate = eventDate;
-  const fromDate = DateUtils.addHours(toDate, -(seasonLength + evaluationWindow));
+  const fromDate = DateUtils.addHours(toDate, -(seasonLength * fetchSeasons + evaluationWindow));
   return athenaPageViews.totalViewsPerHour(fromDate, toDate, sites);
 }
-export function getTrainingDataForDate(rawData: Record[], eventDate: Date, seasonLength: number) {
+export function getTrainingDataForDate(rawData: Record[], eventDate: Date, seasonLength: number, fetchSeasons: number) {
   const toDate = eventDate;
-  const fromDate = DateUtils.addHours(toDate, -seasonLength);
-
+  const fromDate = DateUtils.addHours(toDate, -seasonLength * fetchSeasons);
   const data = rawData.filter((row: Record) => row.date_key >= fromDate && row.date_key <= toDate);
-
   return {
     fromDate,
     toDate,
@@ -87,279 +84,171 @@ export function getTrainingDataForDate(rawData: Record[], eventDate: Date, seaso
   };
 }
 
-export function cleanData(rawData: Record[], fromDate: Date, toDate: Date): CleanedData {
+export function cleanData(rawData: Record[], fromDate: Date, toDate: Date): CleanedData | false {
   const allData = fillMissingDates(rawData, fromDate, toDate, true);
 
-  const trainingData = allData.slice(0, -1);
-  const latestRecord = allData.slice(-1)[0];
-
   const trainingDataStdDevClamp = 2;
-  const trainingDataValues = trainingData.map((row: any) => row.views);
+  // TODO might be better to add a "missing" field on the record. That way I can only select the real ones here.
+  //  ACTUALLY thqt means just need to use rawData instead of allData DUH
+  //  Is it actually better to do it like this? Need to test
+  /* Only take the non 0 (because of missing data fill meaning it was actually 0) values for getting the statistical numbers */
+  const trainingDataValues = allData.filter((row: any) => row.views > 0).map((row: any) => row.views);
+  if (trainingDataValues.length === 0) return false;
+
   const trainingDataStdDev = calculateStandardDeviation(trainingDataValues);
   const latestStdDev24Hours = calculateStandardDeviation(trainingDataValues.slice(-24));
-
   const trainingDataMean = trainingDataValues.reduce((sum, value) => sum + value, 0) / trainingDataValues.length;
   const trainingDataMaxValue = Math.ceil(trainingDataMean + trainingDataStdDev * trainingDataStdDevClamp);
-  // logger.debug("trainingDataStdDev", trainingDataStdDev);
-  // logger.debug("trainingDataMean", trainingDataMean);
-  // logger.debug("trainingDataMaxValue", trainingDataMaxValue);
 
-  /* The training data needs to be clamped to prevent a heavy downwards trend prediction from the Holt-Winter prediction */
-  const trainingDataClampedOutliers = trainingData.map((record) => {
+  const trainingDataClampedOutliers = allData.map((record) => {
     const zScore = (record.views - trainingDataMean) / trainingDataStdDev;
     const isWithinStdDev = Math.abs(zScore) <= trainingDataStdDevClamp;
-
     return {
       date_key: record.date_key,
       views: isWithinStdDev ? record.views : trainingDataMaxValue /* Clamp outliers to the max value */,
     };
   });
 
+  const latestRecord = rawData[rawData.length - 1];
   return {
+    rawData,
     trainingData: trainingDataClampedOutliers,
     trainingDataViews: trainingDataClampedOutliers.map((row: any) => row.views),
     latest: {
-      stdDevDev24Hours: latestStdDev24Hours,
       record: latestRecord,
     },
   };
 }
 
-function train(trainingDataViews: number[], seasonLength: number) {
-  function objectFunction(params: number[]) {
-    const result = holtWintersForecast(
-      trainingDataViews,
-      params[0],
-      params[1],
-      params[2],
-      seasonLength,
-      trainingDataViews.length
-    );
-    return calculateMSE(trainingDataViews, result.forecast);
-  }
+export function predict(data: CleanedData, seasonLength: number, predictedBreachingMultiplier: number) {
+  // Todo rename variables to start with training
+  const currSeason = data.trainingDataViews.slice(-seasonLength);
+  const currEma = expSmooth(currSeason, 0.2);
+  const prevSeason = data.trainingDataViews.slice(-seasonLength * 2, -seasonLength); /// only 1 value ????
+  const prevEma = expSmooth(prevSeason, 0.05);
 
-  const initialPoints = [
-    // [0.3, 0.3, 0.3],
-    // [0,0,0],
-    // [1, 1, 1],
+  const expPredictedLatest = currEma[currEma.length - 1];
+  const expPredictedPrev = prevEma[prevEma.length - 1];
 
-    [0.1, 0.1, 0.1, 0.1],
-    [0.25, 0.25, 0.25, 0.25],
-    [0.5, 0.5, 0.5, 0.5],
-    [1, 1, 1, 1],
+  let predicted = expPredictedLatest;
+  /* Adds some seasonality into the mix if it is available.
+   * Make the current predicted EMA, take the average of `now` and  `now - 1 season`
+   * So `(now + (now - 1 season)) / 2` */
+  if (expPredictedPrev && expPredictedPrev !== 0) predicted = (expPredictedLatest + expPredictedPrev) / 2;
 
-    // [0.1,0.1,0.1],
-    // [0.25,0.25,0.25,],
-    // [0.5,0.5,0.5,],
-    // [1, 1, 1,],
-  ];
-
-  // 1e-6
-  const trainingResult = nelderMeadOptimization(objectFunction, initialPoints, 0.001, 1000);
-  return {
-    alpha: trainingResult.coordinates[0],
-    beta: trainingResult.coordinates[1],
-    gamma: trainingResult.coordinates[2],
-  };
-}
-
-function train2(trainingDataViews: number[], seasonLength: number) {
-  function objectFunction(params: number[]) {
-    const result = holtWintersForecast(
-      trainingDataViews,
-      params[0],
-      params[1],
-      params[2],
-      seasonLength,
-      trainingDataViews.length
-    );
-    return calculateMSE(trainingDataViews, result.forecast);
-  }
-
-  interface Point {
-    coordinates: number[];
-    value: number;
-  }
-
-  class Simplex {
-    points: Point[];
-
-    constructor(dimensions: number, initialValue: number) {
-      this.points = Array.from({ length: dimensions + 1 }, () => ({
-        coordinates: Array.from({ length: dimensions }, () => initialValue),
-        value: 0,
-      }));
-    }
-
-    get highest(): Point {
-      return this.points.reduce((acc, point) => (point.value > acc.value ? point : acc), this.points[0]);
-    }
-
-    get secondHighest(): Point {
-      const highest = this.highest;
-      return this.points.reduce(
-        (acc, point) => (point.value > acc.value && point !== highest ? point : acc),
-        this.points[0]
-      );
-    }
-
-    get lowest(): Point {
-      return this.points.reduce((acc, point) => (point.value < acc.value ? point : acc), this.points[0]);
-    }
-  }
-
-  function nelderMead(
-    objectiveFunction: (coordinates: number[]) => number,
-    initialGuess: number[],
-    tolerance: number,
-    maxIterations: number
-  ): number[] {
-    const dimensions = initialGuess.length;
-    const simplex = new Simplex(dimensions, 0.5);
-    simplex.points[0].coordinates = initialGuess;
-    simplex.points[0].value = objectiveFunction(initialGuess);
-
-    for (let i = 1; i <= dimensions; i++) {
-      const perturbedPoint = [...initialGuess];
-      perturbedPoint[i - 1] += 1.0;
-      simplex.points[i].coordinates = perturbedPoint;
-      simplex.points[i].value = objectiveFunction(perturbedPoint);
-    }
-
-    for (let iteration = 0; iteration < maxIterations; iteration++) {
-      simplex.points.sort((a, b) => a.value - b.value);
-
-      const highest = simplex.highest;
-      const secondHighest = simplex.secondHighest;
-      const lowest = simplex.lowest;
-
-      const reflection = {
-        coordinates: [],
-        value: 0,
-      };
-
-      for (let i = 0; i < dimensions; i++) {
-        reflection.coordinates[i] = highest.coordinates[i] + (highest.coordinates[i] - secondHighest.coordinates[i]);
-      }
-
-      reflection.value = objectiveFunction(reflection.coordinates);
-
-      if (reflection.value < lowest.value) {
-        const expansion = {
-          coordinates: [],
-          value: 0,
-        };
-
-        for (let i = 0; i < dimensions; i++) {
-          expansion.coordinates[i] = highest.coordinates[i] + 2 * (reflection.coordinates[i] - highest.coordinates[i]);
-        }
-
-        expansion.value = objectiveFunction(expansion.coordinates);
-
-        if (expansion.value < reflection.value) {
-          simplex.points[simplex.points.indexOf(highest)] = expansion;
-        } else {
-          simplex.points[simplex.points.indexOf(highest)] = reflection;
-        }
-      } else {
-        if (reflection.value < secondHighest.value) {
-          simplex.points[simplex.points.indexOf(highest)] = reflection;
-        }
-
-        const contraction = {
-          coordinates: [],
-          value: 0,
-        };
-
-        for (let i = 0; i < dimensions; i++) {
-          contraction.coordinates[i] =
-            highest.coordinates[i] +
-            0.5 * (simplex.points[simplex.points.indexOf(highest)].coordinates[i] - highest.coordinates[i]);
-        }
-
-        contraction.value = objectiveFunction(contraction.coordinates);
-
-        if (contraction.value < highest.value) {
-          simplex.points[simplex.points.indexOf(highest)] = contraction;
-        } else {
-          for (let i = 0; i < dimensions; i++) {
-            simplex.points[i].coordinates = simplex.points[
-              lowest.value === simplex.points[i].value ? i : 0
-            ].coordinates.map(
-              (coordinate, index) =>
-                0.5 * (coordinate + simplex.points[lowest.value === simplex.points[i].value ? i : 0].coordinates[index])
-            );
-            simplex.points[i].value = objectiveFunction(simplex.points[i].coordinates);
-          }
-        }
-      }
-
-      const maxDiff = Math.max(...simplex.points.map((point) => Math.abs(point.value - lowest.value)));
-
-      if (maxDiff < tolerance) {
-        return simplex.lowest.coordinates;
-      }
-    }
-
-    return simplex.lowest.coordinates;
-  }
-
-  // // Example usage:
-  // //   const objectiveFunction = (x: number[]) => x.reduce((sum, val) => sum + val ** 2, 0); // Example: Minimize the sum of squares
-  //   const initialGuess = [0.1,0.2,0.3]; // Initial guess for the minimum
-  //   const tolerance = 1e-6; // Tolerance for convergence
-  //   const maxIterations = 1000; // Maximum number of iterations
-  //
-  //   const trainingResult = nelderMead(objectFunction, initialGuess, tolerance, maxIterations);
-  //   console.log('Optimal Solution:', trainingResult);
-  //   return {
-  //     alpha: trainingResult[0],
-  //     beta: trainingResult[1],
-  //     gamma: trainingResult[2]
-  //   };
-  // --
-  // Example usage:
-  const objectiveFunction = (x: number[]) => x.reduce((sum, val) => sum + val ** 2, 0); // Example: Minimize the sum of squares
-  const initialGuess = [1, 2, 3]; // Initial guess for the minimum
-  const tolerance = 1e-6; // Tolerance for convergence
-  const maxIterations = 1000; // Maximum number of iterations
-
-  const result = nelderMead(objectiveFunction, initialGuess, tolerance, maxIterations);
-  console.log('Optimal Solution:', result);
-  return {
-    alpha: result[0],
-    beta: result[1],
-    gamma: result[2],
-  };
-  // --
-}
-
-export function predict(data: CleanedData, seasonLength: number, breachingStdDev: number) {
-  const { alpha, beta, gamma } = train2(data.trainingDataViews, seasonLength);
-  console.log('Training', { alpha, beta, gamma });
-  const hwsResult = holtWintersForecast(data.trainingDataViews, alpha, beta, gamma, seasonLength, 1);
-
-  const upperStdDevPredictedLatest = hwsResult.forecast[0] + data.latest.stdDevDev24Hours * breachingStdDev;
-  const breachingLatest = data.latest.record.views > upperStdDevPredictedLatest;
+  const latestRecord = data.latest.record;
+  const breachingThreshold = predicted * predictedBreachingMultiplier; // TODO: rename breachingStdDev to somethin else not STD anymore
+  /* Use the `data.latest.record` instead of `data.trainingDataViews[data.trainingDataViews.length-1]` because the
+   * latter has clamped values */
+  const breachingLatest = latestRecord.views > breachingThreshold;
   logger.info('Prediction', {
-    Latest: data.latest.record,
-    Predicted: hwsResult.forecast[0],
-    StdDevDev24Hours: data.latest.stdDevDev24Hours,
-    UpperStdDevPredicted: upperStdDevPredictedLatest,
+    Latest: latestRecord,
+    Predicted: predicted,
+    BreachingThreshold: breachingThreshold,
     Breaching: breachingLatest,
   });
 
-  // const formatNumber = (value: number) => value.toFixed(3).padStart(5, ' ');
-  // console.debug(data.latest.record.date_key, formatNumber(data.latest.record.views),
-  //   "[ ", formatNumber(alpha), formatNumber(beta), formatNumber(gamma), " ]",
-  //   "[ ", formatNumber(hwsResult.forecast[0]), " ]",
-  //   breachingLatest);
+  // const rawDataValues = data.rawData.map((row: any) => row.views);
+  const currValue = data.rawData[data.rawData.length - 1]?.views || 0;
+  const prevValue = data.rawData[data.rawData.length - 2]?.views || 0;
+  const slope = currValue - prevValue;
+  return {
+    predicted: expPredictedLatest,
+    breaching: breachingLatest,
+    breachingThreshold,
+    slope,
+  };
+}
+
+export type EvaluationWindowReasons =
+  | 'OK'
+  | 'ALARM_WINDOW_BREACHED'
+  | 'ALARM_LATEST_EVALUATION_SPIKE'
+  | 'ALARM_SLOPE_STILL_NEGATIVE';
+export type EvaluationWindow = {
+  alarm: boolean;
+  state: EvaluationWindowReasons;
+};
+export type Evaluation = {
+  date: string;
+  value: number;
+  predicted: number;
+  breached: boolean;
+  breachingThreshold: number;
+  /* BREACHED = if value > breachingThreshold
+   * WINDOW_ALARM_SLOPE_STILL_NEGATIVE = window.state === ALARM_SLOPE_STILL_NEGATIVE */
+  breachingReason: 'NOT_BREACHED' | 'BREACHED' | 'WINDOW_ALARM_SLOPE_STILL_NEGATIVE';
+  slope: number;
+  window?: EvaluationWindow;
+};
+function evaluationWindowState(evaluations: Evaluation[], evaluateWindows: number): EvaluationWindow {
+  // Take only the evaluations in the window we are interested in
+  const evaluationWindow = evaluations.slice(evaluations.length - evaluateWindows, evaluations.length);
+  const evaluationWindowBreached = evaluationWindow.reduce((a, b) => a && b.breached, true);
+
+  const latestEvaluation = evaluationWindow[evaluationWindow.length - 1];
+  if (!evaluationWindowBreached && latestEvaluation.value > latestEvaluation.breachingThreshold * 2) {
+    console.log('Big spike detected, evaluations in evaluation window is irrelevant', latestEvaluation.date);
+    return {
+      alarm: true,
+      state: 'ALARM_LATEST_EVALUATION_SPIKE',
+    };
+  }
 
   return {
-    predicted: hwsResult.forecast[0],
-    upperStdDevPredicted: upperStdDevPredictedLatest,
-    breaching: breachingLatest,
+    alarm: evaluationWindowBreached,
+    state: evaluationWindowBreached ? 'ALARM_WINDOW_BREACHED' : 'OK',
   };
+}
+
+export function evaluate(
+  rawData: Record[],
+  evaluateWindows: number,
+  eventDateLatest: Date,
+  seasonLength: number,
+  fetchSeasons: number
+) {
+  const evaluations: Evaluation[] = [];
+  const evaluate = 24; /* Looking back 1 day to recreate state so that not have to store in DB */
+  const startEvaluationAt = DateUtils.addHours(eventDateLatest, -evaluate);
+  for (let n = 0; n > evaluate; n++) {
+    const evaluationDate = DateUtils.addHours(startEvaluationAt, n);
+    const { data, fromDate, toDate } = getTrainingDataForDate(rawData, evaluationDate, seasonLength, fetchSeasons);
+
+    const dataCleaned = cleanData(data, fromDate, toDate);
+    if (!dataCleaned) continue; // Not enough data
+
+    const prediction = predict(dataCleaned, seasonLength, LambdaEnvironment.BREACHING_STD_DEV);
+    const evaluation: Evaluation = {
+      date: evaluationDate.toISOString(),
+      value: dataCleaned.latest.record.views,
+      predicted: prediction.predicted,
+      breached: prediction.breaching,
+      breachingThreshold: prediction.breachingThreshold,
+      breachingReason: prediction.breaching ? 'BREACHED' : 'NOT_BREACHED',
+      slope: prediction.slope,
+    };
+    evaluation.window = evaluationWindowState([...evaluations, evaluation], evaluateWindows);
+
+    if (n > 1) {
+      const previousEvaluation = evaluations[n - 1];
+      assert(previousEvaluation.window);
+      // If previous evaluations window is in alarm, the current evaluation is not breached and the slope is still negative,
+      // then we consider it still in a breached state as the anomaly is not over until the slope is positive.
+      if (previousEvaluation.window.alarm && !evaluation.breached && evaluation.slope < 0) {
+        evaluation.breached = true; // Set this evaluation to breaching
+        evaluation.breachingReason = 'WINDOW_ALARM_SLOPE_STILL_NEGATIVE';
+        evaluation.window = {
+          alarm: true,
+          state: 'ALARM_SLOPE_STILL_NEGATIVE',
+        };
+        console.log('Slope negative', evaluationDate);
+      }
+    }
+    evaluations.push(evaluation);
+  }
+
+  return evaluations.slice(-evaluateWindows);
 }
 
 export const handler = async (event: ScheduledEvent, context: Context): Promise<true> => {
@@ -396,6 +285,7 @@ export const handler = async (event: ScheduledEvent, context: Context): Promise<
     const eventBridgeAnalytics = new EventBridgeAnalytics(LambdaEnvironment.EVENT_BRIDGE_SOURCE);
 
     const seasonLength = 7 * 24; /* 7 days == 168 hours */
+    const fetchSeasons = 2;
 
     /* Event time will always be the current hour, Firehose S3 Buffer Hint + 5 minutes
      * Take it as if it was for that hour */
@@ -406,58 +296,80 @@ export const handler = async (event: ScheduledEvent, context: Context): Promise<
       eventDateLatest,
       LambdaEnvironment.SITES,
       seasonLength,
+      fetchSeasons,
       LambdaEnvironment.EVALUATION_WINDOW
     );
 
-    const evaluations: {
-      date: string;
-      value: number;
-      std_dev: number;
-      predicted: number;
-      predicted_std_dev: number;
-      breached: boolean;
-    }[] = [];
-    /* Stat at n = 1 because we can not evaluate the current hour, the previous hour(s) have full buckets, and it is
-     * them that we want to analyze */
-    for (let n = 1; n <= LambdaEnvironment.EVALUATION_WINDOW; n++) {
-      const evaluationDate = DateUtils.addHours(eventDateLatest, -n);
-      const { data, fromDate, toDate } = getTrainingDataForDate(rawData, evaluationDate, seasonLength);
-      /* The first two ara always anomalous, skip them */
-      if (data.length <= 2) {
-        continue;
-      }
-      const dataCleaned = cleanData(rawData, fromDate, toDate);
+    // let breachedReason: BreachReason;
+    // let allEvaluationsBreached: boolean;
+    // const evaluations: {
+    //   date: string;
+    //   value: number;
+    //   predicted: number;
+    //   breached: boolean;
+    //   breachingThreshold: number;
+    //   slope: number;
+    // }[] = [];
+    // /* Stat at n = 1 because we can not evaluate the current hour, the previous hour(s) have full buckets, and it is
+    //  * them that we want to analyze */
+    // for (let n = 1; n <= LambdaEnvironment.EVALUATION_WINDOW; n++)
+    // {
+    //   const evaluationDate = DateUtils.addHours(eventDateLatest, -n);
+    //   const { data, fromDate, toDate } = getTrainingDataForDate(rawData, evaluationDate, seasonLength, fetchSeasons);
+    //   // TODO this mut be for the number of LambdaEnvironment.EVALUATION_WINDOW so skip that amount
+    //   // /* The first two ara always anomalous, skip them */
+    //   // if (data.length <= 2) {
+    //   //   continue;
+    //   // }
+    //   const dataCleaned = cleanData(rawData, fromDate, toDate);
+    //   if (!dataCleaned)
+    //     // Not enough data
+    //     continue;
+    //
+    //   const prediction = predict(dataCleaned, seasonLength, LambdaEnvironment.BREACHING_STD_DEV);
+    //   evaluations.push({
+    //     date: evaluationDate.toISOString(),
+    //     value: dataCleaned.latest.record.views,
+    //     predicted: prediction.predicted,
+    //     breached: prediction.breaching,
+    //     breachingThreshold: prediction.breachingThreshold,
+    //     slope: prediction.slope,
+    //   });
+    //
+    //   if(dataCleaned.latest.record.views > prediction.breachingThreshold * 2) {
+    //     breachedReason = 'SPIKE';
+    //     break;
+    //   }
+    // }
+    //
+    // /* Alarm if all values in the evaluation array are true */
+    // allEvaluationsBreached = evaluations.reduce((a, b) => a && b.breached, true);
+    // logger.info('Evaluations', evaluations, 'AllEvaluationsBreached', allEvaluationsBreached);
+    //
+    //
+    // if (allEvaluationsBreached && evaluations[0].slope < 0) {
+    //   breachedReason = 'BREACHED_SLOPE_NEGATIVE';
+    //   allEvaluationsBreached
+    // }
 
-      /* Increase the std deviation when we have less than `seasonLength` number of records. This is so that we
-       * can still do some prediction when training. It will only catch big anomalies when `records < seasonLength`,
-       * but as time progresses `records >= seasonLength` it becomes the specified std deviation.
-       * This approach allows us to do some prediction while training as opposed to no prediction at all until we have
-       * enough records for training. The multiplier 3 is chosen at random while testing. It is also sufficiently
-       * large enough that we can be certain that it prevents any false-positives when training. */
-      const predictionBreachingStdDev =
-        data.length < seasonLength ? LambdaEnvironment.BREACHING_STD_DEV * 3 : LambdaEnvironment.BREACHING_STD_DEV;
-      const prediction = predict(dataCleaned, seasonLength, predictionBreachingStdDev);
-      evaluations.push({
-        date: evaluationDate.toISOString(),
-        value: dataCleaned.latest.record.views,
-        std_dev: dataCleaned.latest.stdDevDev24Hours,
-        predicted: prediction.predicted,
-        predicted_std_dev: prediction.upperStdDevPredicted,
-        breached: prediction.breaching,
+    const evaluations = evaluate(
+      rawData,
+      LambdaEnvironment.EVALUATION_WINDOW,
+      eventDateLatest,
+      seasonLength,
+      fetchSeasons
+    );
+    const latestEvaluation = evaluations[evaluations.length - 1];
+    if (!latestEvaluation.window) console.log('Evaluation window not full, not sending event');
+    else {
+      await eventBridgeAnalytics.putEvent({
+        DetailType: latestEvaluation.window.alarm ? 'anomaly.page_view.alarm' : 'anomaly.page_view.ok',
+        Detail: {
+          ...latestEvaluation.window,
+          evaluations,
+        },
       });
     }
-
-    /* Alarm if all values in the evaluation array are true */
-    const evaluationsBreached = evaluations.reduce((a, b) => a && b.breached, true);
-    logger.info('Evaluations', evaluations, 'EvaluationsBreached', evaluationsBreached);
-
-    await eventBridgeAnalytics.putEvent({
-      DetailType: evaluationsBreached ? 'anomaly.page_view.breached' : 'anomaly.page_view.ok',
-      Detail: {
-        breached: evaluationsBreached,
-        evaluations,
-      },
-    });
 
     audit.success = true;
   } catch (err) {

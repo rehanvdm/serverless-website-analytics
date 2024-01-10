@@ -76,6 +76,8 @@ export const TestConfig: TestConfig = {
 
     EVALUATION_WINDOW: '2',
     BREACHING_STD_DEV: '2',
+    // EVALUATION_WINDOW: '1',
+    // BREACHING_STD_DEV: '4',
     EVENT_BRIDGE_SOURCE: 'rehan-analytics-swa-prod',
 
     TIME_ZONE: 'Africa/Johannesburg',

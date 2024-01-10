@@ -82,8 +82,10 @@ describe('Cron - Anomaly Detection', function () {
     logger.setLogLevel(LogLevel.ERROR); // Do not show the debug lines which is more useful in the actual lambda execution
 
     // const dataAllFile = fs.readFileSync(path.resolve(__dirname, "./sinusoidal.csv"), { encoding: "utf8"})
-    const dataAllFile = fs.readFileSync(path.resolve(__dirname, './sinusoidal-trend.csv'), { encoding: 'utf8' });
-    // const dataAllFile = fs.readFileSync(path.resolve(__dirname, "./data-realistic-2023-07-01-to-2023-11-30-dec.csv"), { encoding: "utf8"})
+    // const dataAllFile = fs.readFileSync(path.resolve(__dirname, './sinusoidal-trend.csv'), { encoding: 'utf8' });
+    const dataAllFile = fs.readFileSync(path.resolve(__dirname, './data-realistic-2023-07-01-to-2023-11-30-dec.csv'), {
+      encoding: 'utf8',
+    });
     // const dataAllFile = fs.readFileSync(path.resolve(__dirname, "./data-consistent-2023-07-07-to-2023-11-30.csv"), { encoding: "utf8"})
     const dataAll = parse(dataAllFile, {
       header: true,
@@ -97,61 +99,103 @@ describe('Cron - Anomaly Detection', function () {
       })
     );
 
-    let records = fillMissingDates(csvRecords, csvRecords[0].date_key, DateUtils.parseIso('2023-11-30T23:00:00'), true);
+    const records = fillMissingDates(
+      csvRecords,
+      csvRecords[0].date_key,
+      DateUtils.parseIso('2023-11-30T23:00:00'),
+      true
+    );
+    // records = records.filter((row: Record) => row.date_key >= DateUtils.parseIso('2023-08-01T11:00:00')); // Tests not starting at a low value.
 
-    /*
-     * Plotting from Aug, making that the first month and comparing where it is the second month reveals that the
-     * Nelder Mead (+ Winter Holtz) produces inconsistent and wildly varying values for alpha, gamma, beta
-     * when the data it has to train on is less than 4 seasons. Where 1 season is 7 days for us. So we only get
-     * accurate/consistent results if we train on 4*7days of data.
-     * Example of alpha, gamma,beta
-     * n-1: [  -0.003 -0.002 0.261  ]
-     * n    [  0.957 0.001 0.044  ]
-     */
-    // records = records.filter((row: Record) => row.date_key >= DateUtils.parseIso('2023-08-01T00:00:00'))
-    records = records.filter((row: Record) => row.date_key >= DateUtils.parseIso('2023-08-01T11:00:00')); // Test not starting at a low value.
-
+    const evaluate = 24;
     const evaluationWindow = LambdaEnvironment.EVALUATION_WINDOW;
     const breachingStdDev = LambdaEnvironment.BREACHING_STD_DEV;
     const seasonLength = 7 * 24; // 7 days == 168 hours
     // const trainingSeasonLength = 4*seasonLength;  // 4 weeks == 28 days == 672 hours
 
     const chartData = [];
-    for (const record of records) {
+    // const db = {
+    //   isAlarm: false,
+    // };
+    for (const record of records)
+    {
       const evaluations = [];
       let latest;
-      for (let n = 0; n < evaluationWindow; n++) {
-        const evaluationDate = DateUtils.addHours(record.date_key, -n);
-        const { data, fromDate, toDate } = getTrainingDataForDate(records, evaluationDate, seasonLength);
-        if (data.length <= 2) {
-          evaluations.push(false);
-          continue;
-        }
+
+      TODO: Redo and test the Lambda `evaluateWindow` function make this code the same...
+
+
+      const startEvaluationAt = DateUtils.addHours(record.date_key, -evaluate);
+      for (let n = 0; n < evaluate; n++) {
+        const evaluationDate = DateUtils.addHours(record.date_key, n);
+        const { data, fromDate, toDate } = getTrainingDataForDate(records, evaluationDate, seasonLength, 2);
+        // if (data.length <= 2) {
+        //   evaluations.push(false);
+        //   continue;
+        // }
 
         const dataCleaned = cleanData(data, fromDate, toDate);
-        // const prediction = predict(dataCleaned, seasonLength, breachingStdDev);
-        const predictionBreachingStdDev = data.length < seasonLength ? breachingStdDev * 3 : breachingStdDev;
-        // const predictiveBreachingStdDevMultiplier = (1 - (data.length/seasonLength)) * 3;
-        // const predictionBreachingStdDev = Math.max(breachingStdDev, breachingStdDev * predictiveBreachingStdDevMultiplier);
-        const prediction = predict(dataCleaned, seasonLength, predictionBreachingStdDev);
+        if (!dataCleaned) continue;
+
+        // // const prediction = predict(dataCleaned, seasonLength, breachingStdDev);
+        // const predictionBreachingStdDev = data.length < seasonLength ? breachingStdDev * 3 : breachingStdDev;
+        // // const predictiveBreachingStdDevMultiplier = (1 - (data.length/seasonLength)) * 3;
+        // // const predictionBreachingStdDev = Math.max(breachingStdDev, breachingStdDev * predictiveBreachingStdDevMultiplier);
+        // const prediction = predict(dataCleaned, seasonLength, predictionBreachingStdDev);
+        const prediction = predict(dataCleaned, seasonLength, breachingStdDev);
+
+
+        if (n > 0)
+        {
+
+          //If previous evaluations was in breached, the current is not, but the slope is still negative,
+          // then we consider it still in a breached state as the anomaly is not over.
+          if(evaluations[0] && !evaluations[n] && prediction.slope < 0)
+          {
+            evaluations[0] = true; // Then the previous evaluation is still breaching
+            console.log('Still in alarm state', evaluationDate);
+          }
+        }
         if (n == 0) {
+          // // Only save the latest value, but we evaluate all values in window
+          // // These two evaluations can be in the other lambda function. Just need to report the slope + laterst record views
+          // // Extends the window of anomaly so that can get better context if the spike traffic goes down slowly
+          // if (db.isAlarm && prediction.slope < 0) {
+          //   prediction.breaching = true; // still say breaching if EMA is negative and currently in alarm state
+          //   console.log('Still in alarm state', evaluationDate);
+          // }
+
           latest = {
             prediction,
             breachingStdDev,
           };
+
+          // Catches single off big spikes/bypassing the need to check the n-previous evaluations
+          // Big spikes classified as the current value being 2x the predicted upper std dev
+          // Aug 28 18:00 spike
+          // Sep 23 spike
+          // Oct 04 04:00 spike
+          if (prediction.breaching && dataCleaned.latest.record.views > prediction.breachingThreshold * 2) {
+            console.log('Big spike detected, not evaluating the rest of window', evaluationDate);
+            break;
+          }
         }
 
         evaluations.push(prediction.breaching);
       }
 
+
+
       /* Alarm if all values in the evaluation array are true */
       const shouldAlarm = evaluations.reduce((a, b) => a && b, true);
+      // db.isAlarm = shouldAlarm;
       // console.log(record, JSON.stringify(latest), "Evaluations", evaluations, "ShouldAlarm", shouldAlarm);
 
       chartData.push({
         date_key: record.date_key,
         actualValue: record.views,
-        upperStdDevPredicted: latest?.prediction.upperStdDevPredicted || 0,
+        prediction: latest?.prediction.predicted || 0,
+        breachingThreshold: latest?.prediction.breachingThreshold || 0,
         breaching: latest?.prediction.breaching || false,
         shouldAlarm,
       });
@@ -170,10 +214,30 @@ describe('Cron - Anomaly Detection', function () {
         type: 'scatter',
       },
 
+      // {
+      //   name: 'Predicted Upper Std Dev',
+      //   x: chartX,
+      //   y: chartData.map((row) => row.breachingThreshold),
+      //   type: 'scatter',
+      //   // line: {
+      //   //   width: 2,
+      //   //   color: 'lightblue',
+      //   // }
+      // },
       {
-        name: 'Predicted Upper Std Dev',
+        name: 'Predicted',
         x: chartX,
-        y: chartData.map((row) => row.upperStdDevPredicted),
+        y: chartData.map((row) => row.prediction),
+        type: 'scatter',
+        // line: {
+        //   width: 2,
+        //   color: 'lightblue',
+        // }
+      },
+      {
+        name: 'Predicted with previous seasonvalue',
+        x: chartX,
+        y: chartData.map((row) => row.breachingThreshold),
         type: 'scatter',
         // line: {
         //   width: 2,
@@ -184,14 +248,14 @@ describe('Cron - Anomaly Detection', function () {
       {
         name: 'Breached',
         x: chartX,
-        y: chartData.map((row) => (row.breaching ? row.actualValue - row.upperStdDevPredicted : null)),
+        y: chartData.map((row) => (row.breaching ? row.actualValue - row.breachingThreshold : null)),
         type: 'bar',
       },
 
       {
         name: 'Alarm',
         x: chartX,
-        y: chartData.map((row) => (row.shouldAlarm ? row.actualValue - row.upperStdDevPredicted : null)),
+        y: chartData.map((row) => (row.shouldAlarm ? row.actualValue - row.breachingThreshold : null)),
         type: 'bar',
       },
     ];
