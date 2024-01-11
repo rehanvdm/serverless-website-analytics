@@ -1,5 +1,6 @@
 import { EbAnalyticsEntry } from '@backend/lib/dal/eventbridge';
-import { Evaluation, EvaluationWindow } from '@backend/cron-anomaly-detection';
+
+import {Evaluation, EvaluationWindow} from "@backend/cron-anomaly-detection/stat_functions";
 
 export type EbPageViewAnomalyDetail = EvaluationWindow & {
   evaluations: Evaluation[];
