@@ -1,8 +1,10 @@
-import {DateUtils} from "@backend/lib/utils/date_utils";
-import {LambdaEnvironment} from "@backend/cron-anomaly-detection/environment";
-import assert from "assert";
-import {groupBy} from "lodash";
-import {logger} from "@backend/cron-anomaly-detection/index";
+import { DateUtils } from '@backend/lib/utils/date_utils';
+import { LambdaEnvironment } from '@backend/cron-anomaly-detection/environment';
+import assert from 'assert';
+import { groupBy } from 'lodash';
+import { LambdaLog } from '@backend/lib/utils/lambda_logger';
+
+const logger = new LambdaLog();
 
 export type Record = {
   date_key: Date;
@@ -16,7 +18,7 @@ export type CleanedData = {
   trainingData: Record[];
   /* Array of trainingData views property */
   trainingDataViews: number[];
-  /* The latest value */ //TODO needed?
+  /* The latest value */
   latest: {
     record: Record;
   };
@@ -164,11 +166,11 @@ export function predict(data: CleanedData, seasonLength: number, predictedBreach
   if (expPredictedPrev && expPredictedPrev !== 0) predicted = (expPredictedLatest + expPredictedPrev) / 2;
 
   const latestRecord = data.latest.record;
-  const breachingThreshold = predicted * predictedBreachingMultiplier; // TODO: rename breachingStdDev to somethin else not STD anymore
+  const breachingThreshold = predicted * predictedBreachingMultiplier;
   /* Use the `data.latest.record` instead of `data.trainingDataViews[data.trainingDataViews.length-1]` because the
    * latter has clamped values */
   const breachingLatest = latestRecord.views > breachingThreshold;
-  logger.info('Prediction', {
+  logger.debug('Prediction', {
     Latest: latestRecord,
     Predicted: predicted,
     BreachingThreshold: breachingThreshold,
@@ -219,8 +221,8 @@ export function evaluate(
   const startEvaluationAt = DateUtils.addHours(eventDateLatest, -evaluate);
 
   for (let n = 0; n < evaluate; n++) {
-    const evaluationDate = DateUtils.addHours(startEvaluationAt, n); //TODO think +1 here, else won't have the first value on first itteration
-    const {data, fromDate, toDate} = getTrainingDataForDate(rawData, evaluationDate, seasonLength, fetchSeasons);
+    const evaluationDate = DateUtils.addHours(startEvaluationAt, n); // TODO think +1 here, else won't have the first value on first itteration
+    const { data, fromDate, toDate } = getTrainingDataForDate(rawData, evaluationDate, seasonLength, fetchSeasons);
 
     const dataCleaned = cleanData(data, fromDate, toDate);
     if (!dataCleaned) continue; // Not enough data
@@ -239,8 +241,7 @@ export function evaluate(
 
     if (n > 1) {
       const previousEvaluation = evaluations[n - 1];
-      if(previousEvaluation && previousEvaluation.window)
-      {
+      if (previousEvaluation && previousEvaluation.window) {
         // If previous evaluations window is in alarm, the current evaluation is not breached and the slope is still negative,
         // then we consider it still in a breached state as the anomaly is not over until the slope is positive.
         if (previousEvaluation.window.alarm && !evaluation.breached && evaluation.slope < 0) {
@@ -250,12 +251,14 @@ export function evaluate(
             alarm: true,
             state: 'ALARM_SLOPE_STILL_NEGATIVE',
           };
-          console.log('Slope negative', evaluationDate);
+          logger.info('Slope negative', evaluationDate);
         }
       }
     }
     evaluations.push(evaluation);
   }
+
+  logger.info('Evaluations', evaluations);
 
   return evaluations.slice(-evaluateWindows);
 }

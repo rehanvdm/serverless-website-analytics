@@ -1,10 +1,10 @@
 import { EventBridgeClient, PutEventsCommand, PutEventsRequestEntry } from '@aws-sdk/client-eventbridge';
-import { EbPageViewAnomalyBreached, EbPageViewAnomalyOk } from '@backend/lib/dal/eventbridge/events/amoaly.page_view';
+import { EbPageViewAnomalyAlarm, EbPageViewAnomalyOk } from '@backend/lib/dal/eventbridge/events/amoaly.page_view';
 import { getEventBridgeClient } from '@backend/lib/utils/lazy_aws';
 
 export type EbAnalyticsEntry<T extends { DetailType: string; Detail: unknown }> = T;
 
-type EbAnalyticsEventAll = EbPageViewAnomalyBreached | EbPageViewAnomalyOk;
+type EbAnalyticsEventAll = EbPageViewAnomalyAlarm | EbPageViewAnomalyOk;
 
 export class EventBridgeAnalytics {
   private ebClient: EventBridgeClient;

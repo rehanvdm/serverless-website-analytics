@@ -21,6 +21,7 @@
         "plugin:prettier/recommended"
     ],
     "rules": {
-        "semi": "off"
+        "semi": "off",
+        "no-unmodified-loop-condition": "off"
     }
 }

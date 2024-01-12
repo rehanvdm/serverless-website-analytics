@@ -1,8 +1,5 @@
 import '@tests/environment-hoist';
-import {
-  handler,
-  logger,
-} from '@backend/cron-anomaly-detection';
+import { handler } from '@backend/cron-anomaly-detection';
 import { TestConfig } from '../../../test-config';
 import { apiGwContext, setEnvVariables, TEST_TYPE } from '@tests/helpers';
 import { expect } from 'chai';
@@ -12,7 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import { parse } from 'papaparse';
 import { DateUtils } from '@backend/lib/utils/date_utils';
-import { LogLevel } from '@backend/lib/utils/lambda_logger';
+import { LambdaLog, LogLevel } from '@backend/lib/utils/lambda_logger';
 import { plot, Plot } from 'nodeplotlib';
 import assert from 'assert';
 import {
@@ -21,8 +18,8 @@ import {
   Evaluation,
   fillMissingDates,
   predict,
-  Record
-} from "@backend/cron-anomaly-detection/stat_functions";
+  Record,
+} from '@backend/cron-anomaly-detection/stat_functions';
 
 const ECHO_TEST_OUTPUTS = true;
 const TimeOut = 120;
@@ -35,7 +32,7 @@ describe('Cron - Anomaly Detection', function () {
     console.log('TEST_TYPE', process.env.TEST_TYPE);
   });
 
-  it('Run', async function () {
+  it('Test Lambda', async function () {
     this.timeout(TimeOut * 1000);
 
     if (process.env.TEST_TYPE === TEST_TYPE.E2E) {
@@ -53,7 +50,10 @@ describe('Cron - Anomaly Detection', function () {
       // time: '2023-07-01T00:20:00Z', // Never on the hour
 
       // time: '2023-08-01T00:20:00Z',
-      time: '2023-08-01T08:20:00Z',
+      // runs on 08 evaluates previous hour 07
+      // time: '2023-08-01T08:20:00Z', // 07 is breaching & OK
+      // time: '2023-08-01T09:20:00Z', // 08 is breaching & ALARM_WINDOW_BREACHED
+      time: '2023-08-01T10:20:00Z', // 09 is breaching & WINDOW_ALARM_SLOPE_STILL_NEGATIVE
 
       region: 'eu-west-1',
       resources: ['0'],
@@ -69,7 +69,7 @@ describe('Cron - Anomaly Detection', function () {
     expect(resp).to.eq(true);
   });
 
-  it('Unit Test and Graph', async function () {
+  it('Simulate and predict', async function () {
     this.timeout(TimeOut * 1000);
 
     if (process.env.TEST_TYPE === TEST_TYPE.E2E) {
@@ -78,6 +78,7 @@ describe('Cron - Anomaly Detection', function () {
     }
 
     /* Some globals used by following functions */
+    const logger = new LambdaLog();
     setEnvVariables(TestConfig.env);
     LambdaEnvironment.init();
     logger.init(LambdaEnvironment.ENVIRONMENT);
@@ -124,13 +125,12 @@ describe('Cron - Anomaly Detection', function () {
     const fetchSeasons = 2;
 
     const chartEvaluations: Evaluation[] = [];
-    // Running 6 months simulation is now a lot of itterations because we are not storing state, but replaying
+    // Running 6 months simulation is now a lot of iterations because we are not storing state, but replaying
     // the last 24 hours every time to rebuild the state.
     // iterations = hours * state replay hours * evaluations
     //            = 3500 * 24 * 2 = 168,000
 
-    for (const record of rawData)
-    {
+    for (const record of rawData) {
       /* Event time will always be the current hour, Firehose S3 Buffer Hint + 5 minutes
        * Take it as if it was for that hour */
       const eventDateLatest = new Date(record.date_key.setMinutes(0, 0, 0));
@@ -144,14 +144,14 @@ describe('Cron - Anomaly Detection', function () {
         fetchSeasons
       );
       const latestEvaluation = evaluations[evaluations.length - 1];
-      if(!latestEvaluation)       //TODO first is undefined should not be
+      if (!latestEvaluation)
+        // TODO first is undefined should not be?
         continue;
 
       chartEvaluations.push(latestEvaluation);
 
       // For testing and want to return early
-      if(record.date_key > DateUtils.parseIso('2023-08-01T00:00:00'))
-        break;
+      if (record.date_key > DateUtils.parseIso('2023-08-01T00:00:00')) break;
     }
 
     const chartX = chartEvaluations.map((row) => row.date);

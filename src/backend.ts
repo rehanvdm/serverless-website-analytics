@@ -298,7 +298,8 @@ export function backend(
 
   // ANALYTICS_DDB_TABLE
   // Create a DynamoDB Table pay as you go
-  const analyticsDdbTable = new dynamodb.Table(scope, name('analytics-table'), {
+  //TODO continue
+  new dynamodb.Table(scope, name('analytics-table'), {
     tableName: name('table'),
     partitionKey: {
       name: 'PK',

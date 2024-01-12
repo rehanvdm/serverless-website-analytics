@@ -1,16 +1,16 @@
-import {Context, ScheduledEvent} from 'aws-lambda';
-import {LambdaLog} from '@backend/lib/utils/lambda_logger';
-import {LambdaEnvironment} from '@backend/cron-anomaly-detection/environment';
-import {AuditLog} from '@backend/lib/models/audit_log';
-import {v4 as uuidv4} from 'uuid';
-import {DateUtils} from '@backend/lib/utils/date_utils';
-import {AthenaPageViews} from '@backend/lib/dal/athena/page_views';
-import {evaluate, Record} from '@backend/cron-anomaly-detection/stat_functions';
-import {EventBridgeAnalytics} from '@backend/lib/dal/eventbridge';
+import { Context, ScheduledEvent } from 'aws-lambda';
+import { LambdaLog } from '@backend/lib/utils/lambda_logger';
+import { LambdaEnvironment } from '@backend/cron-anomaly-detection/environment';
+import { AuditLog } from '@backend/lib/models/audit_log';
+import { v4 as uuidv4 } from 'uuid';
+import { DateUtils } from '@backend/lib/utils/date_utils';
+import { AthenaPageViews } from '@backend/lib/dal/athena/page_views';
+import { evaluate, Record } from '@backend/cron-anomaly-detection/stat_functions';
+import { EventBridgeAnalytics } from '@backend/lib/dal/eventbridge';
 
 /* Lazy loaded variables */
 let initialized = false;
-export const logger = new LambdaLog();
+const logger = new LambdaLog();
 
 async function getData(
   athenaPageViews: AthenaPageViews,
@@ -81,15 +81,15 @@ export const handler = async (event: ScheduledEvent, context: Context): Promise<
       seasonLength,
       fetchSeasons
     );
-    const latestEvaluation = evaluations[evaluations.length - 1];
+    const evaluationsDesc = evaluations.reverse();
 
-    if (!latestEvaluation.window) console.log('Evaluation window not full, not sending event');
+    if (!evaluationsDesc[0].window) console.log('Evaluation window not full, not sending event');
     else {
       await eventBridgeAnalytics.putEvent({
-        DetailType: latestEvaluation.window.alarm ? 'anomaly.page_view.alarm' : 'anomaly.page_view.ok',
+        DetailType: evaluationsDesc[0].window.alarm ? 'anomaly.page_view.alarm' : 'anomaly.page_view.ok',
         Detail: {
-          ...latestEvaluation.window,
-          evaluations,
+          ...evaluationsDesc[0].window,
+          evaluations: evaluationsDesc,
         },
       });
     }
