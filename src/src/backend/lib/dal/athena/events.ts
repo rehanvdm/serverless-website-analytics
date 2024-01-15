@@ -1,6 +1,6 @@
 import { DateUtils } from '@backend/lib/utils/date_utils';
 import { AthenaBase } from '@backend/lib/utils/athena_base';
-import { getAthenaClient, getS3Client } from '@backend/lib/utils/lazy_aws';
+import { getAthenaClient, getS3Client, getEventBridgeClient } from '@backend/lib/utils/lazy_aws';
 import { Page } from '@backend/lib/models/page';
 import { EventFilter } from '@backend/lib/models/event_filter';
 import { v4 as uuidv4 } from 'uuid';
@@ -9,6 +9,8 @@ export class AthenaEvents extends AthenaBase {
   constructor(glueDbName: string, athenaStorageBucket: string) {
     const athenaClient = getAthenaClient();
     const s3Client = getS3Client();
+    const ggg = getEventBridgeClient();
+
     super(athenaClient, s3Client, glueDbName, athenaStorageBucket, {
       bigIntAsNumber: true,
       falselyAs: 'null',

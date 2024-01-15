@@ -2,7 +2,6 @@ import * as assert from 'assert';
 import * as path from 'path';
 import { Duration } from 'aws-cdk-lib';
 import * as cdk from 'aws-cdk-lib';
-import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -15,6 +14,7 @@ import { auth } from './auth';
 import { backendAnalytics } from './backendAnalytics';
 import { SwaProps } from './index';
 import { CwLambda } from './lib/cloudwatch-helper';
+import {EB_DETAIL_TYPE} from "./src/backend/lib/dal/eventbridge/constants";
 
 export function backend(
   scope: Construct,
@@ -31,6 +31,8 @@ export function backend(
     LOG_LEVEL: props.observability!.loglevel!,
   };
   let defaultNodeJsFuncOpt = {};
+
+  const eventBridgeSource = name(props.environment);
 
   /* ================================== */
   /* ============ API Ingest ========== */
@@ -296,25 +298,6 @@ export function backend(
     targets: [new targets.LambdaFunction(cronVacuumLambda)],
   });
 
-  // ANALYTICS_DDB_TABLE
-  // Create a DynamoDB Table pay as you go
-  //TODO continue
-  new dynamodb.Table(scope, name('analytics-table'), {
-    tableName: name('table'),
-    partitionKey: {
-      name: 'PK',
-      type: dynamodb.AttributeType.STRING,
-    },
-    sortKey: {
-      name: 'SK',
-      type: dynamodb.AttributeType.STRING,
-    },
-    billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-    removalPolicy: cdk.RemovalPolicy.DESTROY,
-  });
-
-  // TIME_ZONE
-
   const cronAnomalyDetectionTimeOut = 900;
   const cronAnomalyDetectionLambda = new lambda.Function(scope, name('lambda-cron-anomaly-detection'), {
     functionName: name('cron-anomaly-detection'),
@@ -328,14 +311,14 @@ export function backend(
       ...defaultEnv,
       LOG_LEVEL: 'INFO', // We don't produce a lot of logs, lets keep this on INFO for now
 
-      TIMEOUT: cronVacuumLambdaTimeOut.toString(),
+      TIMEOUT: cronAnomalyDetectionTimeOut.toString(),
       ANALYTICS_BUCKET: backendAnalyticsProps.analyticsBucket.bucketName,
       ANALYTICS_GLUE_DB_NAME: backendAnalyticsProps.glueDbName,
       SITES: JSON.stringify(props.sites),
 
       EVALUATION_WINDOW: '2',
       BREACHING_STD_DEV: '2',
-      EVENT_BRIDGE_SOURCE: name(props.environment),
+      EVENT_BRIDGE_SOURCE: eventBridgeSource,
     },
     /* The lambda is NOT idempotent */
     retryAttempts: 0,
@@ -363,6 +346,37 @@ export function backend(
     schedule: events.Schedule.cron({ minute: '20' }),
     targets: [new targets.LambdaFunction(cronAnomalyDetectionLambda)],
   });
+
+
+  const workerAnomalyProcessTimeOut = 900;
+  const workerAnomalyProcessLambda = new lambda.Function(scope, name('lambda-worker-anomaly-process'), {
+    functionName: name('worker-anomaly-process'),
+    code: lambda.Code.fromAsset(path.join(__dirname, '../lib/build/backend/worker-anomaly-process')),
+    handler: 'index.handler',
+    runtime: lambda.Runtime.NODEJS_16_X,
+    ...defaultNodeJsFuncOpt,
+    memorySize: 1024,
+    timeout: Duration.seconds(workerAnomalyProcessTimeOut),
+    environment: {
+      ...defaultEnv,
+      LOG_LEVEL: 'INFO', // We don't produce a lot of logs, lets keep this on INFO for now
+
+      TIMEOUT: workerAnomalyProcessTimeOut.toString(),
+      ANALYTICS_BUCKET: backendAnalyticsProps.analyticsBucket.bucketName,
+      ANALYTICS_GLUE_DB_NAME: backendAnalyticsProps.glueDbName,
+      SITES: JSON.stringify(props.sites),
+    },
+  });
+  const workerAnomalyProcessLambdaRule = new events.Rule(scope, name("rule-worker-anomaly-detection-process"), {
+    eventPattern: {
+      source: [eventBridgeSource],
+      detailType: [
+        EB_DETAIL_TYPE['anomaly.page_view.alarm'],
+        EB_DETAIL_TYPE['anomaly.page_view.ok']
+      ],
+    }
+  });
+  workerAnomalyProcessLambdaRule.addTarget(new targets.LambdaFunction(workerAnomalyProcessLambda));
 
   const cwLambdas: CwLambda[] = [
     {

@@ -109,6 +109,7 @@ async function buildTsLambdas()
     "api-ingest",
     "cron-vacuum",
     "cron-anomaly-detection",
+    "worker-anomaly-process",
   ];
 
   for( let lambdaDir of tsLambdaDirectories)

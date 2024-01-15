@@ -17,7 +17,16 @@ const project = new awscdk.AwsCdkConstructLibrary({
   npmAccess: NpmAccess.PUBLIC,
   repositoryUrl: 'https://github.com/rehanvdm/serverless-website-analytics.git',
   excludeTypescript: ['src/src/**/*'],
-  devDeps: ['husky', 'execa@5', 'fs-extra', '@types/fs-extra', 'esbuild', 'yargs', 'esbuild-runner'],
+  devDeps: [
+    'husky',
+    'execa@5',
+    'fs-extra',
+    '@types/fs-extra',
+    'esbuild',
+    'yargs',
+    'esbuild-runner',
+    'lodash', '@types/lodash'
+  ],
   eslint: true,
   prettier: true,
   prettierOptions: {
@@ -63,6 +72,9 @@ project.npmignore!.exclude('scripts/**/*');
 project.tsconfigDev!.addInclude('scripts/**/*');
 
 project.eslint!.ignorePatterns!.push('src/src/**');
+project.eslint!.addRules({
+  "no-use-before-define": "off"
+})
 project.jest!.addIgnorePattern('<rootDir>/src/src');
 
 project.compileTask.exec('ts-node ./scripts/index.ts -c install-src');

@@ -7,7 +7,8 @@
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
         "ecmaVersion": 12,
-        "sourceType": "module"
+        "sourceType": "module",
+        "project": "./tsconfig.json"
     },
     "plugins": [
         "@typescript-eslint",
@@ -22,6 +23,7 @@
     ],
     "rules": {
         "semi": "off",
-        "no-unmodified-loop-condition": "off"
+        "no-unmodified-loop-condition": "off",
+        "@typescript-eslint/no-duplicate-type-constituents": "error"
     }
 }

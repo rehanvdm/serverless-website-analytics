@@ -7,6 +7,8 @@ import { backend } from './backend';
 import { backendAnalytics } from './backendAnalytics';
 import { frontend } from './frontend';
 import { observability } from './observability';
+import * as cdk from "aws-cdk-lib";
+import * as _ from "lodash";
 
 export interface SwaAuthBasicAuth {
   /**
@@ -149,6 +151,7 @@ export interface Observability {
 
   /**
    * Sets the log level, defaults to `AUDIT`. Available options: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `AUDIT`.
+   * @default AUDIT
    */
   readonly loglevel?: string;
 }
@@ -163,6 +166,64 @@ export interface RateLimitProps {
    * The number of concurrent requests to allow on the Front/Dashboard API.
    */
   readonly frontLambdaConcurrency: number;
+}
+
+export interface AnomalyDetectionProps {
+  /**
+   * The number of consecutive breaches before the window enters alarm state.
+   * @default 2
+   */
+  readonly evaluationWindow?: number;
+
+  /**
+   * The multiplier used on the predicted value to determine the breaching threshold.
+   * @default 2
+   */
+  readonly predictedBreachingMultiplier?: number;
+}
+
+export interface AnomalyAlertProps {
+  /**
+   * The SNS Topic to send alarms to.
+   */
+  readonly topic: sns.Topic;
+
+  /**
+   * Send an alarm when the anomaly is detected.
+   * @default true
+   */
+  readonly onAlarm?: boolean;
+
+  /**
+   * Send an alarm when the anomaly is complete.
+   * @default true
+   */
+  readonly onOk?: boolean;
+
+  // /**
+  //  * Send insights with the alarm.
+  //  */
+  // readonly includeInsights: { ... }
+}
+export interface AnomalyProps {
+  /**
+   * Optional, if specified overrides the default properties
+   * @default ```{
+   *   evaluationWindow: 2,
+   *   predictedBreachingMultiplier: 2
+   * }```
+   */
+  readonly detection?: AnomalyDetectionProps,
+
+  /**
+   * Optional, if  specified sends anomaly alarms to the specified SNS Topic as per `alert.topic`.
+   * @default ```{
+   *   onAlarm: true,
+   *   onOk: true
+   * }```
+   */
+  readonly alert?: AnomalyAlertProps,
+
 }
 
 export interface SwaProps {
@@ -225,7 +286,16 @@ export interface SwaProps {
    * Adds a rate limit to the Ingest API and Frontend/Dashboard API. Defaults to 200 and 100 respectively.
    */
   readonly rateLimit?: RateLimitProps;
+
+  /**
+   * Adds anomaly detection to the backend.
+   */
+  readonly anomaly?: AnomalyProps;
 }
+
+type DeepPartial<T> = T extends object ? {
+  [P in keyof T]?: DeepPartial<T[P]>;
+} : T;
 
 export class Swa extends Construct {
   constructor(scope: Construct, id: string, props: SwaProps) {
@@ -238,7 +308,9 @@ export class Swa extends Construct {
     /* Other pre-CloudFormation checks here */
 
     if (props.firehoseBufferInterval && (props.firehoseBufferInterval < 60 || props.firehoseBufferInterval > 900)) {
-      throw new Error('`firehoseBufferInterval` must be between 60 and 900 seconds');
+      cdk.Annotations.of(scope).addWarning(
+        'It is highly recommended to specify `firehoseBufferInterval` between 60 and 900 seconds to reduce costs.'
+      );
     }
 
     if (props?.domain?.trackOwnDomain) {
@@ -263,16 +335,26 @@ export class Swa extends Construct {
       }
     }
 
-    /* Set default log level if it is not defined */
-    if (!props?.observability?.loglevel) {
-      props = {
-        ...props,
-        observability: {
-          ...props.observability,
-          loglevel: 'AUDIT',
+    /* Set defaults it not defined */
+
+    const defaultProps: DeepPartial<SwaProps> = {
+      observability: {
+        loglevel: 'AUDIT',
+      },
+      anomaly: {
+        detection: {
+          evaluationWindow: 2,
+          predictedBreachingMultiplier: 2,
         },
-      };
+        alert: {
+          onAlarm: true,
+          onOk: true,
+        }
+      }
     }
+
+    props = _.merge(defaultProps, props);
+
 
     const authProps = auth(scope, name, props);
     const backendAnalyticsProps = backendAnalytics(scope, name, props);

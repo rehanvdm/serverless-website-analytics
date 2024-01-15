@@ -26,13 +26,13 @@ async function getData(
 }
 
 export const handler = async (event: ScheduledEvent, context: Context): Promise<true> => {
-  // logger.debug("EVENT", event);
   const shouldInitialize = !initialized || process.env.TESTING_LOCAL_RE_INIT === 'true';
   if (shouldInitialize) {
     LambdaEnvironment.init();
     logger.init(LambdaEnvironment.ENVIRONMENT);
     initialized = true;
   }
+  // logger.debug("EVENT", event);
 
   LambdaEnvironment.TRACE_ID = context.awsRequestId;
   logger.start(LambdaEnvironment.LOG_LEVEL, LambdaEnvironment.TRACE_ID);

@@ -130,7 +130,8 @@
           "method"
         ]
       }
-    ]
+    ],
+    "no-use-before-define": "off"
   },
   "overrides": [
     {
