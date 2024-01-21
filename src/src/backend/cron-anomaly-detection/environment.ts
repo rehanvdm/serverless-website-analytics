@@ -14,7 +14,7 @@ export class LambdaEnvironment {
   static SITES: string[];
 
   static EVALUATION_WINDOW: number;
-  static BREACHING_STD_DEV: number;
+  static BREACHING_MULTIPLIER: number;
   static EVENT_BRIDGE_SOURCE: string;
 
   static init() {
@@ -30,7 +30,7 @@ export class LambdaEnvironment {
       SITES: z.string().transform((v) => JSON.parse(v) as string[]),
 
       EVALUATION_WINDOW: z.string().transform((v) => Number(v)),
-      BREACHING_STD_DEV: z.string().transform((v) => Number(v)),
+      BREACHING_MULTIPLIER: z.string().transform((v) => Number(v)),
       EVENT_BRIDGE_SOURCE: z.string(),
     });
     const parsed = schema.safeParse(process.env);

@@ -3,6 +3,7 @@ import { AthenaClient } from '@aws-sdk/client-athena';
 import { FirehoseClient } from '@aws-sdk/client-firehose';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { EventBridgeClient } from '@aws-sdk/client-eventbridge';
+import { SNSClient } from '@aws-sdk/client-sns';
 import assert from 'assert';
 
 const s3Client: Record<string, S3Client> = {};
@@ -10,6 +11,7 @@ const firehoseClient: Record<string, FirehoseClient> = {};
 const athenaClient: Record<string, AthenaClient> = {};
 const dynamodbClient: Record<string, DynamoDBClient> = {};
 const eventBridgeClient: Record<string, EventBridgeClient> = {};
+const snsClient: Record<string, SNSClient> = {};
 
 function awsEnv() {
   return {
@@ -100,4 +102,20 @@ export function getEventBridgeClient(region?: string) {
     });
   }
   return eventBridgeClient[region];
+}
+
+export function getSnsClient(region?: string) {
+  if (!region) {
+    region = process.env.AWS_REGION;
+  }
+
+  assert(region);
+
+  if (!snsClient[region]) {
+    snsClient[region] = new SNSClient({
+      region,
+      ...awsEnv(),
+    });
+  }
+  return snsClient[region];
 }

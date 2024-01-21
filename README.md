@@ -100,6 +100,12 @@ export class App extends cdk.Stack {
           alarmTopic,
           alarmTypes: AllAlarmTypes
         },
+      },
+      /* Optional, anomaly detection and alerts. Might raise cost */
+      anomaly: {
+        alert: {
+          topic: alarmTopic,
+        }
       }
     });
 
@@ -130,6 +136,10 @@ Quick option rundown:
   from the stack output.
 - `observability`: Adds a CloudWatch Dashboard and Alarms if specified.
 - `rateLimit`: Adds a rate limit to the Ingest API and Frontend/Dashboard API. Defaults to 200 and 100 respectively.
+- `anomaly`: Adds anomaly detection for page views. The evaluation happens 20 min past the hour. The alert window
+  defaults to 2 evaluations and both evaluations need to be breaching, where an evaluation is breaching if the value
+  exceeds the breaching multiplier, which defaults to 2x the predicted value. An SNS Topic notifies the user via email
+  when there is an anomaly.
 
 For a full list of options see the [API.md](https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/API.md#api-reference-) docs.
 

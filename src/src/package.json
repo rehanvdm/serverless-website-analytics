@@ -55,6 +55,7 @@
     "@aws-sdk/client-eventbridge": "^3.484.0",
     "@aws-sdk/client-firehose": "^3.316.0",
     "@aws-sdk/client-s3": "^3.317.0",
+    "@aws-sdk/client-sns": "^3.317.0",
     "@maxmind/geoip2-node": "^3.5.0",
     "@trpc/client": "^10.13.2 ",
     "@trpc/server": "^10.13.2 ",

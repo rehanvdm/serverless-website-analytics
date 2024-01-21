@@ -28,10 +28,14 @@ export type TestConfig = {
     ANALYTICS_DDB_TABLE: string;
 
     EVALUATION_WINDOW: string;
-    BREACHING_STD_DEV: string;
+    BREACHING_MULTIPLIER: string;
     EVENT_BRIDGE_SOURCE: string;
 
     TIME_ZONE: string;
+
+    ALERT_TOPIC_ARN: string;
+    ALERT_ON_ALARM: string;
+    ALERT_ON_OK: string;
   };
   cognitoAuthUser?: {
     userPoolId: string;
@@ -75,10 +79,14 @@ export const TestConfig: TestConfig = {
     ANALYTICS_DDB_TABLE: 'rehan-analytics-swa-table',
 
     EVALUATION_WINDOW: '2',
-    BREACHING_STD_DEV: '2',
+    BREACHING_MULTIPLIER: '2',
     // EVALUATION_WINDOW: '1',
-    // BREACHING_STD_DEV: '4',
+    // BREACHING_MULTIPLIER: '4',
     EVENT_BRIDGE_SOURCE: 'rehan-analytics-swa-prod',
+
+    ALERT_TOPIC_ARN: "arn:aws:sns:eu-west-1:134204159843:rehan-analytics-rehananalyticsalarmtopic1C71C790-EuKfG1eF75C6",
+    ALERT_ON_ALARM: 'true',
+    ALERT_ON_OK: 'false',
 
     TIME_ZONE: 'Africa/Johannesburg',
   },

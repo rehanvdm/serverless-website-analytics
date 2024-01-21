@@ -7,6 +7,8 @@ import { DateUtils } from '@backend/lib/utils/date_utils';
 import { AthenaPageViews } from '@backend/lib/dal/athena/page_views';
 import { EbPageViewAnomalyOk, EbPageViewAnomalyAlarm } from '@backend/lib/dal/eventbridge/events/anomaly.page_view';
 import { EbAnalyticsEntryToEventBridgeEvent } from '@backend/lib/dal/eventbridge';
+import {getSnsClient} from "@backend/lib/utils/lazy_aws";
+import {Sns} from "@backend/lib/dal/sns";
 
 /* Lazy loaded variables */
 let initialized = false;
@@ -43,10 +45,27 @@ export const handler = async (event: Event, context: Context): Promise<true> => 
   };
 
   try {
-    const athenaPageViews = new AthenaPageViews(
-      LambdaEnvironment.ANALYTICS_GLUE_DB_NAME,
-      LambdaEnvironment.ANALYTICS_BUCKET_ATHENA_PATH
-    );
+
+    let transitionedTo = "NONE";
+    if(!event.detail.evaluations[1].breached && event.detail.evaluations[0].breached)
+      transitionedTo = "ALARM";
+    else if(event.detail.evaluations[1].breached && !event.detail.evaluations[0].breached)
+      transitionedTo = "OK";
+
+    if(transitionedTo !== "NONE")
+    {
+      const alertSns = new Sns(LambdaEnvironment.ALERT_TOPIC_ARN);
+      const alertSubject = `Page View Anomaly - ${transitionedTo}`;
+
+      if((transitionedTo === "ALARM" && LambdaEnvironment.ALERT_ON_ALARM) ||
+         (transitionedTo === "OK" && LambdaEnvironment.ALERT_ON_OK))
+      {
+        await alertSns.publishCommand({
+          Subject: alertSubject,
+          Message: alertSubject + "\n\n" + JSON.stringify(event.detail, null, 4),
+        });
+      }
+    }
 
     audit.success = true;
   } catch (err) {

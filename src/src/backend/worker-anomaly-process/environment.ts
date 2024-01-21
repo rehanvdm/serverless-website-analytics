@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import * as sns from "aws-cdk-lib/aws-sns";
 
 export class LambdaEnvironment {
   static AWS_REGION: string;
@@ -13,6 +14,10 @@ export class LambdaEnvironment {
   static ANALYTICS_GLUE_DB_NAME: string;
   static SITES: string[];
 
+  static ALERT_TOPIC_ARN: string;
+  static ALERT_ON_ALARM: boolean;
+  static ALERT_ON_OK: boolean;
+
   static init() {
     const schema = z.object({
       AWS_REGION: z.string(),
@@ -24,6 +29,10 @@ export class LambdaEnvironment {
       ANALYTICS_BUCKET: z.string(),
       ANALYTICS_GLUE_DB_NAME: z.string(),
       SITES: z.string().transform((v) => JSON.parse(v) as string[]),
+
+      ALERT_TOPIC_ARN: z.string(),
+      ALERT_ON_ALARM: z.string().transform((v) => Boolean(v)),
+      ALERT_ON_OK: z.string().transform((v) => Boolean(v)),
     });
     const parsed = schema.safeParse(process.env);
 

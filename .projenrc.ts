@@ -25,7 +25,8 @@ const project = new awscdk.AwsCdkConstructLibrary({
     'esbuild',
     'yargs',
     'esbuild-runner',
-    'lodash', '@types/lodash'
+    'lodash',
+    '@types/lodash',
   ],
   eslint: true,
   prettier: true,
@@ -73,8 +74,8 @@ project.tsconfigDev!.addInclude('scripts/**/*');
 
 project.eslint!.ignorePatterns!.push('src/src/**');
 project.eslint!.addRules({
-  "no-use-before-define": "off"
-})
+  'no-use-before-define': 'off',
+});
 project.jest!.addIgnorePattern('<rootDir>/src/src');
 
 project.compileTask.exec('ts-node ./scripts/index.ts -c install-src');

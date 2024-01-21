@@ -227,7 +227,7 @@ export function evaluate(
     const dataCleaned = cleanData(data, fromDate, toDate);
     if (!dataCleaned) continue; // Not enough data
 
-    const prediction = predict(dataCleaned, seasonLength, LambdaEnvironment.BREACHING_STD_DEV);
+    const prediction = predict(dataCleaned, seasonLength, LambdaEnvironment.BREACHING_MULTIPLIER);
     const evaluation: Evaluation = {
       date: evaluationDate.toISOString(),
       value: dataCleaned.latest.record.views,

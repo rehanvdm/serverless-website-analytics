@@ -1,14 +1,14 @@
+import * as cdk from 'aws-cdk-lib';
 import * as cert from 'aws-cdk-lib/aws-certificatemanager';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as sns from 'aws-cdk-lib/aws-sns';
 import { Construct } from 'constructs';
+import * as _ from 'lodash';
 import { auth } from './auth';
 import { backend } from './backend';
 import { backendAnalytics } from './backendAnalytics';
 import { frontend } from './frontend';
 import { observability } from './observability';
-import * as cdk from "aws-cdk-lib";
-import * as _ from "lodash";
 
 export interface SwaAuthBasicAuth {
   /**
@@ -213,7 +213,7 @@ export interface AnomalyProps {
    *   predictedBreachingMultiplier: 2
    * }```
    */
-  readonly detection?: AnomalyDetectionProps,
+  readonly detection?: AnomalyDetectionProps;
 
   /**
    * Optional, if  specified sends anomaly alarms to the specified SNS Topic as per `alert.topic`.
@@ -222,8 +222,7 @@ export interface AnomalyProps {
    *   onOk: true
    * }```
    */
-  readonly alert?: AnomalyAlertProps,
-
+  readonly alert?: AnomalyAlertProps;
 }
 
 export interface SwaProps {
@@ -293,9 +292,11 @@ export interface SwaProps {
   readonly anomaly?: AnomalyProps;
 }
 
-type DeepPartial<T> = T extends object ? {
-  [P in keyof T]?: DeepPartial<T[P]>;
-} : T;
+type DeepPartial<T> = T extends object
+  ? {
+      [P in keyof T]?: DeepPartial<T[P]>;
+    }
+  : T;
 
 export class Swa extends Construct {
   constructor(scope: Construct, id: string, props: SwaProps) {
@@ -349,12 +350,11 @@ export class Swa extends Construct {
         alert: {
           onAlarm: true,
           onOk: true,
-        }
-      }
-    }
+        },
+      },
+    };
 
     props = _.merge(defaultProps, props);
-
 
     const authProps = auth(scope, name, props);
     const backendAnalyticsProps = backendAnalytics(scope, name, props);

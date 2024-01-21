@@ -14,7 +14,7 @@ import { auth } from './auth';
 import { backendAnalytics } from './backendAnalytics';
 import { SwaProps } from './index';
 import { CwLambda } from './lib/cloudwatch-helper';
-import {EB_DETAIL_TYPE} from "./src/backend/lib/dal/eventbridge/constants";
+import { EB_DETAIL_TYPE } from './src/backend/lib/dal/eventbridge/constants';
 
 export function backend(
   scope: Construct,
@@ -33,6 +33,7 @@ export function backend(
   let defaultNodeJsFuncOpt = {};
 
   const eventBridgeSource = name(props.environment);
+  const cwLambdas: CwLambda[] = [];
 
   /* ================================== */
   /* ============ API Ingest ========== */
@@ -48,7 +49,7 @@ export function backend(
     functionName: name('api-ingest'),
     code: lambda.Code.fromAsset(path.join(__dirname, '../lib/build/backend/api-ingest')),
     handler: 'index.handler',
-    runtime: lambda.Runtime.NODEJS_16_X,
+    runtime: lambda.Runtime.NODEJS_18_X,
     ...defaultNodeJsFuncOpt,
     memorySize: 1024,
     timeout: Duration.seconds(ingestLambdaTimeout),
@@ -75,9 +76,18 @@ export function backend(
       resources: [backendAnalyticsProps.firehosePageViews.attrArn, backendAnalyticsProps.firehoseEvents.attrArn],
     })
   );
-
   const apiIngestLambdaUrl = apiIngestLambda.addFunctionUrl({
     authType: lambda.FunctionUrlAuthType.NONE,
+  });
+  cwLambdas.push({
+    func: apiIngestLambda,
+    alarm: {
+      hardError: true,
+      softErrorFilter: logs.FilterPattern.all(
+        logs.FilterPattern.stringValue('$.level', '=', 'audit'),
+        logs.FilterPattern.booleanValue('$.success', false)
+      ),
+    },
   });
 
   /* ================================== */
@@ -202,7 +212,7 @@ export function backend(
     functionName: name('api-front'),
     code: lambda.Code.fromAsset(path.join(__dirname, '../lib/build/backend/api-front')),
     handler: 'index.handler',
-    runtime: lambda.Runtime.NODEJS_16_X,
+    runtime: lambda.Runtime.NODEJS_18_X,
     ...defaultNodeJsFuncOpt,
     memorySize: 1024,
     timeout: Duration.seconds(frontLambdaTimeOut),
@@ -220,9 +230,18 @@ export function backend(
     reservedConcurrentExecutions: props.rateLimit?.frontLambdaConcurrency ?? 100,
   });
   addAthenaPolicies(apiFrontLambda);
-
   const apiFrontLambdaUrl = apiFrontLambda.addFunctionUrl({
     authType: lambda.FunctionUrlAuthType.NONE,
+  });
+  cwLambdas.push({
+    func: apiFrontLambda,
+    alarm: {
+      hardError: true,
+      softErrorFilter: logs.FilterPattern.all(
+        logs.FilterPattern.stringValue('$.level', '=', 'audit'),
+        logs.FilterPattern.booleanValue('$.success', false)
+      ),
+    },
   });
 
   const cronVacuumLambdaTimeOut = 900;
@@ -230,7 +249,7 @@ export function backend(
     functionName: name('cron-vacuum'),
     code: lambda.Code.fromAsset(path.join(__dirname, '../lib/build/backend/cron-vacuum')),
     handler: 'index.handler',
-    runtime: lambda.Runtime.NODEJS_16_X,
+    runtime: lambda.Runtime.NODEJS_18_X,
     ...defaultNodeJsFuncOpt,
     memorySize: 1024,
     timeout: Duration.seconds(cronVacuumLambdaTimeOut),
@@ -297,119 +316,122 @@ export function backend(
     schedule: events.Schedule.cron({ minute: '0', hour: '1' }),
     targets: [new targets.LambdaFunction(cronVacuumLambda)],
   });
-
-  const cronAnomalyDetectionTimeOut = 900;
-  const cronAnomalyDetectionLambda = new lambda.Function(scope, name('lambda-cron-anomaly-detection'), {
-    functionName: name('cron-anomaly-detection'),
-    code: lambda.Code.fromAsset(path.join(__dirname, '../lib/build/backend/cron-anomaly-detection')),
-    handler: 'index.handler',
-    runtime: lambda.Runtime.NODEJS_16_X,
-    ...defaultNodeJsFuncOpt,
-    memorySize: 1024,
-    timeout: Duration.seconds(cronAnomalyDetectionTimeOut),
-    environment: {
-      ...defaultEnv,
-      LOG_LEVEL: 'INFO', // We don't produce a lot of logs, lets keep this on INFO for now
-
-      TIMEOUT: cronAnomalyDetectionTimeOut.toString(),
-      ANALYTICS_BUCKET: backendAnalyticsProps.analyticsBucket.bucketName,
-      ANALYTICS_GLUE_DB_NAME: backendAnalyticsProps.glueDbName,
-      SITES: JSON.stringify(props.sites),
-
-      EVALUATION_WINDOW: '2',
-      BREACHING_STD_DEV: '2',
-      EVENT_BRIDGE_SOURCE: eventBridgeSource,
-    },
-    /* The lambda is NOT idempotent */
-    retryAttempts: 0,
-    reservedConcurrentExecutions: 1,
-  });
-  addAthenaPolicies(cronAnomalyDetectionLambda);
-  cronAnomalyDetectionLambda.addToRolePolicy(
-    new iam.PolicyStatement({
-      sid: 'RollupPermissionsS3Delete',
-      effect: Effect.ALLOW,
-      actions: ['events:PutEvents'],
-      resources: [
-        cdk.Arn.format({
-          partition: 'aws',
-          account: props.awsEnv.account,
-          region: props.awsEnv.region,
-          service: 'events',
-          resource: 'event-bus/default',
-        }),
-      ],
-    })
-  );
-  /* Execute 20 mins after every hour so that we are sure the previous hours data is done writing */
-  new events.Rule(scope, name('cron-anomaly-detection-rule'), {
-    schedule: events.Schedule.cron({ minute: '20' }),
-    targets: [new targets.LambdaFunction(cronAnomalyDetectionLambda)],
-  });
-
-
-  const workerAnomalyProcessTimeOut = 900;
-  const workerAnomalyProcessLambda = new lambda.Function(scope, name('lambda-worker-anomaly-process'), {
-    functionName: name('worker-anomaly-process'),
-    code: lambda.Code.fromAsset(path.join(__dirname, '../lib/build/backend/worker-anomaly-process')),
-    handler: 'index.handler',
-    runtime: lambda.Runtime.NODEJS_16_X,
-    ...defaultNodeJsFuncOpt,
-    memorySize: 1024,
-    timeout: Duration.seconds(workerAnomalyProcessTimeOut),
-    environment: {
-      ...defaultEnv,
-      LOG_LEVEL: 'INFO', // We don't produce a lot of logs, lets keep this on INFO for now
-
-      TIMEOUT: workerAnomalyProcessTimeOut.toString(),
-      ANALYTICS_BUCKET: backendAnalyticsProps.analyticsBucket.bucketName,
-      ANALYTICS_GLUE_DB_NAME: backendAnalyticsProps.glueDbName,
-      SITES: JSON.stringify(props.sites),
+  cwLambdas.push({
+    func: cronVacuumLambda,
+    alarm: {
+      hardError: true,
+      softErrorFilter: logs.FilterPattern.all(
+        logs.FilterPattern.stringValue('$.level', '=', 'audit'),
+        logs.FilterPattern.booleanValue('$.success', false)
+      ),
     },
   });
-  const workerAnomalyProcessLambdaRule = new events.Rule(scope, name("rule-worker-anomaly-detection-process"), {
-    eventPattern: {
-      source: [eventBridgeSource],
-      detailType: [
-        EB_DETAIL_TYPE['anomaly.page_view.alarm'],
-        EB_DETAIL_TYPE['anomaly.page_view.ok']
-      ],
+
+  if (props.anomaly?.detection) {
+    const cronAnomalyDetectionTimeOut = 900;
+    const cronAnomalyDetectionLambda = new lambda.Function(scope, name('lambda-cron-anomaly-detection'), {
+      functionName: name('cron-anomaly-detection'),
+      code: lambda.Code.fromAsset(path.join(__dirname, '../lib/build/backend/cron-anomaly-detection')),
+      handler: 'index.handler',
+      runtime: lambda.Runtime.NODEJS_18_X,
+      ...defaultNodeJsFuncOpt,
+      memorySize: 1024,
+      timeout: Duration.seconds(cronAnomalyDetectionTimeOut),
+      environment: {
+        ...defaultEnv,
+        LOG_LEVEL: 'INFO', // We don't produce a lot of logs, lets keep this on INFO for now
+
+        TIMEOUT: cronAnomalyDetectionTimeOut.toString(),
+        ANALYTICS_BUCKET: backendAnalyticsProps.analyticsBucket.bucketName,
+        ANALYTICS_GLUE_DB_NAME: backendAnalyticsProps.glueDbName,
+        SITES: JSON.stringify(props.sites),
+
+        EVALUATION_WINDOW: props.anomaly.detection.evaluationWindow!.toString(),
+        BREACHING_MULTIPLIER: props.anomaly.detection.predictedBreachingMultiplier!.toString(),
+        EVENT_BRIDGE_SOURCE: eventBridgeSource,
+      },
+      /* The lambda is NOT idempotent */
+      retryAttempts: 0,
+      reservedConcurrentExecutions: 1,
+    });
+    addAthenaPolicies(cronAnomalyDetectionLambda);
+    cronAnomalyDetectionLambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        sid: 'RollupPermissionsS3Delete',
+        effect: Effect.ALLOW,
+        actions: ['events:PutEvents'],
+        resources: [
+          cdk.Arn.format({
+            partition: 'aws',
+            account: props.awsEnv.account,
+            region: props.awsEnv.region,
+            service: 'events',
+            resource: 'event-bus/default',
+          }),
+        ],
+      })
+    );
+    /* Execute 20 mins after every hour so that we are sure the previous hours data is done writing */
+    new events.Rule(scope, name('cron-anomaly-detection-rule'), {
+      schedule: events.Schedule.cron({ minute: '20' }),
+      targets: [new targets.LambdaFunction(cronAnomalyDetectionLambda)],
+    });
+    cwLambdas.push({
+      func: cronAnomalyDetectionLambda,
+      alarm: {
+        hardError: true,
+        softErrorFilter: logs.FilterPattern.all(
+          logs.FilterPattern.stringValue('$.level', '=', 'audit'),
+          logs.FilterPattern.booleanValue('$.success', false)
+        ),
+      },
+    });
+
+    if (props.anomaly.alert?.topic) {
+      const workerAnomalyProcessTimeOut = 900;
+      const workerAnomalyProcessLambda = new lambda.Function(scope, name('lambda-worker-anomaly-process'), {
+        functionName: name('worker-anomaly-process'),
+        code: lambda.Code.fromAsset(path.join(__dirname, '../lib/build/backend/worker-anomaly-process')),
+        handler: 'index.handler',
+        runtime: lambda.Runtime.NODEJS_18_X,
+        ...defaultNodeJsFuncOpt,
+        memorySize: 1024,
+        timeout: Duration.seconds(workerAnomalyProcessTimeOut),
+        environment: {
+          ...defaultEnv,
+          LOG_LEVEL: 'INFO', // We don't produce a lot of logs, lets keep this on INFO for now
+
+          TIMEOUT: workerAnomalyProcessTimeOut.toString(),
+          ANALYTICS_BUCKET: backendAnalyticsProps.analyticsBucket.bucketName,
+          ANALYTICS_GLUE_DB_NAME: backendAnalyticsProps.glueDbName,
+          SITES: JSON.stringify(props.sites),
+
+          ALERT_TOPIC_ARN: props.anomaly.alert.topic.topicArn,
+          ALERT_ON_ALARM: props.anomaly.alert.onAlarm ? 'true' : 'false',
+          ALERT_ON_OK: props.anomaly.alert.onOk ? 'true' : 'false',
+        },
+      });
+      const workerAnomalyProcessLambdaRule = new events.Rule(scope, name('rule-worker-anomaly-detection-process'), {
+        eventPattern: {
+          source: [eventBridgeSource],
+          detailType: [EB_DETAIL_TYPE['anomaly.page_view.alarm'], EB_DETAIL_TYPE['anomaly.page_view.ok']],
+        },
+      });
+      workerAnomalyProcessLambdaRule.addTarget(new targets.LambdaFunction(workerAnomalyProcessLambda));
+      cwLambdas.push({
+        func: workerAnomalyProcessLambda,
+        alarm: {
+          hardError: true,
+          softErrorFilter: logs.FilterPattern.all(
+            logs.FilterPattern.stringValue('$.level', '=', 'audit'),
+            logs.FilterPattern.booleanValue('$.success', false)
+          ),
+        },
+      });
+      props.anomaly.alert.topic.grantPublish(workerAnomalyProcessLambda);
     }
-  });
-  workerAnomalyProcessLambdaRule.addTarget(new targets.LambdaFunction(workerAnomalyProcessLambda));
+  }
 
-  const cwLambdas: CwLambda[] = [
-    {
-      func: apiIngestLambda,
-      alarm: {
-        hardError: true,
-        softErrorFilter: logs.FilterPattern.all(
-          logs.FilterPattern.stringValue('$.level', '=', 'audit'),
-          logs.FilterPattern.booleanValue('$.success', false)
-        ),
-      },
-    },
-    {
-      func: apiFrontLambda,
-      alarm: {
-        hardError: true,
-        softErrorFilter: logs.FilterPattern.all(
-          logs.FilterPattern.stringValue('$.level', '=', 'audit'),
-          logs.FilterPattern.booleanValue('$.success', false)
-        ),
-      },
-    },
-    {
-      func: cronVacuumLambda,
-      alarm: {
-        hardError: true,
-        softErrorFilter: logs.FilterPattern.all(
-          logs.FilterPattern.stringValue('$.level', '=', 'audit'),
-          logs.FilterPattern.booleanValue('$.success', false)
-        ),
-      },
-    },
-  ];
   return {
     apiIngestOrigin: cdk.Fn.select(2, cdk.Fn.split('/', apiIngestLambdaUrl.url)),
     apiFrontOrigin: cdk.Fn.select(2, cdk.Fn.split('/', apiFrontLambdaUrl.url)),
