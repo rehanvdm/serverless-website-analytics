@@ -5,7 +5,7 @@ export class LambdaEnvironment {
   static AWS_REGION: string;
   static ENVIRONMENT: string;
   static VERSION: string;
-  static TIMEOUT: number;
+  static TIMEOUT: Event;
   static LOG_LEVEL: string;
   static TRACE_ID?: string;
 
@@ -13,6 +13,8 @@ export class LambdaEnvironment {
   static ANALYTICS_BUCKET_ATHENA_PATH: string; /* Constructed from ANALYTICS_BUCKET on initialization */
   static ANALYTICS_GLUE_DB_NAME: string;
   static SITES: string[];
+
+  static EVALUATION_WINDOW: number;
 
   static ALERT_TOPIC_ARN: string;
   static ALERT_ON_ALARM: boolean;
@@ -29,6 +31,8 @@ export class LambdaEnvironment {
       ANALYTICS_BUCKET: z.string(),
       ANALYTICS_GLUE_DB_NAME: z.string(),
       SITES: z.string().transform((v) => JSON.parse(v) as string[]),
+
+      EVALUATION_WINDOW: z.string().transform((v) => Number(v)),
 
       ALERT_TOPIC_ARN: z.string(),
       ALERT_ON_ALARM: z.string().transform((v) => Boolean(v)),

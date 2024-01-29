@@ -406,6 +406,8 @@ export function backend(
           ANALYTICS_GLUE_DB_NAME: backendAnalyticsProps.glueDbName,
           SITES: JSON.stringify(props.sites),
 
+          EVALUATION_WINDOW: props.anomaly.detection.evaluationWindow!.toString(),
+
           ALERT_TOPIC_ARN: props.anomaly.alert.topic.topicArn,
           ALERT_ON_ALARM: props.anomaly.alert.onAlarm ? 'true' : 'false',
           ALERT_ON_OK: props.anomaly.alert.onOk ? 'true' : 'false',

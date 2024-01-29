@@ -260,5 +260,5 @@ export function evaluate(
 
   logger.info('Evaluations', evaluations);
 
-  return evaluations.slice(-evaluateWindows);
+  return evaluations;
 }
