@@ -5,7 +5,7 @@ import { AuditLog } from '@backend/lib/models/audit_log';
 import { v4 as uuidv4 } from 'uuid';
 import { DateUtils } from '@backend/lib/utils/date_utils';
 import { AthenaPageViews } from '@backend/lib/dal/athena/page_views';
-import { evaluate, Record } from '@backend/cron-anomaly-detection/stat_functions';
+import { evaluate } from '@backend/cron-anomaly-detection/stat_functions';
 import { EventBridgeAnalytics } from '@backend/lib/dal/eventbridge';
 
 /* Lazy loaded variables */

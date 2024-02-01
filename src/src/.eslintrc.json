@@ -24,6 +24,7 @@
     "rules": {
         "semi": "off",
         "no-unmodified-loop-condition": "off",
-        "@typescript-eslint/no-duplicate-type-constituents": "error"
+        "@typescript-eslint/no-duplicate-type-constituents": "error",
+        "no-use-before-define": "warn"
     }
 }

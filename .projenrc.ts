@@ -17,17 +17,8 @@ const project = new awscdk.AwsCdkConstructLibrary({
   npmAccess: NpmAccess.PUBLIC,
   repositoryUrl: 'https://github.com/rehanvdm/serverless-website-analytics.git',
   excludeTypescript: ['src/src/**/*'],
-  devDeps: [
-    'husky',
-    'execa@5',
-    'fs-extra',
-    '@types/fs-extra',
-    'esbuild',
-    'yargs',
-    'esbuild-runner',
-    'lodash',
-    '@types/lodash',
-  ],
+  bundledDeps: ['lodash'],
+  devDeps: ['husky', 'execa@5', 'fs-extra', '@types/fs-extra', 'esbuild', 'yargs', 'esbuild-runner', '@types/lodash'],
   eslint: true,
   prettier: true,
   prettierOptions: {
@@ -46,6 +37,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
     compilerOptions: {
       esModuleInterop: false, //Not set in main tsconfig.json
     },
+    exclude: ['src/src/**/*.ts'], // keep in sync with ignorePatterns in eslint further down
   },
   depsUpgradeOptions: {
     workflow: false,
@@ -72,7 +64,11 @@ project.package.addEngine('npm', '~9.*');
 project.npmignore!.exclude('scripts/**/*');
 project.tsconfigDev!.addInclude('scripts/**/*');
 
-project.eslint!.ignorePatterns!.push('src/src/**');
+//Does not seem to work
+// Parsing error: ESLint was configured to run on `<tsconfigRootDir>/src/src/backend/api-front/environment.ts` using
+// `parserOptions.project`: /users/rehanvandermerwe/rehan/serverless-website-analytics/tsconfig.json
+// project.eslint!.ignorePatterns!.push('src/src/**');
+project.eslint!.ignorePatterns!.push('src/src/**/*.ts');
 project.eslint!.addRules({
   'no-use-before-define': 'off',
 });

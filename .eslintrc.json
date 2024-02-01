@@ -42,7 +42,7 @@
     "node_modules/",
     "*.generated.ts",
     "coverage",
-    "src/src/**",
+    "src/src/**/*.ts",
     "!.projenrc.ts",
     "!projenrc/**/*.ts"
   ],

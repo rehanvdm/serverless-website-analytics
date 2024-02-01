@@ -110,10 +110,6 @@
       "type": "build"
     },
     {
-      "name": "lodash",
-      "type": "build"
-    },
-    {
       "name": "npm-check-updates",
       "version": "^16",
       "type": "build"
@@ -146,6 +142,10 @@
     {
       "name": "yargs",
       "type": "build"
+    },
+    {
+      "name": "lodash",
+      "type": "bundled"
     },
     {
       "name": "aws-cdk-lib",

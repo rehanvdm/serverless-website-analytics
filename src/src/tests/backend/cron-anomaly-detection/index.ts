@@ -11,13 +11,10 @@ import { parse } from 'papaparse';
 import { DateUtils } from '@backend/lib/utils/date_utils';
 import { LambdaLog, LogLevel } from '@backend/lib/utils/lambda_logger';
 import { plot, Plot } from 'nodeplotlib';
-import assert from 'assert';
 import {
-  cleanData,
   evaluate,
   Evaluation,
   fillMissingDates,
-  predict,
   Record,
 } from '@backend/cron-anomaly-detection/stat_functions';
 

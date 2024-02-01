@@ -3,7 +3,7 @@ import { assertAuthentication, TrpcInstance } from '@backend/api-front/server';
 import { SchemaSite } from '@backend/lib/models/site';
 import { DateUtils } from '@backend/lib/utils/date_utils';
 import { AthenaEvents } from '@backend/lib/dal/athena/events';
-import { EventFilter, EventFilterSchema } from '@backend/lib/models/event_filter';
+import { EventFilterSchema } from '@backend/lib/models/event_filter';
 import { LambdaEnvironment } from '@backend/api-front/environment';
 
 const GetEventTopLevelStatsSchema = z.object({

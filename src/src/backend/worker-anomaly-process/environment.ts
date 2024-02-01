@@ -1,11 +1,10 @@
 import { z } from 'zod';
-import * as sns from "aws-cdk-lib/aws-sns";
 
 export class LambdaEnvironment {
   static AWS_REGION: string;
   static ENVIRONMENT: string;
   static VERSION: string;
-  static TIMEOUT: Event;
+  static TIMEOUT: number;
   static LOG_LEVEL: string;
   static TRACE_ID?: string;
 

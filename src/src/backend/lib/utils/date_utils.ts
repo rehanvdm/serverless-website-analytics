@@ -1,4 +1,4 @@
-import { DateTime, Duration, IANAZone, Interval, Settings } from 'luxon';
+import { DateTime, Duration, IANAZone, Settings } from 'luxon';
 Settings.defaultZone = 'utc';
 
 /**

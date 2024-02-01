@@ -64,7 +64,6 @@
     "jsii-diff": "^1.80.0",
     "jsii-docgen": "^8.0.12",
     "jsii-pacmak": "^1.80.0",
-    "lodash": "^4.17.21",
     "npm-check-updates": "^16",
     "prettier": "^2.8.8",
     "projen": "^0.71.47",
@@ -78,6 +77,12 @@
     "aws-cdk-lib": "^2.79.1",
     "constructs": "^10.0.5"
   },
+  "dependencies": {
+    "lodash": "^4.17.21"
+  },
+  "bundledDependencies": [
+    "lodash"
+  ],
   "keywords": [
     "cdk"
   ],

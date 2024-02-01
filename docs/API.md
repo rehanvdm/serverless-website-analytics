@@ -100,6 +100,12 @@ export class App extends cdk.Stack {
           alarmTopic,
           alarmTypes: AllAlarmTypes
         },
+      },
+      /* Optional, anomaly detection and alerts. Might raise cost */
+      anomaly: {
+        alert: {
+          topic: alarmTopic,
+        }
       }
     });
 
@@ -130,6 +136,10 @@ Quick option rundown:
   from the stack output.
 - `observability`: Adds a CloudWatch Dashboard and Alarms if specified.
 - `rateLimit`: Adds a rate limit to the Ingest API and Frontend/Dashboard API. Defaults to 200 and 100 respectively.
+- `anomaly`: Adds anomaly detection for page views. The evaluation happens 20 min past the hour. The alert window
+  defaults to 2 evaluations and both evaluations need to be breaching, where an evaluation is breaching if the value
+  exceeds the breaching multiplier, which defaults to 2x the predicted value. An SNS Topic notifies the user via email
+  when there is an anomaly.
 
 For a full list of options see the [API.md](https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/API.md#api-reference-) docs.
 
@@ -635,6 +645,154 @@ Adds a hard and soft alarm to both Lambda functions;
 
 ---
 
+### AnomalyAlertProps <a name="AnomalyAlertProps" id="serverless-website-analytics.AnomalyAlertProps"></a>
+
+#### Initializer <a name="Initializer" id="serverless-website-analytics.AnomalyAlertProps.Initializer"></a>
+
+```typescript
+import { AnomalyAlertProps } from 'serverless-website-analytics'
+
+const anomalyAlertProps: AnomalyAlertProps = { ... }
+```
+
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#serverless-website-analytics.AnomalyAlertProps.property.topic">topic</a></code> | <code>aws-cdk-lib.aws_sns.Topic</code> | The SNS Topic to send alarms to. |
+| <code><a href="#serverless-website-analytics.AnomalyAlertProps.property.onAlarm">onAlarm</a></code> | <code>boolean</code> | Send an alarm when the anomaly is detected. |
+| <code><a href="#serverless-website-analytics.AnomalyAlertProps.property.onOk">onOk</a></code> | <code>boolean</code> | Send an alarm when the anomaly is complete. |
+
+---
+
+##### `topic`<sup>Required</sup> <a name="topic" id="serverless-website-analytics.AnomalyAlertProps.property.topic"></a>
+
+```typescript
+public readonly topic: Topic;
+```
+
+- *Type:* aws-cdk-lib.aws_sns.Topic
+
+The SNS Topic to send alarms to.
+
+---
+
+##### `onAlarm`<sup>Optional</sup> <a name="onAlarm" id="serverless-website-analytics.AnomalyAlertProps.property.onAlarm"></a>
+
+```typescript
+public readonly onAlarm: boolean;
+```
+
+- *Type:* boolean
+- *Default:* true
+
+Send an alarm when the anomaly is detected.
+
+---
+
+##### `onOk`<sup>Optional</sup> <a name="onOk" id="serverless-website-analytics.AnomalyAlertProps.property.onOk"></a>
+
+```typescript
+public readonly onOk: boolean;
+```
+
+- *Type:* boolean
+- *Default:* true
+
+Send an alarm when the anomaly is complete.
+
+---
+
+### AnomalyDetectionProps <a name="AnomalyDetectionProps" id="serverless-website-analytics.AnomalyDetectionProps"></a>
+
+#### Initializer <a name="Initializer" id="serverless-website-analytics.AnomalyDetectionProps.Initializer"></a>
+
+```typescript
+import { AnomalyDetectionProps } from 'serverless-website-analytics'
+
+const anomalyDetectionProps: AnomalyDetectionProps = { ... }
+```
+
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#serverless-website-analytics.AnomalyDetectionProps.property.evaluationWindow">evaluationWindow</a></code> | <code>number</code> | The number of consecutive breaches before the window enters alarm state. |
+| <code><a href="#serverless-website-analytics.AnomalyDetectionProps.property.predictedBreachingMultiplier">predictedBreachingMultiplier</a></code> | <code>number</code> | The multiplier used on the predicted value to determine the breaching threshold. |
+
+---
+
+##### `evaluationWindow`<sup>Optional</sup> <a name="evaluationWindow" id="serverless-website-analytics.AnomalyDetectionProps.property.evaluationWindow"></a>
+
+```typescript
+public readonly evaluationWindow: number;
+```
+
+- *Type:* number
+- *Default:* 2
+
+The number of consecutive breaches before the window enters alarm state.
+
+---
+
+##### `predictedBreachingMultiplier`<sup>Optional</sup> <a name="predictedBreachingMultiplier" id="serverless-website-analytics.AnomalyDetectionProps.property.predictedBreachingMultiplier"></a>
+
+```typescript
+public readonly predictedBreachingMultiplier: number;
+```
+
+- *Type:* number
+- *Default:* 2
+
+The multiplier used on the predicted value to determine the breaching threshold.
+
+---
+
+### AnomalyProps <a name="AnomalyProps" id="serverless-website-analytics.AnomalyProps"></a>
+
+#### Initializer <a name="Initializer" id="serverless-website-analytics.AnomalyProps.Initializer"></a>
+
+```typescript
+import { AnomalyProps } from 'serverless-website-analytics'
+
+const anomalyProps: AnomalyProps = { ... }
+```
+
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#serverless-website-analytics.AnomalyProps.property.alert">alert</a></code> | <code><a href="#serverless-website-analytics.AnomalyAlertProps">AnomalyAlertProps</a></code> | Optional, if  specified sends anomaly alarms to the specified SNS Topic as per `alert.topic`. |
+| <code><a href="#serverless-website-analytics.AnomalyProps.property.detection">detection</a></code> | <code><a href="#serverless-website-analytics.AnomalyDetectionProps">AnomalyDetectionProps</a></code> | Optional, if specified overrides the default properties. |
+
+---
+
+##### `alert`<sup>Optional</sup> <a name="alert" id="serverless-website-analytics.AnomalyProps.property.alert"></a>
+
+```typescript
+public readonly alert: AnomalyAlertProps;
+```
+
+- *Type:* <a href="#serverless-website-analytics.AnomalyAlertProps">AnomalyAlertProps</a>
+- *Default:* ```{ onAlarm: true, onOk: true }```
+
+Optional, if  specified sends anomaly alarms to the specified SNS Topic as per `alert.topic`.
+
+---
+
+##### `detection`<sup>Optional</sup> <a name="detection" id="serverless-website-analytics.AnomalyProps.property.detection"></a>
+
+```typescript
+public readonly detection: AnomalyDetectionProps;
+```
+
+- *Type:* <a href="#serverless-website-analytics.AnomalyDetectionProps">AnomalyDetectionProps</a>
+- *Default:* ```{ evaluationWindow: 2, predictedBreachingMultiplier: 2 }```
+
+Optional, if specified overrides the default properties.
+
+---
+
 ### AwsEnv <a name="AwsEnv" id="serverless-website-analytics.AwsEnv"></a>
 
 The AWS environment (account and region) to deploy to.
@@ -832,6 +990,7 @@ public readonly loglevel: string;
 ```
 
 - *Type:* string
+- *Default:* AUDIT
 
 Sets the log level, defaults to `AUDIT`.
 
@@ -1091,6 +1250,7 @@ const swaProps: SwaProps = { ... }
 | <code><a href="#serverless-website-analytics.SwaProps.property.awsEnv">awsEnv</a></code> | <code><a href="#serverless-website-analytics.AwsEnv">AwsEnv</a></code> | The AWS environment (account and region) to deploy to. |
 | <code><a href="#serverless-website-analytics.SwaProps.property.environment">environment</a></code> | <code>string</code> | A string added as a tag to the Lambda function to appear in logs. |
 | <code><a href="#serverless-website-analytics.SwaProps.property.sites">sites</a></code> | <code>string[]</code> | The list of allowed sites. |
+| <code><a href="#serverless-website-analytics.SwaProps.property.anomaly">anomaly</a></code> | <code><a href="#serverless-website-analytics.AnomalyProps">AnomalyProps</a></code> | Adds anomaly detection to the backend. |
 | <code><a href="#serverless-website-analytics.SwaProps.property.auth">auth</a></code> | <code><a href="#serverless-website-analytics.SwaAuth">SwaAuth</a></code> | The auth configuration which defaults to none. |
 | <code><a href="#serverless-website-analytics.SwaProps.property.domain">domain</a></code> | <code><a href="#serverless-website-analytics.Domain">Domain</a></code> | If specified, it will create the CloudFront and Cognito resources at the specified domain and optionally create the DNS records in the specified Route53 hosted zone. |
 | <code><a href="#serverless-website-analytics.SwaProps.property.firehoseBufferInterval">firehoseBufferInterval</a></code> | <code>number</code> | The number in seconds for the Firehose buffer interval. |
@@ -1156,6 +1316,18 @@ The list of allowed sites.
 This does not have to be a domain name, it can also be string. It can be anything
 you want to use to identify a site. The client side script that send analytics will have to specify one of these
 names. Ex: example.com
+
+---
+
+##### `anomaly`<sup>Optional</sup> <a name="anomaly" id="serverless-website-analytics.SwaProps.property.anomaly"></a>
+
+```typescript
+public readonly anomaly: AnomalyProps;
+```
+
+- *Type:* <a href="#serverless-website-analytics.AnomalyProps">AnomalyProps</a>
+
+Adds anomaly detection to the backend.
 
 ---
 

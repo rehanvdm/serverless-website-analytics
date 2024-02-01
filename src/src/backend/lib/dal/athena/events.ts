@@ -9,7 +9,6 @@ export class AthenaEvents extends AthenaBase {
   constructor(glueDbName: string, athenaStorageBucket: string) {
     const athenaClient = getAthenaClient();
     const s3Client = getS3Client();
-    const ggg = getEventBridgeClient();
 
     super(athenaClient, s3Client, glueDbName, athenaStorageBucket, {
       bigIntAsNumber: true,

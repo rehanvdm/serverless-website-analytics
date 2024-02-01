@@ -1,6 +1,5 @@
 import { DateUtils } from '@backend/lib/utils/date_utils';
 import { LambdaEnvironment } from '@backend/cron-anomaly-detection/environment';
-import assert from 'assert';
 import { groupBy } from 'lodash';
 import { LambdaLog } from '@backend/lib/utils/lambda_logger';
 
@@ -102,7 +101,7 @@ export function cleanData(rawData: Record[], fromDate: Date, toDate: Date): Clea
   //  ACTUALLY thqt means just need to use rawData instead of allData DUH
   //  Is it actually better to do it like this? Need to test
   /* Only take the non 0 (because of missing data fill meaning it was actually 0) values for getting the statistical numbers */
-  const trainingDataValues = allData.filter((row: any) => row.views > 0).map((row: any) => row.views);
+  const trainingDataValues = allData.filter((row: Record) => row.views > 0).map((row: Record) => row.views);
   if (trainingDataValues.length === 0) return false;
 
   const trainingDataStdDev = calculateStandardDeviation(trainingDataValues);

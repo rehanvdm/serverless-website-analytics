@@ -84,7 +84,7 @@ export const TestConfig: TestConfig = {
     // BREACHING_MULTIPLIER: '4',
     EVENT_BRIDGE_SOURCE: 'rehan-analytics-swa-prod',
 
-    ALERT_TOPIC_ARN: "arn:aws:sns:eu-west-1:134204159843:rehan-analytics-rehananalyticsalarmtopic1C71C790-EuKfG1eF75C6",
+    ALERT_TOPIC_ARN: 'arn:aws:sns:eu-west-1:134204159843:rehan-analytics-rehananalyticsalarmtopic1C71C790-EuKfG1eF75C6',
     ALERT_ON_ALARM: 'true',
     ALERT_ON_OK: 'false',
 
