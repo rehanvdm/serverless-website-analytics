@@ -11,12 +11,7 @@ import { parse } from 'papaparse';
 import { DateUtils } from '@backend/lib/utils/date_utils';
 import { LambdaLog, LogLevel } from '@backend/lib/utils/lambda_logger';
 import { plot, Plot } from 'nodeplotlib';
-import {
-  evaluate,
-  Evaluation,
-  fillMissingDates,
-  Record,
-} from '@backend/cron-anomaly-detection/stat_functions';
+import { evaluate, Evaluation, fillMissingDates, Record } from '@backend/cron-anomaly-detection/stat_functions';
 
 const ECHO_TEST_OUTPUTS = true;
 const TimeOut = 120;

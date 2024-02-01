@@ -84,7 +84,7 @@ function alamrMessage(event: Event) {
     '\n\n' +
     'DATE: ' +
     dateTime +
-    '\n\n' +
+    ' (all dates are UTC)\n\n' +
     'MESSAGE: ' +
     message +
     '\n\n' +
