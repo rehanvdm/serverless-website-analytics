@@ -1,6 +1,7 @@
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import { Swa, SwaProps } from '../src';
+import { expect } from 'chai';
 
 describe('Auth', () => {
   const partialSwaProps: Omit<SwaProps, 'auth'> = {
@@ -92,7 +93,7 @@ describe('Auth', () => {
       });
       Template.fromStack(stack);
     } catch (e: any) {
-      expect(e.message).toBe('Specify only `basicAuth` or `cognito` for `auth` but not both');
+      expect(e.message).eq('Specify only `basicAuth` or `cognito` for `auth` but not both');
     }
   });
 });

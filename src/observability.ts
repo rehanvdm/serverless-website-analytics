@@ -28,7 +28,7 @@ export function observability(
     const cwAlarmAction = new cloudwatchactions.SnsAction(observabilityProps.alarms.alarmTopic);
 
     if (observabilityProps.alarms.alarmTypes.lambda) {
-      for (let cwLambda of cwLambdas) {
+      for (const cwLambda of cwLambdas) {
         if (cwLambda.alarm.hardError) CwAlarms.Lambda.hardError(scope, cwLambda, cwAlarmAction);
         if (cwLambda.alarm?.softErrorFilter) {
           const { metricProps } = CwAlarms.Lambda.softError(scope, cwLambda, cwAlarmAction);
@@ -44,7 +44,7 @@ export function observability(
     }
 
     if (observabilityProps.alarms.alarmTypes.firehose) {
-      for (let cwFirehose of cwFirehoses) {
+      for (const cwFirehose of cwFirehoses) {
         CwAlarms.Firehose.throttleRecords(scope, cwFirehose, cwAlarmAction);
         CwAlarms.Firehose.deliveryToS3Success(scope, cwFirehose, cwAlarmAction);
       }
@@ -54,7 +54,7 @@ export function observability(
   if (observabilityProps.dashboard) {
     const dashboardName = name('dashboard');
     const dashboard = new cloudwatch.Dashboard(scope, dashboardName, {
-      dashboardName: dashboardName,
+      dashboardName,
       // start: "-PT24H",
       start: '-P7D',
       periodOverride: cloudwatch.PeriodOverride.AUTO,
@@ -146,6 +146,6 @@ export function observability(
       value: dashboardUrl,
     });
 
-    //https://eu-west-1.console.aws.amazon.com/cloudwatch/home?region=eu-west-1#dashboards/dashboard/rehan-analytics-swa-dashboard
+    // https://eu-west-1.console.aws.amazon.com/cloudwatch/home?region=eu-west-1#dashboards/dashboard/rehan-analytics-swa-dashboard
   }
 }

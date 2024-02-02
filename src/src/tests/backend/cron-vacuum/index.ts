@@ -1,6 +1,6 @@
 import '@tests/environment-hoist';
 import { handler } from '@backend/cron-vacuum';
-import { TestConfig } from '../../../test-config';
+import { TestConfig } from '../../../../../test-config';
 import { apiGwContext, setEnvVariables, TEST_TYPE } from '@tests/helpers';
 import { expect } from 'chai';
 import { ScheduledEvent } from 'aws-lambda';

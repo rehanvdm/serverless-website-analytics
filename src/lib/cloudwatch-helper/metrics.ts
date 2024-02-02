@@ -79,6 +79,7 @@ export namespace CwMetrics {
         ...props,
       });
     }
+
     static errors4xxRate(cwCloudFront: CwCloudFront, props?: Partial<cloudwatch.MetricProps>) {
       return new cloudwatch.Metric({
         region: 'us-east-1',
@@ -90,6 +91,7 @@ export namespace CwMetrics {
         ...props,
       });
     }
+
     static errors5xxRate(cwCloudFront: CwCloudFront, props?: Partial<cloudwatch.MetricProps>) {
       return new cloudwatch.Metric({
         region: 'us-east-1',

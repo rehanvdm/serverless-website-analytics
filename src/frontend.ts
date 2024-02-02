@@ -28,7 +28,7 @@ export function frontend(
   authProps: ReturnType<typeof auth>,
   backendProps: ReturnType<typeof backend>
 ) {
-  let bucketSecretReferer = '8fd78848-437d-435a-b37c-fe5ff1967cdd';
+  const bucketSecretReferer = '8fd78848-437d-435a-b37c-fe5ff1967cdd';
   const frontendBucket = new s3.Bucket(scope, name('web-bucket'), {
     bucketName: name('web-bucket'),
     autoDeleteObjects: true,
@@ -59,9 +59,9 @@ export function frontend(
          it won't do anything, it is basically a clamp value for when we do. The default is used when we don't
          specify a cache-control value. */
     maxTtl: cdk.Duration.seconds(60),
-    //https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/RequestAndResponseBehaviorCustomOrigin.html#request-custom-traffic-spikes
-    //Don't want request collapsing at all, set mint ttl to 0 AND Also need to set the returned cache controll header
-    //from lambda to private (Cache-Control: private)
+    // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/RequestAndResponseBehaviorCustomOrigin.html#request-custom-traffic-spikes
+    // Don't want request collapsing at all, set mint ttl to 0 AND Also need to set the returned cache controll header
+    // from lambda to private (Cache-Control: private)
     minTtl: cdk.Duration.seconds(0),
     defaultTtl: cdk.Duration.seconds(0),
     queryStringBehavior: cloudfront.CacheQueryStringBehavior.all(),
@@ -76,7 +76,7 @@ export function frontend(
       };
 
   const defaultBucketOrigin = new origins.HttpOrigin(frontendBucket.bucketWebsiteDomainName, {
-    protocolPolicy: OriginProtocolPolicy.HTTP_ONLY, //can not specify scope in the AWS console anymore :shrug:
+    protocolPolicy: OriginProtocolPolicy.HTTP_ONLY, // can not specify scope in the AWS console anymore :shrug:
     customHeaders: {
       Referer: bucketSecretReferer,
     },
@@ -185,7 +185,7 @@ export function frontend(
     }[] = [];
 
     /* First CloudFront A record if we can */
-    let cloudFrontRecord: route53.ARecord | undefined = undefined;
+    let cloudFrontRecord: route53.ARecord | undefined;
     if (props.domain.hostedZone) {
       cloudFrontRecord = new route53.ARecord(scope, name('cloudfront-record'), {
         recordName: props.domain.name,

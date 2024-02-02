@@ -3,7 +3,7 @@
 // Does not work for AWS SDK V2, have to read the ENV variables and re-initialize the SDK clients
 
 import { setAWSSDKCreds, TEST_TYPE } from '@tests/helpers';
-import { TestConfig } from '../test-config';
+import { TestConfig } from '../../../test-config';
 process.env.TESTING_LOCAL = 'true';
 process.env.TESTING_LOCAL_RE_INIT = 'true';
 /* So that can be set externally */

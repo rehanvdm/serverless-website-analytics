@@ -24,9 +24,9 @@
     "baseUrl": ".",
     "moduleResolution": "Node",
     "paths": {
-      "@backend/*": ["backend/*"],
-      "@frontend/*": ["frontend/*"],
-      "@tests/*": ["tests/*"]
+      "@backend/*": ["src/src/backend/*"],
+      "@frontend/*": ["src/src/frontend/*"],
+      "@tests/*": ["src/src/tests/*"]
     }
   },
   "exclude": [

@@ -82,7 +82,7 @@ test('Cert separate stack - Old prop', () => {
     domain: {
       name: 'test.com',
       certificate: wildCardCertUsEast1,
-      hostedZone: hostedZone,
+      hostedZone,
       // trackOwnDomain: true,
     },
 
@@ -125,7 +125,7 @@ test('Cert separate stack - New prop', () => {
     domain: {
       name: 'test.com',
       usEast1Certificate: wildCardCertUsEast1,
-      hostedZone: hostedZone,
+      hostedZone,
       // trackOwnDomain: true,
     },
 
@@ -167,7 +167,7 @@ test('Cert same stack', () => {
     domain: {
       name: 'test.com',
       usEast1Certificate: wildCardCertUsEast1,
-      hostedZone: hostedZone,
+      hostedZone,
       // trackOwnDomain: true,
     },
 

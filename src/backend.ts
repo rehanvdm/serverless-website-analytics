@@ -14,7 +14,7 @@ import { auth } from './auth';
 import { backendAnalytics } from './backendAnalytics';
 import { SwaProps } from './index';
 import { CwLambda } from './lib/cloudwatch-helper';
-import { EB_DETAIL_TYPE } from './src/backend/lib/dal/eventbridge/constants';
+import { EB_DETAIL_TYPE } from '@backend/lib/dal/eventbridge/constants';
 
 export function backend(
   scope: Construct,
@@ -23,14 +23,14 @@ export function backend(
   authProps: ReturnType<typeof auth>,
   backendAnalyticsProps: ReturnType<typeof backendAnalytics>
 ) {
-  let defaultEnv = {
+  const defaultEnv = {
     ENVIRONMENT: props.environment,
     VERSION: '0.0.0',
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
     NODE_OPTIONS: '--enable-source-maps',
     LOG_LEVEL: props.observability!.loglevel!,
   };
-  let defaultNodeJsFuncOpt = {};
+  const defaultNodeJsFuncOpt = {};
 
   const eventBridgeSource = name(props.environment);
   const cwLambdas: CwLambda[] = [];
@@ -56,7 +56,7 @@ export function backend(
     environment: {
       ...defaultEnv,
       TIMEOUT: ingestLambdaTimeout.toString(),
-      ENRICH_RETURNED_ERRORS: 'true', //props.environment != "prod"
+      ENRICH_RETURNED_ERRORS: 'true', // props.environment != "prod"
       ANALYTICS_BUCKET: backendAnalyticsProps.analyticsBucket.bucketName,
       FIREHOSE_PAGE_VIEWS_NAME: backendAnalyticsProps.firehosePageViews.deliveryStreamName!,
       FIREHOSE_EVENTS_NAME: backendAnalyticsProps.firehoseEvents.deliveryStreamName!,
@@ -93,11 +93,11 @@ export function backend(
   /* ================================== */
   /* ============ API Front ========== */
   /* ================================== */
-  let frontLambdaTimeOut = 60;
+  const frontLambdaTimeOut = 60;
   let frontLambdaEnv: Record<string, string> = {
     ...defaultEnv,
     TIMEOUT: frontLambdaTimeOut.toString(),
-    ENRICH_RETURNED_ERRORS: 'true', //props.environment != "prod"
+    ENRICH_RETURNED_ERRORS: 'true', // props.environment != "prod"
 
     ANALYTICS_BUCKET: backendAnalyticsProps.analyticsBucket.bucketName,
     ANALYTICS_GLUE_DB_NAME: backendAnalyticsProps.glueDbName,
@@ -218,7 +218,7 @@ export function backend(
     timeout: Duration.seconds(frontLambdaTimeOut),
     environment: {
       ...frontLambdaEnv,
-      ENRICH_RETURNED_ERRORS: 'true', //props.environment != "prod"
+      ENRICH_RETURNED_ERRORS: 'true', // props.environment != "prod"
 
       ANALYTICS_BUCKET: backendAnalyticsProps.analyticsBucket.bucketName,
       ANALYTICS_GLUE_DB_NAME: backendAnalyticsProps.glueDbName,

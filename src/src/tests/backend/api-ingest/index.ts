@@ -1,6 +1,6 @@
 import '@tests/environment-hoist';
 import { handler } from '@backend/api-ingest';
-import { TestConfig } from '../../../test-config';
+import { TestConfig } from '../../../../../test-config';
 import {
   apiGwContext,
   ApiGwEventOptions,

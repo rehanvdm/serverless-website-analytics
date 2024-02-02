@@ -1,6 +1,6 @@
 import '@tests/environment-hoist';
 import { handler } from '@backend/worker-anomaly-process';
-import { TestConfig } from '../../../test-config';
+import { TestConfig } from '../../../../../test-config';
 import { apiGwContext, setEnvVariables, TEST_TYPE } from '@tests/helpers';
 import { expect } from 'chai';
 import { EbAnalyticsEntryToEventBridgeEvent } from '@backend/lib/dal/eventbridge';

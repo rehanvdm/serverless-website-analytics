@@ -57,7 +57,7 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
 
             resources: [
               '*',
-              //TODO: specifying specific version here failed... not sure why..
+              // TODO: specifying specific version here failed... not sure why..
               // cdk.Arn.format({
               //   partition: "aws",
               //   account: props.props.awsEnv.account,
@@ -249,7 +249,7 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
                 parameterName: 'MetadataExtractionQuery',
                 parameterValue: '{site: .site, page_opened_at_date: .page_opened_at_date}',
               },
-              //Required as property it seems
+              // Required as property it seems
               {
                 parameterName: 'JsonParsingEngine',
                 parameterValue: 'JQ-1.6',
@@ -268,7 +268,7 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
         outputFormatConfiguration: {
           serializer: {
             parquetSerDe: {
-              compression: 'SNAPPY', //faster decompression than GZIP
+              compression: 'SNAPPY', // faster decompression than GZIP
             },
           },
         },
@@ -441,7 +441,7 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
                 parameterName: 'MetadataExtractionQuery',
                 parameterValue: '{site: .site, tracked_at_date: .tracked_at_date}',
               },
-              //Required as property it seems
+              // Required as property it seems
               {
                 parameterName: 'JsonParsingEngine',
                 parameterValue: 'JQ-1.6',
@@ -460,7 +460,7 @@ export function backendAnalytics(scope: Construct, name: (name: string) => strin
         outputFormatConfiguration: {
           serializer: {
             parquetSerDe: {
-              compression: 'SNAPPY', //faster decompression than GZIP
+              compression: 'SNAPPY', // faster decompression than GZIP
             },
           },
         },

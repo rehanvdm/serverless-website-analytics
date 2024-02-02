@@ -7,11 +7,11 @@ import { Construct } from 'constructs';
 import { SwaProps } from './index';
 
 export function auth(scope: Construct, name: (name: string) => string, props: SwaProps) {
-  let cloudFrontBasicAuthFunction: cloudfront.Function | undefined = undefined;
-  let userPool: cognito.UserPool | undefined = undefined;
-  let userPoolClient: cognito.UserPoolClient | undefined = undefined;
-  let userPoolClientOptions: cognito.UserPoolClientOptions | undefined = undefined;
-  let userPoolDomain: string | undefined = undefined;
+  let cloudFrontBasicAuthFunction: cloudfront.Function | undefined;
+  let userPool: cognito.UserPool | undefined;
+  let userPoolClient: cognito.UserPoolClient | undefined;
+  let userPoolClientOptions: cognito.UserPoolClientOptions | undefined;
+  let userPoolDomain: string | undefined;
 
   if (props.auth?.basicAuth && props.auth?.cognito) {
     throw new Error('Specify only `basicAuth` or `cognito` for `auth` but not both');
@@ -105,7 +105,7 @@ export function auth(scope: Construct, name: (name: string) => string, props: Sw
       userPoolDomain = `https://${props.auth.cognito.loginSubDomain}.${props.domain.name}`;
     }
 
-    for (let user of props.auth?.cognito.users) {
+    for (const user of props.auth?.cognito.users) {
       new cognito.CfnUserPoolUser(scope, user.email, {
         userPoolId: userPool.userPoolId,
         userAttributes: [

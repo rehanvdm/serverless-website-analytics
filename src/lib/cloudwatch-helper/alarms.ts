@@ -43,8 +43,8 @@ export namespace CwAlarms {
         filterPattern: cwLambda.alarm.softErrorFilter,
         metricValue: '1',
       });
-      let alarm = new cloudwatch.Alarm(scope, id + 'Alarm', {
-        metric: metric,
+      const alarm = new cloudwatch.Alarm(scope, id + 'Alarm', {
+        metric,
         alarmDescription:
           'Lambda Soft Error - An error occurred within the function but the invocation still succeeded.',
         actionsEnabled: true,
@@ -71,7 +71,7 @@ export namespace CwAlarms {
         statistic: 'Sum',
       });
 
-      let alarm = new cloudwatch.Alarm(scope, metricToAlarmId(cwLambda.func, metric), {
+      const alarm = new cloudwatch.Alarm(scope, metricToAlarmId(cwLambda.func, metric), {
         metric: cwLambda.func.metricErrors(),
         alarmDescription: 'Lambda Hard Error - An error occurred and the function invocation failed.',
         actionsEnabled: true,
@@ -98,8 +98,8 @@ export namespace CwAlarms {
       const metric = CwMetrics.Firehose.deliveryToS3Success(cwFirehose, {
         period: cdk.Duration.minutes(1),
       });
-      let alarm = new cloudwatch.Alarm(scope, metricToAlarmId(cwFirehose.firehose, metric), {
-        metric: metric,
+      const alarm = new cloudwatch.Alarm(scope, metricToAlarmId(cwFirehose.firehose, metric), {
+        metric,
         alarmDescription: 'Firehose Delivery to S3 Error - Not all records delivered to S3, 100% is value 1.0.',
         actionsEnabled: true,
         alarmName: metricToAlarmName(cwFirehose.firehose, metric),
@@ -123,8 +123,8 @@ export namespace CwAlarms {
       const metric = CwMetrics.Firehose.throttleRecords(cwFirehose, {
         period: cdk.Duration.minutes(1),
       });
-      let alarm = new cloudwatch.Alarm(scope, metricToAlarmId(cwFirehose.firehose, metric), {
-        metric: metric,
+      const alarm = new cloudwatch.Alarm(scope, metricToAlarmId(cwFirehose.firehose, metric), {
+        metric,
         alarmDescription: 'Firehose Throttle Error - Not all records have been accepted.',
         actionsEnabled: true,
         alarmName: metricToAlarmName(cwFirehose.firehose, metric),

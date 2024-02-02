@@ -9,6 +9,7 @@ export namespace CwGraphWidgets {
         left: cwBuckets.map((cwBucket) => CwMetrics.S3.bucketSize(cwBucket)),
       });
     }
+
     static objectCount(cwBuckets: CwBucket[]) {
       return new cloudwatch.GraphWidget({
         title: 'S3 Object Count',
@@ -24,6 +25,7 @@ export namespace CwGraphWidgets {
         left: cwFirehoses.map((cwFirehose) => CwMetrics.Firehose.incomingRecords(cwFirehose)),
       });
     }
+
     static deliveryToS3Success(cwFirehoses: CwFirehose[]) {
       return new cloudwatch.GraphWidget({
         title: 'Firehose Delivery To S3',
@@ -69,7 +71,7 @@ export namespace CwGraphWidgets {
             $255B$2524 is [$
             $255D is ]
        */
-      let logNameStartsWith = accountId + ':/aws/lambda/' + lambdaNamePrefix;
+      const logNameStartsWith = accountId + ':/aws/lambda/' + lambdaNamePrefix;
       return new cloudwatch.LogQueryWidget({
         title: 'Lambda Errors (desc)',
         logGroupNames: graphLambdas.map((x) => x.func.logGroup.logGroupName),
