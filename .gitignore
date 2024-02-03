@@ -1,3 +1,5 @@
 node_modules/
 cognito_identity_cache.json
 OpenAPI-Ingest.yaml
+.wireit
+.tsc-output

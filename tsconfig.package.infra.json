@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig",
+  "include": ["infra/src"],
+  "compilerOptions": {
+    "outDir": ".tsc-output",
+    "noEmit": false,
+    "declaration": true
+  }
+}

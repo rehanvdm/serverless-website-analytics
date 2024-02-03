@@ -10,28 +10,44 @@ import yaml from 'js-yaml';
 import express, { Request, Response } from 'express';
 import * as bodyParser from 'body-parser';
 import cors from 'cors';
-
-import { TestConfig } from '../test-config';
-import { apiGwContext, ApiGwEventOptions, apiGwEventV2, setAWSSDKCreds, setEnvVariables } from '@tests/helpers';
+import { TestConfig } from '@tests/test-config';
+import {
+  apiGwContext,
+  ApiGwEventOptions,
+  apiGwEventV2,
+  setAWSSDKCreds,
+  setEnvVariables,
+} from '@tests/application/helpers';
 import { appRouter } from '@backend/api-ingest/server';
 import { handler as handlerApiIngest } from '@backend/api-ingest';
 import { handler as handleApiFront } from '@backend/api-front';
+import tsConfigPaths from 'tsconfig-paths';
 
 process.env.AWS_SDK_JS_SUPPRESS_MAINTENANCE_MODE_MESSAGE = '1';
 
 const baseDir = '../';
-const srcSrc = ['src', 'src'];
-const libBuild = ['lib', 'build'];
+const infraSrc = ['infra', 'src'];
+const infraBuild = ['infra', 'build'];
+const applicationSrc = ['application', 'src'];
+const applicationBuild = ['application', 'build'];
+
 const paths = {
   workingDir: path.resolve(__dirname, baseDir),
-  src: path.resolve(__dirname, baseDir, ...srcSrc),
-  dist: path.resolve(__dirname, baseDir, ...libBuild),
 
-  srcBackend: path.resolve(__dirname, baseDir, ...srcSrc, 'backend'),
-  distBackend: path.resolve(__dirname, baseDir, ...libBuild, 'backend'),
+  infraSrc: path.resolve(__dirname, baseDir, ...infraSrc),
+  infraBuild: path.resolve(__dirname, baseDir, ...infraBuild),
 
-  srcFrontend: path.resolve(__dirname, baseDir, ...srcSrc, 'frontend'),
-  distFrontend: path.resolve(__dirname, baseDir, ...libBuild, 'frontend'),
+  applicationSrc: path.resolve(__dirname, baseDir, ...applicationSrc),
+  applicationBuild: path.resolve(__dirname, baseDir, ...applicationBuild),
+
+  applicationBackendSrc: path.resolve(__dirname, baseDir, ...applicationSrc, 'backend'),
+  applicationBackendBuild: path.resolve(__dirname, baseDir, ...applicationBuild, 'backend'),
+
+  applicationFrontendSrc: path.resolve(__dirname, baseDir, ...applicationSrc, 'frontend'),
+  applicationFrontendBuild: path.resolve(__dirname, baseDir, ...applicationBuild, 'frontend'),
+
+  packageApplicationBuild: path.resolve(__dirname, baseDir, 'package', ...applicationBuild),
+  packageInfraBuild: path.resolve(__dirname, baseDir, 'package', ...infraBuild),
 };
 
 async function runCommand(command: string, args: string[], options: execa.Options<string> = {}, echoCommand = true) {
@@ -47,15 +63,17 @@ async function runCommand(command: string, args: string[], options: execa.Option
 }
 
 const commands = [
-  'install-src',
-  'validate-src',
-  'build-src',
+  'install-application',
+  'validate-application',
+  'build-application',
   // 'clean-lib',
   'copy-frontend-client-cdn-script',
 
   'generate-openapi-ingest',
   'start-local-api-ingest',
   'start-local-api-front',
+
+  'package',
 ] as const;
 export type Command = (typeof commands)[number];
 
@@ -70,7 +88,7 @@ const argv = yargs(hideBin(process.argv))
 (async () => {
   const command = argv.c as Command;
   switch (command) {
-    case 'build-src':
+    case 'build-application':
       await buildTsLambdas();
       await buildLambdas();
       await buildLambdaLayers();
@@ -83,11 +101,11 @@ const argv = yargs(hideBin(process.argv))
     // case "clean-lib":
     //   await cleanLib();
     //   break;
-    case 'install-src':
-      await installSrc();
+    case 'install-application':
+      await installApplication();
       break;
-    case 'validate-src':
-      await validateSrc();
+    case 'validate-application':
+      await validateApplication();
       break;
     case 'generate-openapi-ingest':
       await generateOpenApiIngest();
@@ -98,22 +116,25 @@ const argv = yargs(hideBin(process.argv))
     case 'start-local-api-front':
       await startLocalApiFront();
       break;
+    case 'package':
+      await createPackage();
+      break;
     default:
       throw new Error('Unknown command: ' + command);
   }
 })();
 
-async function installSrc() {
-  await runCommand('npm', ['ci'], { cwd: paths.srcFrontend });
+async function installApplication() {
+  await runCommand('npm', ['ci'], { cwd: paths.applicationFrontendSrc });
 }
-async function validateSrc() {
+async function validateApplication() {
   /* Not using the npm commands as defined in the package.jsons because we loose the colors and direct link click ability */
 
   /* All TS */
-  await runCommand('tsc', ['--noEmit'], { cwd: paths.src });
-  await runCommand('eslint', ['**/*.ts', '--ignore-pattern', "'**/*.d.ts'", '--fix'], { cwd: paths.src });
+  await runCommand('tsc', ['--noEmit'], { cwd: paths.workingDir });
+  await runCommand('eslint', ['**/*.ts', '--ignore-pattern', "'**/*.d.ts'", '--fix'], { cwd: paths.workingDir });
   /* Frontend Vue */
-  await runCommand('vue-tsc', ['--noEmit'], { cwd: paths.srcFrontend });
+  await runCommand('vue-tsc', ['--noEmit'], { cwd: paths.applicationFrontendSrc });
 }
 
 async function buildTsLambdas() {
@@ -128,9 +149,9 @@ async function buildTsLambdas() {
   ];
 
   for (const lambdaDir of tsLambdaDirectories) {
-    const fullLambdaDir = path.join(paths.srcBackend, lambdaDir);
+    const fullLambdaDir = path.join(paths.applicationBackendSrc, lambdaDir);
     const pathTs = path.join(fullLambdaDir, 'index.ts');
-    const pathJs = path.join(paths.distBackend, lambdaDir, 'index.js');
+    const pathJs = path.join(paths.applicationBackendBuild, lambdaDir, 'index.js');
 
     await esbuild.build({
       platform: 'node',
@@ -156,8 +177,8 @@ async function buildLambdas() {
   const basicLambdaDirectories = ['cloudfront'];
 
   for (const lambdaDir of basicLambdaDirectories) {
-    const fullLambdaSrcDir = path.join(paths.srcBackend, lambdaDir);
-    const fullLambdaDistDir = path.join(paths.distBackend, lambdaDir);
+    const fullLambdaSrcDir = path.join(paths.applicationBackendSrc, lambdaDir);
+    const fullLambdaDistDir = path.join(paths.applicationBackendBuild, lambdaDir);
     await fse.copy(fullLambdaSrcDir, fullLambdaDistDir);
   }
 
@@ -169,8 +190,8 @@ async function buildLambdaLayers() {
   const layerLambdaDirectories = ['layer-geolite2'];
 
   for (const lambdaDir of layerLambdaDirectories) {
-    const fullLambdaSrcDir = path.join(paths.srcBackend, lambdaDir);
-    const fullLambdaDistDir = path.join(paths.distBackend, lambdaDir);
+    const fullLambdaSrcDir = path.join(paths.applicationBackendSrc, lambdaDir);
+    const fullLambdaDistDir = path.join(paths.applicationBackendBuild, lambdaDir);
 
     const packageJson = path.join(fullLambdaSrcDir, 'package.json');
     if (fse.existsSync(packageJson)) await runCommand('npm', ['ci'], { cwd: fullLambdaSrcDir });
@@ -183,20 +204,20 @@ async function buildLambdaLayers() {
 async function copyFrontendCdScript() {
   // Copy the build client cdn script to the frontend assets
   const clientCdnScript = path.join(
-    paths.srcFrontend,
+    paths.applicationFrontendSrc,
     'node_modules',
     'serverless-website-analytics-client',
     'cdn',
     'client-script.js'
   );
-  const clientCdnScriptOut = path.join(paths.srcFrontend, 'public', 'cdn', 'client-script.js');
+  const clientCdnScriptOut = path.join(paths.applicationFrontendSrc, 'public', 'cdn', 'client-script.js');
   await fse.copy(clientCdnScript, clientCdnScriptOut);
 }
 async function buildLFrontend() {
   console.log('BUILDING FRONTEND');
 
   // Output set to paths.distFrontend in vite.config
-  await runCommand('npm', ['run', 'build'], { cwd: paths.srcFrontend });
+  await runCommand('npm', ['run', 'build'], { cwd: paths.applicationFrontendSrc });
 
   console.log('BUILT FRONTEND');
 }
@@ -204,7 +225,7 @@ async function buildLFrontend() {
 // {
 //   console.log("Cleaning lib")
 //   const pathsToDelete = [
-//       path.join(paths.workingDir, "lib", "src"),
+//       path.join(paths.workingDir, "lib", "application"),
 //   ];
 //
 //   for(let pathToDelete of pathsToDelete)
@@ -299,4 +320,46 @@ async function generateOpenApiIngest() {
   });
   fs.writeFileSync('./OpenAPI-Ingest.yaml', yaml.dump(openApiDocument));
   console.timeEnd('* GENERATE OPEN API INGEST');
+}
+
+
+function replaceStringInFiles(directoryPath: string, searchString: string, replacementString: string): void {
+  const files = fs.readdirSync(directoryPath);
+
+  files.forEach(file => {
+    const filePath = path.join(directoryPath, file);
+    const stats = fs.statSync(filePath);
+
+    if (stats.isDirectory()) {
+      // Recursively call replaceStringInFiles for subdirectories
+      replaceStringInFiles(filePath, searchString, replacementString);
+    } else {
+      // Read the file contents
+      let fileContent = fs.readFileSync(filePath, 'utf8');
+
+      // Replace the string
+      fileContent = fileContent.replace(new RegExp(searchString, 'g'), replacementString);
+
+      // Write the modified content back to the file
+      fs.writeFileSync(filePath, fileContent, 'utf8');
+    }
+  });
+}
+async function createPackage() {
+  console.time('PACKAGE');
+
+  await runCommand('tsc', ['--project', 'tsconfig.package.infra.json']);
+
+  // Remove infra/src nesting from tsc output
+  await fse.copy(path.join(paths.workingDir , ".tsc-output/infra/src"), path.join(paths.infraBuild));
+  // Remove application/src from tsc output and place into application
+  await fse.copy(path.join(paths.workingDir , ".tsc-output/application/src"), path.join(paths.infraBuild, "application"));
+  // Rewrite the @backend tsconfig path to application/backend
+  replaceStringInFiles(path.join(paths.infraBuild), '@backend/', './application/backend/');
+
+  // Copy Build to package
+  await fse.copy(paths.applicationBuild, paths.packageApplicationBuild);
+  await fse.copy(paths.infraBuild, paths.packageInfraBuild);
+
+  console.timeEnd('PACKAGE');
 }

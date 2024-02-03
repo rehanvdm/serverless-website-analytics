@@ -2,7 +2,6 @@
   "compilerOptions": {
     "skipLibCheck": true,
     "allowJs": true,
-    "noEmit": true,
     "target": "ESNext",
     "module": "ESNext",
     "lib": [
@@ -24,15 +23,17 @@
     "baseUrl": ".",
     "moduleResolution": "Node",
     "paths": {
-      "@backend/*": ["src/src/backend/*"],
-      "@frontend/*": ["src/src/frontend/*"],
-      "@tests/*": ["src/src/tests/*"]
+      "@infra/*": ["infra/*"],
+      "@backend/*": ["application/src/backend/*"],
+      "@frontend/*": ["application/src/frontend/*"],
+      "@tests/*": ["tests/*"]
     }
   },
   "exclude": [
     "node_modules",
+    "application/src/frontend/node_modules",
     "cdk.out",
-    "deploy",
-    "api-sdk"
+    "application/build",
+    "infra/build",
   ]
 }

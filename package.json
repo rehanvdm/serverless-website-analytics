@@ -13,27 +13,32 @@
     "lint": "eslint './**/*.ts' --ignore-pattern '**/*.d.ts' --quiet",
     "lint-fix": "eslint '**/*.ts' --ignore-pattern '**/*.d.ts' --quiet --fix",
 
-    "install-src": "wireit",
-    "validate-src": "wireit",
-    "build-src": "wireit",
+    "install-application": "wireit",
+    "validate-application": "wireit",
+    "build-application": "wireit",
+    "package": "wireit",
 
     "generate-openapi-ingest": "wireit",
     "start-local-api-ingest": "wireit",
     "start-local-api-front": "wireit",
+
 
     "start-frontend": "cd frontend && npm run dev",
     "watch-local-api-ingest-watch": "npm run start-local-api-ingest --watch",
     "watch-local-api-front-watch": "npm run start-local-api-front --watch"
   },
   "wireit": {
-    "install-src": {
-      "command": "esr ./scripts/index.ts -c install-src"
+    "install-application": {
+      "command": "esr ./scripts/index.ts -c install-application"
     },
-    "validate-src": {
-      "command": "esr ./scripts/index.ts -c validate-src"
+    "validate-application": {
+      "command": "esr ./scripts/index.ts -c validate-application"
     },
-    "build-src": {
-      "command": "esr ./scripts/index.ts -c build-src"
+    "build-application": {
+      "command": "esr ./scripts/index.ts -c build-application"
+    },
+    "package": {
+      "command": "esr ./scripts/index.ts -c package"
     },
 
     "start-local-api-ingest": {
