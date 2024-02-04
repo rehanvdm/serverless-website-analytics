@@ -28,10 +28,10 @@
   },
   "wireit": {
     "validate-application": {
-      "command": "esr ./scripts/index.ts -c validate-application",
+      "command": "esr ./scripts/index.ts -c validate-application"
     },
     "build-application": {
-      "command": "esr ./scripts/index.ts -c build-application",
+      "command": "esr ./scripts/index.ts -c build-application"
     },
     "package": {
       "command": "esr ./scripts/index.ts -c package",
