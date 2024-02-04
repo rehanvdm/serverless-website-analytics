@@ -2,6 +2,6 @@
 . "$(dirname -- "$0")/_/husky.sh"
 
 npm run lint-fix
-#npm run build
+npm run build
 npm run validate
 git add -u

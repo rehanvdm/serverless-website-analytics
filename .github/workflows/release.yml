@@ -18,13 +18,13 @@ jobs:
         with:
           node-version: 18
           cache: 'npm'
-          
+
       - run: npm ci
       - run: npm ci
         working-directory: application/src/frontend
 
       - run: npm run build
-      - run: npm run lint
+      - run: npm run validate
       - run: npm run package
       - uses: actions/cache@v3
         with:
