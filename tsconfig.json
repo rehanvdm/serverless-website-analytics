@@ -35,5 +35,7 @@
     "cdk.out",
     "application/build",
     "infra/build",
+    ".tsc-output",
+    "package"
   ]
 }
