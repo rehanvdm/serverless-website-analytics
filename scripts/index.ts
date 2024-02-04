@@ -54,7 +54,7 @@ const paths = {
 async function runCommand(command: string, args: string[], options: execa.Options<string> = {}, echoCommand = true) {
   if (echoCommand) console.log('> Running:', command, args.join(' '));
 
-  const resp = await execa(command, args, { ...options, preferLocal: true, reject: false });
+  const resp = await execa(command, args, { preferLocal: true, reject: false, ...options });
   if (resp.exitCode !== 0) {
     console.error(resp.stderr || resp.stdout);
     process.exit(1);
@@ -64,7 +64,7 @@ async function runCommand(command: string, args: string[], options: execa.Option
 }
 
 const commands = [
-  'validate-application',
+  'validate',
   'build-application',
   // 'clean-lib',
   'copy-frontend-client-cdn-script',
@@ -89,11 +89,8 @@ const argv = yargs(hideBin(process.argv))
   const command = argv.c as Command;
   switch (command) {
     case 'build-application':
-
-      if(!fs.existsSync(paths.applicationBuild))
-        fs.mkdirSync(paths.applicationBuild, { recursive: true });
-      else
-      {
+      if (!fs.existsSync(paths.applicationBuild)) fs.mkdirSync(paths.applicationBuild, { recursive: true });
+      else {
         fs.rmSync(paths.applicationBuild, { recursive: true });
         fs.mkdirSync(paths.applicationBuild, { recursive: true });
       }
@@ -108,8 +105,8 @@ const argv = yargs(hideBin(process.argv))
       await copyFrontendCdScript();
       break;
 
-    case 'validate-application':
-      await validateApplication();
+    case 'validate':
+      await validate();
       break;
     case 'generate-openapi-ingest':
       await generateOpenApiIngest();
@@ -128,11 +125,13 @@ const argv = yargs(hideBin(process.argv))
   }
 })();
 
-async function validateApplication() {
+async function validate() {
   /* Not using the npm commands as defined in the package.jsons because we loose the colors and direct link click ability */
-
   /* All TS */
-  await runCommand('eslint', ['**/*.ts', '--ignore-pattern', "'**/*.d.ts'", '--fix'], { cwd: paths.workingDir });
+  await runCommand('eslint', ['**/*.ts'], {
+    cwd: paths.workingDir,
+  });
+
   /* Frontend Vue */
   await runCommand('vue-tsc', ['--noEmit'], { cwd: paths.applicationFrontendSrc });
 }
@@ -308,11 +307,10 @@ async function generateOpenApiIngest() {
   console.timeEnd('* GENERATE OPEN API INGEST');
 }
 
-
 function replaceStringInFiles(directoryPath: string, searchString: string, replacementString: string): void {
   const files = fs.readdirSync(directoryPath);
 
-  files.forEach(file => {
+  files.forEach((file) => {
     const filePath = path.join(directoryPath, file);
     const stats = fs.statSync(filePath);
 
@@ -335,10 +333,8 @@ function replaceStringInFiles(directoryPath: string, searchString: string, repla
 async function createPackage() {
   console.time('PACKAGE');
 
-  if(!fs.existsSync(paths.infraBuild))
-    fs.mkdirSync(paths.infraBuild, { recursive: true });
-  else
-  {
+  if (!fs.existsSync(paths.infraBuild)) fs.mkdirSync(paths.infraBuild, { recursive: true });
+  else {
     fs.rmSync(paths.infraBuild, { recursive: true });
     fs.mkdirSync(paths.infraBuild, { recursive: true });
   }
@@ -346,9 +342,12 @@ async function createPackage() {
   await runCommand('tsc', ['--project', 'tsconfig.package.infra.json']);
 
   // Remove infra/src nesting from tsc output
-  await fse.copy(path.join(paths.workingDir , ".tsc-output/infra/src"), path.join(paths.infraBuild));
+  await fse.copy(path.join(paths.workingDir, '.tsc-output/infra/src'), path.join(paths.infraBuild));
   // Remove application/src from tsc output and place into application
-  await fse.copy(path.join(paths.workingDir , ".tsc-output/application/src"), path.join(paths.infraBuild, "application"));
+  await fse.copy(
+    path.join(paths.workingDir, '.tsc-output/application/src'),
+    path.join(paths.infraBuild, 'application')
+  );
   // Rewrite the @backend tsconfig path to application/backend
   replaceStringInFiles(path.join(paths.infraBuild), '@backend/', './application/backend/');
 
@@ -356,18 +355,17 @@ async function createPackage() {
   await fse.copy(paths.applicationBuild, paths.packageApplicationBuild);
   await fse.copy(paths.infraBuild, paths.packageInfraBuild);
 
-
   // Copy package.json and README.md
-  await fse.copy(paths.workingDir+"/package.json", paths.packageInfraBuild+"/package.json");
+  await fse.copy(paths.workingDir + '/package.json', paths.packageInfraBuild + '/package.json');
 
   // Read the package.json that will be published and remove some stuff
-  let packageJson = JSON.parse((fs.readFileSync(paths.package+"/package.json")).toString());
+  const packageJson = JSON.parse(fs.readFileSync(paths.package + '/package.json').toString());
   delete packageJson.dependencies;
   delete packageJson.scripts;
   delete packageJson.wireit;
-  fs.writeFileSync(paths.package+"/package.json", JSON.stringify(packageJson, null, 2));
+  fs.writeFileSync(paths.package + '/package.json', JSON.stringify(packageJson, null, 2));
 
-  fs.copyFileSync(paths.workingDir+"/README.md", paths.package+"/README.md");
+  fs.copyFileSync(paths.workingDir + '/README.md', paths.package + '/README.md');
 
   console.timeEnd('PACKAGE');
 }

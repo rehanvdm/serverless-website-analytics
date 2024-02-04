@@ -6,7 +6,7 @@ import * as sns from 'aws-cdk-lib/aws-sns';
 import { AllAlarmTypes, Swa } from '@infra/src';
 
 describe('Build', () => {
-  it('Local build and debug', async function() {
+  it('Local build and debug', async function () {
     const app = new App();
     const stack = new Stack(app, 'test-build');
 
@@ -45,7 +45,7 @@ describe('Build', () => {
     Template.fromStack(stack);
   });
 
-  it('Cert separate stack - Old prop', async function() {
+  it('Cert separate stack - Old prop', async function () {
     const app = new App();
     const stack = new Stack(app, 'test-build');
 
@@ -98,7 +98,7 @@ describe('Build', () => {
     Template.fromStack(stack);
   });
 
-  it('Cert separate stack - New prop', async function() {
+  it('Cert separate stack - New prop', async function () {
     const app = new App();
     const stack = new Stack(app, 'test-build');
 
@@ -141,7 +141,7 @@ describe('Build', () => {
     Template.fromStack(stack);
   });
 
-  it('Cert same stack', async function() {
+  it('Cert same stack', async function () {
     const app = new App();
     const stack = new Stack(app, 'test-build');
 
@@ -183,7 +183,7 @@ describe('Build', () => {
     Template.fromStack(stack);
   });
 
-  it('Default Lambda Log Level', async function() {
+  it('Default Lambda Log Level', async function () {
     const app = new App();
     const stack = new Stack(app, 'test-build');
 
@@ -214,10 +214,12 @@ describe('Build', () => {
     });
     const template = Template.fromStack(stack);
 
-    template.hasResource('AWS::Lambda::Function', { Properties: { Environment: { Variables: { LOG_LEVEL: 'AUDIT' } } } });
+    template.hasResource('AWS::Lambda::Function', {
+      Properties: { Environment: { Variables: { LOG_LEVEL: 'AUDIT' } } },
+    });
   });
 
-  it('Defined Lambda Log Level', async function() {
+  it('Defined Lambda Log Level', async function () {
     const app = new App();
     const stack = new Stack(app, 'test-build');
 
@@ -250,6 +252,8 @@ describe('Build', () => {
     });
     const template = Template.fromStack(stack);
 
-    template.hasResource('AWS::Lambda::Function', { Properties: { Environment: { Variables: { LOG_LEVEL: 'WARN' } } } });
+    template.hasResource('AWS::Lambda::Function', {
+      Properties: { Environment: { Variables: { LOG_LEVEL: 'WARN' } } },
+    });
   });
 });

@@ -11,10 +11,9 @@
   },
   "scripts": {
     "build": "tsc --noEmit",
-    "lint": "eslint './**/*.ts' --ignore-pattern '**/*.d.ts' --quiet",
-    "lint-fix": "eslint '**/*.ts' --ignore-pattern '**/*.d.ts' --quiet --fix",
+    "lint-fix": "eslint '**/*.ts' --quiet --fix",
 
-    "validate-application": "wireit",
+    "validate": "wireit",
     "build-application": "wireit",
     "package": "wireit",
 
@@ -27,8 +26,8 @@
     "watch-local-api-front-watch": "npm run start-local-api-front --watch"
   },
   "wireit": {
-    "validate-application": {
-      "command": "esr ./scripts/index.ts -c validate-application"
+    "validate": {
+      "command": "esr ./scripts/index.ts -c validate"
     },
     "build-application": {
       "command": "esr ./scripts/index.ts -c build-application"

@@ -11,7 +11,7 @@ on:
       - ready_for_review
       - edited
 jobs:
-  validate:
+  pr-validate-title:
     name: Validate PR title
     runs-on: ubuntu-latest
     permissions:
@@ -28,3 +28,18 @@ jobs:
             ci
             chore
           requireScope: false
+
+  pr-lint:
+    name: Lint on PR
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+      - run: npm ci
+      - run: npm ci
+        working-directory: application/src/frontend
+      - run: npm run build
+      - run: npm run validate

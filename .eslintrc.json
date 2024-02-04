@@ -29,5 +29,8 @@
         "no-new": "off",
         "@typescript-eslint/no-namespace": "off",
         "no-template-curly-in-string": "off"
-    }
+    },
+    "ignorePatterns": [
+        "**/*.d.ts"
+    ]
 }
