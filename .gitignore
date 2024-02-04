@@ -3,3 +3,5 @@ cognito_identity_cache.json
 OpenAPI-Ingest.yaml
 .wireit
 .tsc-output
+application/build
+infra/build

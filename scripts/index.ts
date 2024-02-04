@@ -64,7 +64,6 @@ async function runCommand(command: string, args: string[], options: execa.Option
 }
 
 const commands = [
-  'install-application',
   'validate-application',
   'build-application',
   // 'clean-lib',
@@ -90,6 +89,15 @@ const argv = yargs(hideBin(process.argv))
   const command = argv.c as Command;
   switch (command) {
     case 'build-application':
+
+      if(!fs.existsSync(paths.applicationBuild))
+        fs.mkdirSync(paths.applicationBuild, { recursive: true });
+      else
+      {
+        fs.rmSync(paths.applicationBuild, { recursive: true });
+        fs.mkdirSync(paths.applicationBuild, { recursive: true });
+      }
+
       await buildTsLambdas();
       await buildLambdas();
       await buildLambdaLayers();
@@ -125,9 +133,6 @@ const argv = yargs(hideBin(process.argv))
   }
 })();
 
-async function installApplication() {
-  await runCommand('npm', ['ci'], { cwd: paths.applicationFrontendSrc });
-}
 async function validateApplication() {
   /* Not using the npm commands as defined in the package.jsons because we loose the colors and direct link click ability */
 
@@ -346,8 +351,17 @@ function replaceStringInFiles(directoryPath: string, searchString: string, repla
     }
   });
 }
+
 async function createPackage() {
   console.time('PACKAGE');
+
+  if(!fs.existsSync(paths.infraBuild))
+    fs.mkdirSync(paths.infraBuild, { recursive: true });
+  else
+  {
+    fs.rmSync(paths.infraBuild, { recursive: true });
+    fs.mkdirSync(paths.infraBuild, { recursive: true });
+  }
 
   await runCommand('tsc', ['--project', 'tsconfig.package.infra.json']);
 
