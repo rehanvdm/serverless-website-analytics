@@ -1,0 +1,16 @@
+{
+  "preset": "conventionalcommits",
+  "branches": ["feature/insights-2-remove-projen"],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    ["@semantic-release/changelog", {"changelogTitle": "# Changelog"}],
+    ["@semantic-release/npm", {
+      "pkgRoot": "package"
+    }],
+    ["@semantic-release/git", {
+      "assets": ["CHANGELOG.md"],
+      "message": "chore: Release ${nextRelease.version} [skip ci]"
+    }]
+  ]
+}

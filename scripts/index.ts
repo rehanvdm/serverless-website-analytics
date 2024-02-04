@@ -46,6 +46,7 @@ const paths = {
   applicationFrontendSrc: path.resolve(__dirname, baseDir, ...applicationSrc, 'frontend'),
   applicationFrontendBuild: path.resolve(__dirname, baseDir, ...applicationBuild, 'frontend'),
 
+  package: path.resolve(__dirname, baseDir, 'package'),
   packageApplicationBuild: path.resolve(__dirname, baseDir, 'package', ...applicationBuild),
   packageInfraBuild: path.resolve(__dirname, baseDir, 'package', ...infraBuild),
 };
@@ -360,6 +361,19 @@ async function createPackage() {
   // Copy Build to package
   await fse.copy(paths.applicationBuild, paths.packageApplicationBuild);
   await fse.copy(paths.infraBuild, paths.packageInfraBuild);
+
+
+  // Copy package.json and README.md
+  await fse.copy(paths.workingDir+"/package.json", paths.packageInfraBuild+"/package.json");
+
+  // Read the package.json that will be published and remove some stuff
+  let packageJson = JSON.parse((fs.readFileSync(paths.package+"/package.json")).toString());
+  delete packageJson.dependencies;
+  delete packageJson.scripts;
+  delete packageJson.wireit;
+  fs.writeFileSync(paths.package+"/package.json", JSON.stringify(packageJson, null, 2));
+
+  fs.copyFileSync(paths.workingDir+"/README.md", paths.package+"/README.md");
 
   console.timeEnd('PACKAGE');
 }

@@ -1,6 +1,5 @@
 {
-  "name": "rehan-test",
-  "version": "0.0.0",
+  "name": "serverless-website-analytics",
   "engines": {
     "node": "~18.*",
     "npm": "~9.*"
@@ -8,67 +7,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/rehanvdm/serverless-website-analytics.git"
-  },
-  "scripts": {
-    "build": "tsc",
-    "lint": "eslint './**/*.ts' --ignore-pattern '**/*.d.ts' --quiet",
-    "lint-fix": "eslint '**/*.ts' --ignore-pattern '**/*.d.ts' --quiet --fix",
-
-    "install-application": "wireit",
-    "validate-application": "wireit",
-    "build-application": "wireit",
-    "package": "wireit",
-
-    "generate-openapi-ingest": "wireit",
-    "start-local-api-ingest": "wireit",
-    "start-local-api-front": "wireit",
-
-    "start-frontend": "cd frontend && npm run dev",
-    "watch-local-api-ingest-watch": "npm run start-local-api-ingest --watch",
-    "watch-local-api-front-watch": "npm run start-local-api-front --watch"
-  },
-  "wireit": {
-    "install-application": {
-      "command": "esr ./scripts/index.ts -c install-application"
-    },
-    "validate-application": {
-      "command": "esr ./scripts/index.ts -c validate-application"
-    },
-    "build-application": {
-      "command": "esr ./scripts/index.ts -c build-application"
-    },
-    "package": {
-      "command": "esr ./scripts/index.ts -c package"
-    },
-
-    "start-local-api-ingest": {
-      "command": "esr ./scripts/index.ts -c start-local-api-ingest",
-      "files": [
-        "scripts.ts",
-        "src/backend/api-ingest/**/*.ts",
-        "src/backend/lib/**/*.ts"
-      ]
-    },
-    "start-local-api-front": {
-      "command": "esr ./scripts/index.ts -c start-local-api-front",
-      "service": true,
-      "files": [
-        "scripts.ts",
-        "src/backend/api-front/**/*.ts",
-        "src/backend/lib/**/*.ts"
-      ]
-    },
-    "generate-openapi-ingest": {
-      "command": "esr ./scripts/index.ts -c generate-openapi-ingest",
-      "files": [
-        "scripts.ts",
-        "src/**/*.ts",
-        "OpenAPI.yaml"
-      ],
-      "output": [
-        "dist/**"
-      ]
-    }
   },
   "author": {
     "name": "rehanvdm",
@@ -78,7 +16,6 @@
   "devDependencies": {
     "lodash": "^4.17.21",
     "@types/fs-extra": "^11.0.1",
-
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5",
     "aws-cdk-lib": "2.79.1",
@@ -94,15 +31,11 @@
     "execa": "5",
     "fs-extra": "^10.1.0",
     "husky": "^8.0.3",
-
     "npm-check-updates": "^16",
-
     "standard-version": "^9",
-
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4",
     "yargs": "^17.7.2",
-
     "@aws-sdk/client-athena": "^3.316.0",
     "@aws-sdk/client-dynamodb": "^3.317.0",
     "@aws-sdk/client-eventbridge": "^3.484.0",
@@ -151,11 +84,9 @@
     "prettier": "^2.8.8",
     "trpc-openapi": "^1.1.2",
     "tsconfig-paths": "^4.2.0",
-
     "ua-parser-js": "^1.0.33",
     "uuid": "^9.0.0",
     "wireit": "^0.9.5",
-
     "zod": "^3.20.6"
   },
   "peerDependencies": {
@@ -168,5 +99,6 @@
   "main": "infra/build/index.js",
   "types": "infra/build/index.d.ts",
   "license": "GPL-2.0-or-later",
+  "version": "0.0.0",
   "stability": "stable"
 }

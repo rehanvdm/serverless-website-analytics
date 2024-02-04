@@ -2,10 +2,10 @@
   "compilerOptions": {
     "skipLibCheck": true,
     "allowJs": true,
-    "target": "ESNext",
-    "module": "ESNext",
+    "target": "ES2019",
+    "module": "CommonJS",
     "lib": [
-      "ESNext",
+      "ES2019",
       "DOM"
     ],
     "esModuleInterop": true,
