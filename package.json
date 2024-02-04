@@ -35,7 +35,7 @@
     },
     "package": {
       "command": "esr ./scripts/index.ts -c package",
-      "dependencies": ["validate-application", "build-application"]
+      "//dependencies": ["validate-application", "build-application"]
     },
 
     "start-local-api-ingest": {
