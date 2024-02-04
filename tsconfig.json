@@ -3,7 +3,7 @@
     "skipLibCheck": true,
     "allowJs": true,
     "target": "ESNext",
-    "module": "CommonJS",
+    "module": "ESNext",
     "lib": [
       "ESNext",
       "DOM"
@@ -31,7 +31,6 @@
   },
   "exclude": [
     "node_modules",
-    "application/src/frontend/node_modules",
     "cdk.out",
     "application/build",
     "infra/build",
