@@ -107,12 +107,7 @@ const argv = yargs(hideBin(process.argv))
     case 'copy-frontend-client-cdn-script':
       await copyFrontendCdScript();
       break;
-    // case "clean-lib":
-    //   await cleanLib();
-    //   break;
-    case 'install-application':
-      await installApplication();
-      break;
+
     case 'validate-application':
       await validateApplication();
       break;
@@ -137,7 +132,6 @@ async function validateApplication() {
   /* Not using the npm commands as defined in the package.jsons because we loose the colors and direct link click ability */
 
   /* All TS */
-  await runCommand('tsc', ['--noEmit'], { cwd: paths.workingDir });
   await runCommand('eslint', ['**/*.ts', '--ignore-pattern', "'**/*.d.ts'", '--fix'], { cwd: paths.workingDir });
   /* Frontend Vue */
   await runCommand('vue-tsc', ['--noEmit'], { cwd: paths.applicationFrontendSrc });
@@ -227,20 +221,6 @@ async function buildLFrontend() {
 
   console.log('BUILT FRONTEND');
 }
-// async function cleanLib()
-// {
-//   console.log("Cleaning lib")
-//   const pathsToDelete = [
-//       path.join(paths.workingDir, "lib", "application"),
-//   ];
-//
-//   for(let pathToDelete of pathsToDelete)
-//   {
-//     // console.log("Deleting: ", pathToDelete);
-//     await fse.remove(pathToDelete);
-//   }
-//   console.log("Cleaned lib");
-// }
 
 /**
  * Application
