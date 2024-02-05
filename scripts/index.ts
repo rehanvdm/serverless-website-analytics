@@ -51,6 +51,14 @@ const paths = {
   packageInfraBuild: path.resolve(__dirname, baseDir, 'package', ...infraBuild),
 };
 
+function createOrEmptyDir(dir: string) {
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  else {
+    fs.rmSync(dir, { recursive: true });
+    fs.mkdirSync(dir, { recursive: true });
+  }
+}
+
 async function runCommand(command: string, args: string[], options: execa.Options<string> = {}, echoCommand = true) {
   if (echoCommand) console.log('> Running:', command, args.join(' '));
 
@@ -89,12 +97,7 @@ const argv = yargs(hideBin(process.argv))
   const command = argv.c as Command;
   switch (command) {
     case 'build-application':
-      if (!fs.existsSync(paths.applicationBuild)) fs.mkdirSync(paths.applicationBuild, { recursive: true });
-      else {
-        fs.rmSync(paths.applicationBuild, { recursive: true });
-        fs.mkdirSync(paths.applicationBuild, { recursive: true });
-      }
-
+      createOrEmptyDir(paths.applicationBuild);
       await buildTsLambdas();
       await buildLambdas();
       await buildLambdaLayers();
@@ -333,11 +336,7 @@ function replaceStringInFiles(directoryPath: string, searchString: string, repla
 async function createPackage() {
   console.time('PACKAGE');
 
-  if (!fs.existsSync(paths.infraBuild)) fs.mkdirSync(paths.infraBuild, { recursive: true });
-  else {
-    fs.rmSync(paths.infraBuild, { recursive: true });
-    fs.mkdirSync(paths.infraBuild, { recursive: true });
-  }
+  createOrEmptyDir(paths.infraBuild);
 
   await runCommand('tsc', ['--project', 'tsconfig.package.infra.json']);
 
