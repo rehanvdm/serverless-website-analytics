@@ -5,6 +5,12 @@ on:
 #      - master
       - feature/insights-2-remove-projen
 
+permissions:
+  contents: write # to be able to publish a GitHub release
+  issues: write # to be able to comment on released issues
+  pull-requests: write # to be able to comment on released pull requests
+  id-token: write # to enable use of OIDC for npm provenance
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -43,5 +49,5 @@ jobs:
           key: ${{ github.sha }}
       - run: npx semantic-release
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
