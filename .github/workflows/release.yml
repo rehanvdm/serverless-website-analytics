@@ -24,7 +24,7 @@ jobs:
         working-directory: application/src/frontend
 
       - run: npm run package
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ./
           key: ${{ github.sha }}
@@ -37,7 +37,7 @@ jobs:
       pull-requests: write # Read PRs and comment on them
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ./
           key: ${{ github.sha }}
