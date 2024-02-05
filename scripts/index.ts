@@ -358,7 +358,7 @@ async function createPackage() {
   await fse.copy(paths.workingDir + '/package.json', paths.packageInfraBuild + '/package.json');
 
   // Read the package.json that will be published and remove some stuff
-  const packageJson = JSON.parse(fs.readFileSync(paths.package + '/package.json').toString());
+  const packageJson = JSON.parse(fs.readFileSync(paths.workingDir + '/package.json').toString());
   delete packageJson.dependencies;
   delete packageJson.scripts;
   delete packageJson.wireit;
