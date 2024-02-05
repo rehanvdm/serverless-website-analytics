@@ -1,0 +1,11 @@
+# Changelog
+
+## [1.6.0](https://github.com/rehanvdm/serverless-website-analytics/compare/v1.5.0...v1.6.0) (2024-02-05)
+
+
+### Features
+
+* test release ([90037dc](https://github.com/rehanvdm/serverless-website-analytics/commit/90037dc9de97360dafb62003d555b6a761900ed2))
+* test release 2 ([d81427d](https://github.com/rehanvdm/serverless-website-analytics/commit/d81427da14539110fc65eb8de170b78d1c096714))
+* test release 3 ([12a1e61](https://github.com/rehanvdm/serverless-website-analytics/commit/12a1e613c4694f801c55eab38af7c07632681dbc))
+* test release 4 ([7a99321](https://github.com/rehanvdm/serverless-website-analytics/commit/7a993212dfb8ecbda9cb545a3da03525af1b2e27))
