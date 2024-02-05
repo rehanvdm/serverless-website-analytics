@@ -5,12 +5,6 @@ on:
 #      - master
       - feature/insights-2-remove-projen
 
-permissions:
-  contents: write # to be able to publish a GitHub release
-  issues: write # to be able to comment on released issues
-  pull-requests: write # to be able to comment on released pull requests
-  id-token: write # to enable use of OIDC for npm provenance
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -38,9 +32,10 @@ jobs:
   release:
     needs: build
     permissions:
-      contents: write # Required to make a commit with the contents of the build output, the /dist folder
-      issues: write  # Required to close any issues that was referenced in the PR
-      pull-requests: write # Read PRs and comment on them
+      contents: write # to be able to publish a GitHub release
+      issues: write # to be able to comment on released issues and close
+      pull-requests: write # to be able to comment on released pull requests
+      id-token: write # to enable use of OIDC for npm provenance
     runs-on: ubuntu-latest
     steps:
       - uses: actions/cache@v4
