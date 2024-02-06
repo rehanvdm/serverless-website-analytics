@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.2](https://github.com/rehanvdm/serverless-website-analytics/compare/v1.6.1...v1.6.2) (2024-02-06)
+
+
+### Bug Fixes
+
+* update deps ([876dcb1](https://github.com/rehanvdm/serverless-website-analytics/commit/876dcb1835fd8dc62abb2a3eb29289fa9d0d35a8))
+
 ## [1.6.1](https://github.com/rehanvdm/serverless-website-analytics/compare/v1.6.0...v1.6.1) (2024-02-06)
 
 
