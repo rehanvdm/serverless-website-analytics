@@ -359,7 +359,7 @@ async function createPackage() {
 
   // Read the package.json that will be published and remove some stuff
   const packageJson = JSON.parse(fs.readFileSync(paths.workingDir + '/package.json').toString());
-  delete packageJson.dependencies;
+  delete packageJson.devDependencies;
   delete packageJson.scripts;
   delete packageJson.wireit;
   fs.writeFileSync(paths.package + '/package.json', JSON.stringify(packageJson, null, 2));

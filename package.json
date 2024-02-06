@@ -71,7 +71,6 @@
     "email": "rehan.vdm4@gmial.com",
     "organization": false
   },
-  "bundledDependencies": true,
   "dependencies": {
     "lodash": "^4.17.21"
   },
