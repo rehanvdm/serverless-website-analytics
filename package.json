@@ -71,10 +71,11 @@
     "email": "rehan.vdm4@gmial.com",
     "organization": false
   },
+  "dependencies": {
+    "lodash": "^4.17.21"
+  },
   "devDependencies": {
-    "lodash": "^4.17.21",
     "@types/fs-extra": "^11.0.1",
-
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5",
     "aws-cdk-lib": "2.79.1",
@@ -90,15 +91,11 @@
     "execa": "5",
     "fs-extra": "^10.1.0",
     "husky": "^8.0.3",
-
     "npm-check-updates": "^16",
-
     "standard-version": "^9",
-
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4",
     "yargs": "^17.7.2",
-
     "@aws-sdk/client-athena": "^3.316.0",
     "@aws-sdk/client-dynamodb": "^3.317.0",
     "@aws-sdk/client-eventbridge": "^3.484.0",
@@ -147,13 +144,10 @@
     "prettier": "^2.8.8",
     "trpc-openapi": "^1.1.2",
     "tsconfig-paths": "^4.2.0",
-
     "ua-parser-js": "^1.0.33",
     "uuid": "^9.0.0",
     "wireit": "^0.9.5",
-
     "zod": "^3.20.6",
-
     "@semantic-release/changelog": "6.0.1",
     "@semantic-release/commit-analyzer": "9.0.2",
     "@semantic-release/git": "10.0.1",
