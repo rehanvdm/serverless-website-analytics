@@ -12,16 +12,17 @@
   "scripts": {
     "build": "tsc --noEmit",
     "lint-fix": "eslint '**/*.ts' --quiet --fix",
-
     "validate": "wireit",
+    "pre-commit-check": "npm run lint-fix && npm run build && npm run validate",
+
     "build-application": "wireit",
     "package": "wireit",
-
     "generate-openapi-ingest": "wireit",
+
     "start-local-api-ingest": "wireit",
     "start-local-api-front": "wireit",
+    "start-frontend": "cd application/src/frontend && npm run dev",
 
-    "start-frontend": "cd frontend && npm run dev",
     "watch-local-api-ingest-watch": "npm run start-local-api-ingest --watch",
     "watch-local-api-front-watch": "npm run start-local-api-front --watch"
   },

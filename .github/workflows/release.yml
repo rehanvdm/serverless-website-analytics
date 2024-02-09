@@ -2,8 +2,8 @@ name: 'Release'
 on:
   push:
     branches:
-#      - master
-      - feature/insights-2-remove-projen
+      - master
+#      - feature/insights-2-remove-projen
 
 jobs:
   build:

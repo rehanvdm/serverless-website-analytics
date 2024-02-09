@@ -143,7 +143,7 @@ describe('Cron - Anomaly Detection', function () {
       chartEvaluations.push(latestEvaluation);
 
       // For testing and want to return early
-      if (record.date_key > DateUtils.parseIso('2023-08-01T00:00:00')) break;
+      // if (record.date_key > DateUtils.parseIso('2023-08-01T00:00:00')) break;
     }
 
     const chartX = chartEvaluations.map((row) => row.date);
