@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import { assertAuthentication, TrpcInstance } from '../../../server';
-import { SchemaSite } from '../../../../lib/models/site';
-import { DateUtils } from '../../../../lib/utils/date_utils';
-import { AthenaEvents } from '../../../../lib/dal/athena/events';
-import { EventFilterSchema } from '../../../../lib/models/event_filter';
-import { LambdaEnvironment } from '../../../environment';
+import { assertAuthentication, TrpcInstance } from '@backend/api-front/server';
+import { SchemaSite } from '@backend/lib/models/site';
+import { DateUtils } from '@backend/lib/utils/date_utils';
+import { AthenaEvents } from '@backend/lib/dal/athena/events';
+import { EventFilterSchema } from '@backend/lib/models/event_filter';
+import { LambdaEnvironment } from '@backend/api-front/environment';
 
 const GetEventTopLevelStatsSchema = z.object({
   visitors: z.number(),

@@ -1,12 +1,12 @@
 import { Context } from 'aws-lambda';
-import { LambdaLog } from '../lib/utils/lambda_logger';
+import { LambdaLog } from '@backend/lib/utils/lambda_logger';
 import { LambdaEnvironment } from './environment';
-import { AuditLog } from '../lib/models/audit_log';
+import { AuditLog } from '@backend/lib/models/audit_log';
 import { v4 as uuidv4 } from 'uuid';
-import { DateUtils } from '../lib/utils/date_utils';
-import { EbPageViewAnomalyOk, EbPageViewAnomalyAlarm } from '../lib/dal/eventbridge/events/anomaly.page_view';
-import { EbAnalyticsEntryToEventBridgeEvent } from '../lib/dal/eventbridge';
-import { Sns } from '../lib/dal/sns';
+import { DateUtils } from '@backend/lib/utils/date_utils';
+import { EbPageViewAnomalyOk, EbPageViewAnomalyAlarm } from '@backend/lib/dal/eventbridge/events/anomaly.page_view';
+import { EbAnalyticsEntryToEventBridgeEvent } from '@backend/lib/dal/eventbridge';
+import { Sns } from '@backend/lib/dal/sns';
 import { Evaluation } from '../cron-anomaly-detection/stat_functions';
 
 /* Lazy loaded variables */

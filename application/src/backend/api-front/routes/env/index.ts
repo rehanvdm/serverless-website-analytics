@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { TrpcInstance } from '../../server';
-import { LambdaEnvironment } from '../../environment';
+import { TrpcInstance } from '@backend/api-front/server';
+import { LambdaEnvironment } from '@backend/api-front/environment';
 
 const FrontendEnvironmentSchema = z.object({
   cognitoLoginUrl: z.string().optional(),

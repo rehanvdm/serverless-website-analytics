@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import { assertAuthentication, TrpcInstance } from '../../../server';
-import { SchemaSite } from '../../../../lib/models/site';
-import { DateUtils } from '../../../../lib/utils/date_utils';
-import { AthenaPageViews } from '../../../../lib/dal/athena/page_views';
-import { PageFilterSchema } from '../../../../lib/models/page_filter';
-import { LambdaEnvironment } from '../../../environment';
+import { assertAuthentication, TrpcInstance } from '@backend/api-front/server';
+import { SchemaSite } from '@backend/lib/models/site';
+import { DateUtils } from '@backend/lib/utils/date_utils';
+import { AthenaPageViews } from '@backend/lib/dal/athena/page_views';
+import { PageFilterSchema } from '@backend/lib/models/page_filter';
+import { LambdaEnvironment } from '@backend/api-front/environment';
 
 const GetPageTopLevelStatsSchema = z.object({
   visitors: z.number(),

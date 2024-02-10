@@ -1,4 +1,4 @@
-import { Evaluation, EvaluationWindow } from '../../../../cron-anomaly-detection/stat_functions';
+import { Evaluation, EvaluationWindow } from '@backend/cron-anomaly-detection/stat_functions';
 import { EbAnalyticsEntry } from '../index';
 
 export type EbPageViewAnomalyDetail = EvaluationWindow & {

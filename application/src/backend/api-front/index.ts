@@ -1,14 +1,14 @@
 import { CreateAWSLambdaContextOptions, awsLambdaRequestHandler } from '@trpc/server/adapters/aws-lambda';
 import { appRouter } from './server';
 import { APIGatewayProxyEventV2, APIGatewayProxyResult, Context } from 'aws-lambda';
-import { LambdaLog } from '../lib/utils/lambda_logger';
+import { LambdaLog } from '@backend/lib/utils/lambda_logger';
 import { LambdaEnvironment } from './environment';
-import { AuditLog } from '../lib/models/audit_log';
+import { AuditLog } from '@backend/lib/models/audit_log';
 import { v4 as uuidv4 } from 'uuid';
-import { DateUtils } from '../lib/utils/date_utils';
+import { DateUtils } from '@backend/lib/utils/date_utils';
 import { TRPCError } from '@trpc/server';
 import assert from 'assert';
-import { removeCloudFrontProxyPath, TRPCHandlerError } from '../lib/utils/api_utils';
+import { removeCloudFrontProxyPath, TRPCHandlerError } from '@backend/lib/utils/api_utils';
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
 import { CognitoJwtVerifierSingleUserPool } from 'aws-jwt-verify/cognito-verifier';
 

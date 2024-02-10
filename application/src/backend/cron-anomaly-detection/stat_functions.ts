@@ -1,7 +1,7 @@
-import { DateUtils } from '../lib/utils/date_utils';
+import { DateUtils } from '@backend/lib/utils/date_utils';
 import { LambdaEnvironment } from './environment';
 import { groupBy } from 'lodash';
-import { LambdaLog } from '../lib/utils/lambda_logger';
+import { LambdaLog } from '@backend/lib/utils/lambda_logger';
 
 const logger = new LambdaLog();
 

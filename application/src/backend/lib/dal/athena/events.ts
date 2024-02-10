@@ -1,8 +1,8 @@
-import { DateUtils } from '../../utils/date_utils';
-import { AthenaBase } from '../../utils/athena_base';
-import { getAthenaClient, getS3Client, getEventBridgeClient } from '../../utils/lazy_aws';
-import { Page } from '../../models/page';
-import { EventFilter } from '../../models/event_filter';
+import { DateUtils } from '@backend/lib/utils/date_utils';
+import { AthenaBase } from '@backend/lib/utils/athena_base';
+import { getAthenaClient, getS3Client, getEventBridgeClient } from '@backend/lib/utils/lazy_aws';
+import { Page } from '@backend/lib/models/page';
+import { EventFilter } from '@backend/lib/models/event_filter';
 import { v4 as uuidv4 } from 'uuid';
 
 export class AthenaEvents extends AthenaBase {

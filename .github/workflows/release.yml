@@ -7,6 +7,7 @@ on:
 
 jobs:
   build:
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,6 +31,7 @@ jobs:
           key: ${{ github.sha }}
 
   release:
+    name: Release
     needs: build
     permissions:
       contents: write # to be able to publish a GitHub release

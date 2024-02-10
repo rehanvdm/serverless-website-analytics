@@ -1,7 +1,7 @@
 import { UAParser } from 'ua-parser-js';
 import { Reader, ReaderModel } from '@maxmind/geoip2-node';
 import isbot from 'isbot';
-import { LambdaLog } from '../lib/utils/lambda_logger';
+import { LambdaLog } from '@backend/lib/utils/lambda_logger';
 import path from 'path';
 import { LambdaEnvironment } from './environment';
 

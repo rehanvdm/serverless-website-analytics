@@ -6,12 +6,12 @@ import { OpenAPIV3 } from 'openapi-types';
 import { v4 as uuidv4 } from 'uuid';
 
 import { LambdaEnvironment } from './environment';
-import { LambdaLog } from '../lib/utils/lambda_logger';
-import { AuditLog } from '../lib/models/audit_log';
-import { DateUtils } from '../lib/utils/date_utils';
+import { LambdaLog } from '@backend/lib/utils/lambda_logger';
+import { AuditLog } from '@backend/lib/models/audit_log';
+import { DateUtils } from '@backend/lib/utils/date_utils';
 import { TRPCError } from '@trpc/server';
 import assert from 'assert';
-import { removeCloudFrontProxyPath, TRPCHandlerError } from '../lib/utils/api_utils';
+import { removeCloudFrontProxyPath, TRPCHandlerError } from '@backend/lib/utils/api_utils';
 import { v1EventTrackBeaconGif } from './v1/event/track';
 
 /* Lazy loaded variables */

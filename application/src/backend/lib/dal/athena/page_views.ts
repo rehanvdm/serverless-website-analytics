@@ -1,8 +1,8 @@
-import { DateUtils } from '../../utils/date_utils';
-import { AthenaBase } from '../../utils/athena_base';
-import { getAthenaClient, getS3Client } from '../../utils/lazy_aws';
-import { Page } from '../../models/page';
-import { PageFilter } from '../../models/page_filter';
+import { DateUtils } from '@backend/lib/utils/date_utils';
+import { AthenaBase } from '@backend/lib/utils/athena_base';
+import { getAthenaClient, getS3Client } from '@backend/lib/utils/lazy_aws';
+import { Page } from '@backend/lib/models/page';
+import { PageFilter } from '@backend/lib/models/page_filter';
 import { v4 as uuidv4 } from 'uuid';
 
 export class AthenaPageViews extends AthenaBase {

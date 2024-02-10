@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { assertAuthentication, TrpcInstance } from '../../server';
-import { SchemaSite } from '../../../lib/models/site';
-import { LambdaEnvironment } from '../../environment';
+import { assertAuthentication, TrpcInstance } from '@backend/api-front/server';
+import { SchemaSite } from '@backend/lib/models/site';
+import { LambdaEnvironment } from '@backend/api-front/environment';
 
 export function sites(trpcInstance: TrpcInstance) {
   return trpcInstance.procedure

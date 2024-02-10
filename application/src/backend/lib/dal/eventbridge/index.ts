@@ -1,5 +1,5 @@
 import { EventBridgeClient, PutEventsCommand } from '@aws-sdk/client-eventbridge';
-import { getEventBridgeClient } from '../../utils/lazy_aws';
+import { getEventBridgeClient } from '@backend/lib/utils/lazy_aws';
 import { EbPageViewAnomalyAlarm, EbPageViewAnomalyOk } from './events/anomaly.page_view';
 import { EventBridgeEvent } from 'aws-lambda';
 import { EbDetailType } from './constants';

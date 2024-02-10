@@ -1,12 +1,12 @@
 import { Context, ScheduledEvent } from 'aws-lambda';
-import { LambdaLog } from '../lib/utils/lambda_logger';
+import { LambdaLog } from '@backend/lib/utils/lambda_logger';
 import { LambdaEnvironment } from './environment';
-import { AuditLog } from '../lib/models/audit_log';
+import { AuditLog } from '@backend/lib/models/audit_log';
 import { v4 as uuidv4 } from 'uuid';
-import { DateUtils } from '../lib/utils/date_utils';
-import { AthenaPageViews } from '../lib/dal/athena/page_views';
+import { DateUtils } from '@backend/lib/utils/date_utils';
+import { AthenaPageViews } from '@backend/lib/dal/athena/page_views';
 import { evaluate } from './stat_functions';
-import { EventBridgeAnalytics } from '../lib/dal/eventbridge';
+import { EventBridgeAnalytics } from '@backend/lib/dal/eventbridge';
 
 /* Lazy loaded variables */
 let initialized = false;
