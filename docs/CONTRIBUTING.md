@@ -18,55 +18,49 @@ Available PR name types:
 husky install
 ```
 
-Alternatively run the following command **before committing** to check if your changed code passes the linter, prettier, tsc and
-jsii compiler:
+Alternatively run the following command **before committing** to check if your changed code passes the linter, prettier
+and tsc checks:
 ```
 npm run pre-commit-check
 ```
 
-## Projen
+## No Projen and JSII
 
-This repo follows the standard setup. The only deviation is the `src` directory for the source code. The whole
-application source code is within the `/src/src` directory, it can run independently of projen. This is because I want/am
-using this as a template, where I can take any existing project and convert it to a projen project. This way I can
-keep the source code in the same place and not have to worry about things like conflicting packages and TS paths.
+See [EJECTING_FROM_PROJEN.md](https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/EJECTING_FROM_PROJEN.md)
+for more details.
 
 ## Setup
 
 Install packages:
 ```
 npm install
-cd src/src/ && npm install
-cd src/src/frontend && npm install
+cd application/src/frontend && npm install
 ```
 
-There are two build systems used, the top-level `projen` one for everything `projen` related and then the one in the
-`src/src/` directory for the actual source code that uses [wireit](https://github.com/google/wireit).
+The build system is powered by [wireit](https://github.com/google/wireit).
 
-The only commands that you have to know about and run are in:
-- `package.json` - The top level projen commands
-- `src/src/package.json` - The wireit commands
+The only commands that you have to know about and run are in the  `package.json`. These commands execute TS code in
+`scripts/index.ts`. There are commands from building application code to packaging code. Most of the time you won't have
+to modify these.
 
 ## Tests
 
-Similar to the build systems, there are two test systems. The top-level `projen` one for everything CDK related that
-uses `ts-jest` and then the one in the `src/src/tests` directory for the actual source code tests that use `mocha`
-and `chai`. Both use [esbuid-runner](https://github.com/folke/esbuild-runner) to transpile the TS to JS when testing.
+Testes are done with `mocha` and `chai`. Both use [esbuid-runner](https://github.com/folke/esbuild-runner) to transpile
+the TS to JS when testing.
 
 Tests for the source code are both unit and end-to-end tests. This is decided by the `process.env.TEST_TYPE` flag in the
-`src/src/tests/environment-hoist.ts` file. If set to `UNIT`, breakpoints can be placed in code and it can be debugged.
+`tests/applications/environment-hoist.ts` file. If set to `UNIT`, breakpoints can be placed in code and it can be debugged.
 If set to `E2E`, it will do the actual API call and use the same test criteria as for the unit test.
 
 The tests require a config file as we test against real AWS resources. The config file is located at
-`src/src/test-config.ts`. These will have to be changed if you are running the tests in your own AWS account.
+`tests/test-config.ts`. These will have to be changed if you are running the tests in your own AWS account.
 
 ## Running the backend and frontend locally
 
 The backend and frontend can be started locally for an improved DX. The backend will run as an express app that
-wraps around the tRPC server, similarly to the tests, it makes use of the `src/src/test-config.ts` file and uses
+wraps around the tRPC server, similarly to the tests, it makes use of the `tests/test-config.ts` file and uses
 real AWS resources. The frontend will run using the Vite dev command.
 ```
-cd src/src/
 npm run start-frontend
 npm run watch-local-api-front-watch
 npm run watch-local-api-ingest-watch
@@ -188,7 +182,7 @@ backend when making queries to Athena.
 
 Tests are using mocha + chai and are written in TS as well. TSC is too slow, so we are using
 [esbuild-runner](https://www.npmjs.com/package/esbuild-runner) instead. Mocha needs to transpile the TS before it can
-run the JS it produces. The `.src/src//tests/esbuild-runner-compile.js` file is registered in the `./.mocharc.json` file.
+run the JS it produces. The `esbuild-runner-compile.js` file is registered in the `./.mocharc.json` file.
 
 We also register the [tsconfig-paths](https://www.npmjs.com/package/tsconfig-paths) package because we are using `paths` in the `.tsconfig.json` file. This
 enables us to use `@src/backend/api/server.ts` instead of those nasty relative paths (`../../../src/backend/api/server.ts`)

@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-npm run pre-commit-check
+npm run lint-fix
+npm run build
+npm run validate
 git add -u

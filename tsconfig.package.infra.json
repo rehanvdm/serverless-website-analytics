@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig",
+  "include": ["infra/src"],
+   "compilerOptions": {
+     /* Things in application use module: EsNext, specifically the frontend needs it for import.meta.XXX. Tha above includes means it will never run in the application/ dir. */
+     "module": "CommonJS",
+    "outDir": ".tsc-output",
+    "noEmit": false,
+    "declaration": true
+  }
+}
