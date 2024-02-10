@@ -180,7 +180,7 @@ worked well but the problem like mentioned came when this needed to be packaged 
 predictions were good a basic Exponential Moving Average (EMA) predictions was not that far off and was much simpler
 to implement.
 
-A TypeScript version of the Holt Winter was then attempted as teh only real reason for not using it was the size of the
+A TypeScript version of the Holt Winter was then attempted as the only real reason for not using it was the size of the
 Python libraries. There were no solid libraries for TypeScript that could be used. An attempt to implement it from
 scratch failed, not even ChatGTP could get it right, it was not worth the effort (given enough time this is more than possible).
 
