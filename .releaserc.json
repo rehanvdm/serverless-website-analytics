@@ -1,6 +1,6 @@
 {
   "preset": "conventionalcommits",
-  "branches": ["feature/insights-2-remove-projen"],
+  "branches": ["main"],
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
