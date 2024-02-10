@@ -1,20 +1,25 @@
 # Serverless Website Analytics
 
+- [Features](#features)
 - [Objectives](#objectives)
 - [Getting started](#getting-started)
-    * [Serverside setup](#serverside-setup)
-        + [Certificate Requirements](#certificate-requirements)
-    * [Client side setup](#client-side-setup)
-        + [Standalone Import Script Usage](#standalone-import-script-usage)
-        + [SDK Client Usage](#sdk-client-usage)
+  * [Serverside setup](#serverside-setup)
+    + [Certificate Requirements](#certificate-requirements)
+  * [Client side setup](#client-side-setup)
+    + [Standalone Import Script Usage](#standalone-import-script-usage)
+    + [SDK Client Usage](#sdk-client-usage)
+    + [Vue](#vue)
 - [Worst case projected costs](#worst-case-projected-costs)
 - [What's in the box](#what-s-in-the-box)
-    * [Frontend](#frontend)
-    * [Backend](#backend)
-    * [Ingestion API](#ingestion-api)
+  * [Frontend](#frontend)
+  * [Backend](#backend)
+    + [Anomaly detection](#anomaly-detection)
+  * [Ingestion API](#ingestion-api)
+  * [Querying data manually](#querying-data-manually)
 - [Upgrading](#upgrading)
 - [Sponsors](#sponsors)
 - [Contributing](#contributing)
+- [Docs](#docs)
 - [Roadmap](#roadmap)
 
 This is a CDK serverless website analytics construct that can be deployed to AWS. This construct creates backend,
@@ -27,17 +32,36 @@ Kinesis Firehose.
 You can see a LIVE DEMO [HERE](https://demo.serverless-website-analytics.com/) and read about the simulated traffic
 [here](https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/DEMO-TRAFFIC.md)
 
+## Features
+- Serverless, only pay for the AWS services you use
+- Track multiple site
+- Custom domain (use your own domain or a generic CloudFront domain)
+- Page view tracking (includes time on page)
+- Event tracking
+- Anomaly detection and alerts
+- Privacy focused, don't store any Personally Identifiable Information (PII)
+- You own your data
+- Three Dashboard authentication options; none, basic auth or AWS Cognito.
+- Tracks:
+  - Referrers
+  - Location by country and city
+  - Device type
+  - All UTM parameters
+  - Query parameters
+  - Bot detection
+- Easy integration in any JS framework through:
+  - JS/TS SDK
+  - Standalone 1-liner `<script>` import
+
 ## Objectives
-- Multi site
-- Privacy focused, don't store any Personally Identifiable Information (PII).
-- Low frequency of dashboard views
-- The target audience is small to medium website(s) with low to moderate page view traffic (equal or less than 10M views)
-- Lowest possible cost
+- Serverless
+- Privacy focused
+- Lowest possible cost, pay for the AWS services you use (scale to 0)
 - KISS
 - No direct server-side state
 - Low maintenance
 - Easy to deploy in your AWS account, any *region
-- Pay for what you use (scale to 0)
+- The target audience is small to medium website(s) with low to moderate page view traffic (equal or less than 10M views)
 
 The main objective is to keep it simple and the operational cost low, keeping true to "scale to 0" tenants of serverless,
 even if it goes against "best practices".
@@ -301,6 +325,13 @@ There are three available authentication configurations:
 - **Basic Authentication**, basic protection for the index.html file
 - **AWS Cogntio**, recommended for production
 
+#### Anomaly detection
+
+The serverless-website-analytics backend uses basic Anomaly Detection, see [ANOMALY_DETECTION.md](docs/ANOMALY_DETECTION.md)
+for more info.
+
+![screenshot_normal_breach.png](docs/imgs/anomaly_detection/screenshot_normal_breach.png)
+
 ### Ingestion API
 
 Similarly to the backend, it is also a TS Lambda-lith that is hit through the FURL by reverse proxying through CloudFront.
@@ -448,6 +479,13 @@ all your AWS credentials and more.
 ## Contributing
 
 See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for more info on how to contribute + design decisions.
+
+## Docs
+- [ANOMALY_DETECTION.md](docs/ANOMALY_DETECTION.md)
+- [CONTRIBUTING.md](docs/CONTRIBUTING.md)
+- [COST.md](docs/COST.md)
+- [DEMO-TRAFFIC.md](docs/DEMO-TRAFFIC.md)
+- [EJECTING_FROM_PROJEN.md](docs/EJECTING_FROM_PROJEN.md)
 
 ## Roadmap
 

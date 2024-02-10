@@ -21,17 +21,16 @@ export type TestConfig = {
     ALLOWED_ORIGINS: string;
     ANALYTICS_GLUE_DB_NAME: string;
 
+    TRACK_OWN_DOMAIN?: string;
+    IS_DEMO_PAGE?: string;
+
     COGNITO_USER_POOL_ID?: string;
     COGNITO_CLIENT_ID?: string;
     COGNITO_HOSTED_UI_URL?: string;
 
-    ANALYTICS_DDB_TABLE: string;
-
     EVALUATION_WINDOW: string;
     BREACHING_MULTIPLIER: string;
     EVENT_BRIDGE_SOURCE: string;
-
-    TIME_ZONE: string;
 
     ALERT_TOPIC_ARN: string;
     ALERT_ON_ALARM: string;
@@ -45,56 +44,55 @@ export type TestConfig = {
   };
 };
 
-const sites = ['rehanvdm.com', 'cloudglance.dev', 'blog.cloudglance.dev', 'docs.cloudglance.dev', 'tests'];
+const sites = ['simulated', 'demo.serverless-website-analytics.com'];
 const allowedOrigns = ['*']; // localhost:3000 localhost:5173
 
 export const TestConfig: TestConfig = {
-  awsProfile: 'systanics-prod-exported',
-  awsRegion: 'eu-west-1',
-  apiIngestUrl: 'https://analytics.rehanvdm.com/api-ingest',
-  apiFrontUrl: 'https://analytics.rehanvdm.com/api',
+  awsProfile: 'rehan-demo-exported',
+  awsRegion: 'us-east-1',
+  apiIngestUrl: 'https://demo.serverless-website-analytics.com/api-ingest',
+  apiFrontUrl: 'https://demo.serverless-website-analytics.com/api',
   allowedOrigins: allowedOrigns,
   env: {
-    AWS_REGION: 'eu-west-1',
+    AWS_REGION: 'us-east-1',
     ENVIRONMENT: 'prod',
     VERSION: 'tests',
     TIMEOUT: '30',
     LOG_LEVEL: 'DEBUG',
     ENRICH_RETURNED_ERRORS: 'true',
 
-    ANALYTICS_BUCKET: 'rehan-analytics-swa-bucket-analytics',
-    FIREHOSE_PAGE_VIEWS_NAME: 'rehan-analytics-swa-analytic-page-views-firehose',
-    FIREHOSE_EVENTS_NAME: 'rehan-analytics-swa-analytic-events-firehose',
-    GEOLITE2_CITY_PATH: '../../../application/application/backend/layer-geolite2/GeoLite2-City.mmdb',
+    ANALYTICS_BUCKET: 'swa-demo-bucket-analytics',
+    FIREHOSE_PAGE_VIEWS_NAME: 'swa-demo-analytic-page-views-firehose',
+    FIREHOSE_EVENTS_NAME: 'swa-demo-analytic-events-firehose',
+    GEOLITE2_CITY_PATH: '../../src/src/backend/layer-geolite2/GeoLite2-City.mmdb',
 
     SITES: JSON.stringify(sites),
     ALLOWED_ORIGINS: JSON.stringify(allowedOrigns),
-    ANALYTICS_GLUE_DB_NAME: 'rehan-analytics-swa-db',
+    ANALYTICS_GLUE_DB_NAME: 'swa-demo-db',
+
+    TRACK_OWN_DOMAIN: 'true',
+    // TRACK_OWN_DOMAIN: 'false',
+    IS_DEMO_PAGE: 'true',
+    // IS_DEMO_PAGE: 'false',
 
     // Uncomment for no auth
-    COGNITO_USER_POOL_ID: 'eu-west-1_MVlZ9lMld',
-    COGNITO_CLIENT_ID: '6udmqo9nlqstcgulgebkpumtan',
-    COGNITO_HOSTED_UI_URL: 'https://login.analytics.rehanvdm.com',
-
-    ANALYTICS_DDB_TABLE: 'rehan-analytics-swa-table',
+    // COGNITO_USER_POOL_ID: 'us-east-1_tvl0sw7Ei',
+    // COGNITO_CLIENT_ID: '1lqovfns5d5000va207dc6hhmo',
+    // COGNITO_HOSTED_UI_URL: 'https://swa-demo-login.demo.serverless-website-analytics.com',
 
     EVALUATION_WINDOW: '2',
     BREACHING_MULTIPLIER: '2',
-    // EVALUATION_WINDOW: '1',
-    // BREACHING_MULTIPLIER: '4',
-    EVENT_BRIDGE_SOURCE: 'rehan-analytics-swa-prod',
+    EVENT_BRIDGE_SOURCE: 'swa-demo-prod',
 
-    ALERT_TOPIC_ARN: 'arn:aws:sns:eu-west-1:134204159843:rehan-analytics-rehananalyticsalarmtopic1C71C790-EuKfG1eF75C6',
+    ALERT_TOPIC_ARN: 'arn:aws:sns:eu-west-1:123456789:your-topic-name',
     ALERT_ON_ALARM: 'true',
-    ALERT_ON_OK: 'false',
-
-    TIME_ZONE: 'Africa/Johannesburg',
+    ALERT_ON_OK: 'true',
   },
   // Uncomment for no auth
-  cognitoAuthUser: {
-    userPoolId: 'eu-west-1_MVlZ9lMld',
-    clientId: '6udmqo9nlqstcgulgebkpumtan',
-    username: 'rehan.vdm4@gmail.com',
-    password: '2WgW2m6ZPwgafzp46XZg',
-  },
+  // cognitoAuthUser: {
+  //   userPoolId: 'us-east-1_xIzDq3qma',
+  //   clientId: '29h8gut29idqhobn0lovtvsvmq',
+  //   username: 'rehan.vdm4@gmail.com',
+  //   password: 'Rehan1234',
+  // },
 };
