@@ -2,7 +2,7 @@ name: 'Release'
 on:
   push:
     branches:
-      - master
+      - main
 #      - feature/insights-2-remove-projen
 
 jobs:
