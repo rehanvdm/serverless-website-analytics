@@ -22,8 +22,9 @@ Two important environment variables are used to configure the detection:
    - Breaching multiplier: 2
    - Breaching Threshold: 80 * 2 = 160
 
-   The actual value of 100 is less than the breaching threshold of 160, so an alarm is not triggered. If the actual value
-   was say 200, then it would be more than the breaching threshold and an alarm would be triggered.
+   The actual value of 100 is less than the breaching threshold of 160, so the evaluation is not marked as breaching.
+   If the actual value was say 200, then it would be more than the breaching threshold and the evaluation would be
+   marked as breaching.
 
 ### Logic
 
@@ -31,7 +32,7 @@ A season is defined as the hours of 7 days, so 168 hours or data points.
 
 #### Prediction
 
-Data is clamped to 2 deviations maximum for the season being evaluated. This is to dampen the affect of outliers, a
+Data is clamped to 2 deviations maximum for the season being evaluated. This is to dampen the effect of outliers, a
 naive solution to unsupervised learning.
 
 The predicted value is calculated with the following:
@@ -50,7 +51,7 @@ value is greater than the breaching threshold, then that evaluation is marked as
 
 #### Evaluation State
 
-In order to determine if a evaluation window is breaching, we need to keep track of past evaluations so that we can
+To determine if a evaluation window is breaching, we need to keep track of past evaluations so that we can
 determine if there are `EVALUATION_WINDOW` (defaults to 2) number consecutive breaching evaluations.
 
 No state is stored, it is stateless. When the current evaluation is calculated, it will calculate the previous 1 day
@@ -79,7 +80,7 @@ normal slowly so taking the first positive slope as the end of the anomalous win
 
 The Detection Lambda publishes a message to the default event bus. The message contains the current window evaluation
 as well as the last day's (24 hours) evaluations. This is so that the processing Lambda can determine the state
-changes and only send an alert once on state changes. Alerts are send via an SNS Topic which can be subscribed to
+changes and only send an alert once on state changes. Alerts are sent via an SNS Topic which can be subscribed to
 something like an email or a Slack channel.
 
 The message contains a chart or rather a rough visual representation of the last 24 hours of evaluations. The
@@ -95,11 +96,11 @@ Follow the instructions in [CONTRIBUTING](https://github.com/rehanvdm/serverless
 to get started.
 
 The detection Lambda can be run locally and the evaluation values plotted for easier debugging. This test can be found
-at`/tests/application/backend/cron-anomaly-detection/index.ts` in the `Simulate and predict` jest test. It loads the
+at`/tests/application/backend/cron-anomaly-detection/index.ts` in the `Simulate and predict` mocha test. It loads the
 CSV data from the same directory and simulates the detection process.
 
 ### Getting your CSV data
-The following Athena query can be used:
+The following Athena query can be used, adjust values accordingly:
 ```SQL
 WITH
 cte_data AS (
@@ -160,14 +161,14 @@ usage as in the test. The breaching threshold is also a function of the standard
 an anomaly.
 
 ## Why only check the breaching of the upper threshold?
-Checking the lower threshold is not that important to detect increase in page views, which is ultimately what we are
+Checking the lower threshold is not that important to detect an increase in page views, which is ultimately what we are
 interested in. Checking the lower threshold would increase false positives and we don't plan to do anything with this
-finding just yet. Therefore, we only focus on upperbound breaches.
+finding just yet. Therefore, we only focus on upper bound breaches.
 
-## Why not use Python that has libraries designed for this?
+## Why not use Python which libraries designed for this?
 A Python version was attempted but the `pandas` and `statsmodels` libraries are
 [too big](https://twitter.com/der_rehan/status/1742443554755018954) to fit in a normal Lambda Function. There are
-ways around it, like using docker or some third party Lambda Layers that I don't trust unless published by AWS.
+ways around it, like using docker or some third-party Lambda Layers that I don't trust unless published by AWS.
 These solutions deviate from the project's objective of being as simple and low maintenance as possible.
 
 ## Why choose a custom prediction algorithm instead of Holt Winter?
@@ -176,7 +177,7 @@ captures seasonality and trend. It is a good fit because site page views have a 
 usually increases over time.
 
 While experimenting the Python version ([see Gist for code](https://gist.github.com/rehanvdm/e7bbe1883b902d72806d02911bb85f91#file-main-py))
-worked well but the problem like mentioned came when this needed to be packaged into a Lambda Function. While the
+worked well but the problem as mentioned came when this needed to be packaged into a Lambda Function. While the
 predictions were good a basic Exponential Moving Average (EMA) predictions was not that far off and was much simpler
 to implement.
 
@@ -184,7 +185,7 @@ A TypeScript version of the Holt Winter was then attempted as the only real reas
 Python libraries. There were no solid libraries for TypeScript that could be used. An attempt to implement it from
 scratch failed, not even ChatGTP could get it right, it was not worth the effort (given enough time this is more than possible).
 
-Therefor the decision was made to use two EMAs, one for the current season and another for the previous season. The
+Therefore, the decision was made to use two EMAs, one for the current season and another for the previous season. The
 predicted value is then the average of these two EMAs. More info in the
 [Prediction](https://github.com/rehanvdm/serverless-website-analytics/blob/main/docs/ANOMALY_DETECTION.md#prediction) section.
 

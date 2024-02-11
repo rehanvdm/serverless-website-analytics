@@ -2,7 +2,7 @@
 
 This project used to use Projen which is a wrapper for JSII. I have since removed it because it is difficult to have
 a large application and source code also in TS that has different TS requirements. JSII generates a tsconfig file
-and does not support a modern configuration. There are some predefined escape hatch to override this behaviour but
+and does not support a modern configuration. There are some predefined escape hatches to override this behaviour but
 it is still lacking.
 
 Example of the JSII tsconfig.json:
@@ -42,7 +42,7 @@ It does not have to be the absolute latest target and lib, but it should be at l
 the system. The same goes with the `paths` configuration, it is not supported by JSII and I can understand why. It is
 notoriously difficult to get right and I had to even do string replacements in the `tsc` for this project to work.
 
-All in all having to support two different TS configurations is not worth it. I had constant issues with ESLint,
+All in all, having to support two different TS configurations is not worth it. I had constant issues with ESLint,
 especially when trying to reference code from the application directory in the infra directory. There would be constant
 issues.
 
