@@ -8,6 +8,10 @@
     ["@semantic-release/npm", {
       "pkgRoot": "package"
     }],
+    ["@semantic-release/github", {
+      "failComment": false,
+      "failTitle": false
+    }],
     ["@semantic-release/git", {
       "assets": ["CHANGELOG.md"],
       "message": "chore: Release ${nextRelease.version} [skip ci]"
