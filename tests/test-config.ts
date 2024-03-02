@@ -64,7 +64,7 @@ export const TestConfig: TestConfig = {
     ANALYTICS_BUCKET: 'swa-demo-bucket-analytics',
     FIREHOSE_PAGE_VIEWS_NAME: 'swa-demo-analytic-page-views-firehose',
     FIREHOSE_EVENTS_NAME: 'swa-demo-analytic-events-firehose',
-    GEOLITE2_CITY_PATH: '../../src/src/backend/layer-geolite2/GeoLite2-City.mmdb',
+    GEOLITE2_CITY_PATH: 'application/src/backend/layer-geolite2/GeoLite2-City.mmdb',
 
     SITES: JSON.stringify(sites),
     ALLOWED_ORIGINS: JSON.stringify(allowedOrigns),

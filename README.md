@@ -486,6 +486,7 @@ See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for more info on how to contribute +
 - [COST.md](docs/COST.md)
 - [DEMO-TRAFFIC.md](docs/DEMO-TRAFFIC.md)
 - [EJECTING_FROM_PROJEN.md](docs/EJECTING_FROM_PROJEN.md)
+- [DEPENDENCIES.md](docs/DEPENDENCIES.md)
 
 ## Roadmap
 
