@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@fontsource/nunito": "^5.0.16",
-    "@types/node": "20.11.24",
+    "@types/node": "^18.19.1",
     "@types/plotly.js-dist-min": "^2.3.4",
     "@vitejs/plugin-vue": "^5.0.4",
     "@vue/tsconfig": "^0.5.1",
