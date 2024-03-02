@@ -25,10 +25,12 @@
         "semi": "off",
         "no-unmodified-loop-condition": "off",
         "@typescript-eslint/no-duplicate-type-constituents": "error",
-        "no-use-before-define": "warn",
+        "no-use-before-define": "off",
         "no-new": "off",
         "@typescript-eslint/no-namespace": "off",
-        "no-template-curly-in-string": "off"
+        "no-template-curly-in-string": "off",
+        "@typescript-eslint/no-unused-vars": "off",
+        "@typescript-eslint/no-explicit-any": "off"
     },
     "ignorePatterns": [
         "**/*.d.ts"

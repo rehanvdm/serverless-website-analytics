@@ -27,7 +27,7 @@ export function trpcToApiGwOptions<
   T extends Exclude<keyof AppRouter, '_def' | 'createCaller' | 'getErrorShape'> = Exclude<
     keyof AppRouter,
     '_def' | 'createCaller' | 'getErrorShape'
-  >
+  >,
 >(
   functionKey: T,
   type: 'query' | 'mutation',
