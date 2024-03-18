@@ -195,3 +195,18 @@ there were some strange results with tRPC not typing correctly.
 The API will always return `null` to indicate that a value is not set. A value of `undefined` will indicate that the
 value is not set and that the key is not present in the object. This is important for the PageFilter and EventFilter.
 A value of `null` will search where that column has no value and `undefined` will ignore that column from the search.
+
+## SOP
+Standard Operation Procedures (SOP) for common tasks.
+
+### Updating the client script
+
+In the client project:
+```
+cd packge
+npm run package
+```
+Copy the `dist/cdn/client-script.js` to the `application/src/frontend/public/cdn`
+
+Also update the version of the `serverless-website-analytics-client` in the `application/src/frontend/package.json`
+which is used by the site itself to track own usage of the dashboard if enabled.
