@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.2](https://github.com/rehanvdm/serverless-website-analytics/compare/v1.6.1...v1.6.2) (2024-03-18)
+
+
+### Bug Fixes
+
+* bump cdn script to the latest client version ([c212908](https://github.com/rehanvdm/serverless-website-analytics/commit/c21290814562c205309134ae0f150f1c3f23ebaa))
+* bump cdn script to the latest client version ([eae7738](https://github.com/rehanvdm/serverless-website-analytics/commit/eae7738c83445f195888e257c42282e75ec9fd04))
+
 ## [1.6.1](https://github.com/rehanvdm/serverless-website-analytics/compare/v1.6.0...v1.6.1) (2024-03-05)
 
 
