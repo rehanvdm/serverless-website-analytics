@@ -204,9 +204,12 @@ export function frontend(
     /* Add the custom domain to the Cognito User Pool only AFTER the CloudFront creates the A record, otherwise the
      * Cognito domain will fail, this is to say we can create DNS records ourselves */
     if (props.auth?.cognito) {
+      // Use the same FQDN calculation for both Cognito User Pool and Route53 cognito A record
+      // Cognito's User Pool interface needs there to be no period at the end of the FQDN, or it cannot reconcile that properly with certificates covering the domain
+      const cognitoFQDomain = `${props.auth.cognito.loginSubDomain}.${props.domain.name}`;
       const cognitoDomain = authProps.userPool!.addDomain('custom-domain', {
         customDomain: {
-          domainName: `${props.auth.cognito.loginSubDomain}.${props.domain.name}`,
+          domainName: cognitoFQDomain,
           certificate: props.domain.usEast1Certificate!,
         },
       });
@@ -219,7 +222,8 @@ export function frontend(
       /* Add the Cognito A record if we can */
       if (props.domain.hostedZone) {
         new route53.ARecord(scope, name('custom-domain-dns-record'), {
-          recordName: props.auth.cognito.loginSubDomain,
+          // Specify recordName as a FQDN with full trailing period so route53 knows the record is not relative to the route53 base
+          recordName: cognitoFQDomain + '.',
           target: route53.RecordTarget.fromAlias({
             bind: () => ({
               dnsName: cognitoDomain.cloudFrontDomainName,
