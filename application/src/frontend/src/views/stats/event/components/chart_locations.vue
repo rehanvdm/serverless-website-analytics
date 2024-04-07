@@ -140,7 +140,8 @@ function rowClick(cell: Record<string, any>) {
 
     <div style="display: grid; grid-template-columns: 6fr 2fr; height: 100%;">
       <ChartLocation v-bind:graphs="chartProps.graphs!" v-bind:loading="loading" style="overflow: scroll;"></ChartLocation>
-      <TableData :columns="columns" :rows="chartLocations || []" :loading="loading" :page-size="16" @click="rowClick" style="min-width: 140px;"></TableData>
+      <TableData :columns="columns" :rows="chartLocations || []" :loading="loading" :page-size="16"
+                 @click="rowClick" style="min-width: 140px;"></TableData>
     </div>
 
   </div>
