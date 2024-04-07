@@ -79,6 +79,7 @@ function tooltipContent(value: number, from: string, to: string, prevValue: numb
 
 .totals {
   display: flex;
+  flex-flow: row wrap;
   justify-content: space-between;
   box-shadow: var(--el-box-shadow-lighter);
   border-radius: 10px;
@@ -86,12 +87,12 @@ function tooltipContent(value: number, from: string, to: string, prevValue: numb
 }
 
 .card {
+  flex: 0 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 15px;
-  width: 25%;
+  padding: 5px;
   min-width: 100px;
 }
 .card__skeleton {

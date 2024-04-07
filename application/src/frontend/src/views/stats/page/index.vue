@@ -234,13 +234,5 @@ watch([filter], () => {
 </template>
 
 <style scoped>
-
-.main-row {
-  display: flex; width: 100%; margin-top: 10px; column-gap: 10px;
-}
-.filter-tag {
-  margin: 5px 5px 0 0;
-}
-
 </style>
 

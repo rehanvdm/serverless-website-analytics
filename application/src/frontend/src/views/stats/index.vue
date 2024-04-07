@@ -184,8 +184,8 @@ watch(() => route.path, async () => {
 
     <el-header style="height: inherit">
 
-      <div style="display: flex; justify-content: space-between;  padding-top: 10px; ">
-        <div>
+      <div style="display: flex; flex-flow: row wrap; justify-content: space-between;  padding-top: 10px; ">
+        <div style="flex: 1 1; text-align: center;">
           <div v-if="loadingSites && !sites.length">
             <el-skeleton style="width: 250px;" animated>
               <template #template>
@@ -202,7 +202,7 @@ watch(() => route.path, async () => {
             <el-button v-if="showUpdateSearch" type="primary" text @click="setSelectedSites()">Update search</el-button>
           </div>
         </div>
-        <div>
+        <div style="flex: 10 1; text-align: center;">
           <el-date-picker v-model="dateFilter" type="daterange" :shortcuts="dateQuickSelectOptions"
                           range-separator="To" start-placeholder="Start date" end-placeholder="End date"/>
           <el-tooltip content="Refresh">

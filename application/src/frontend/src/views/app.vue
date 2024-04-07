@@ -13,10 +13,10 @@ const showDemoBanner = computed(() => {
 
 <template>
 
-  <el-container class="h100" style="display: flex; justify-content: center">
-    <div style="width: 1280px;">
-      <div style="display: flex;">
-        <div style="width: 140px">
+  <el-container class="h100" style="">
+    <div style="max-width: 1280px; width: 100%; margin: auto;">
+      <div style="display: flex; flex-flow: row wrap;">
+        <div style="width: 140px; flex: 1 1;">
           <el-menu :default-active="$route.path" style="margin-top: 10px; border-right: none;">
             <el-menu-item index="/stats/page" @click="trackRouterClick('menu_page', '/stats/page')">
               <template #title>Page Views</template>
@@ -27,7 +27,7 @@ const showDemoBanner = computed(() => {
           </el-menu>
         </div>
 
-        <div style="width: 100%">
+        <div style="width: 100%; flex: 10 1;">
           <el-alert v-if="showDemoBanner" class="demo" type="warning" style="margin-top: 10px; margin-left: 10px; width: 100%" >
             <div style="display: flex; justify-content: space-between; width: 100%">
               <div>
@@ -57,9 +57,6 @@ const showDemoBanner = computed(() => {
 </template>
 
 <style scoped>
-.el-menu {
-  height: 50px;
-}
 .el-menu-item {
   border-radius: 5px;
   font-size: large;
