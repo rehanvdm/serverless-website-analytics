@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/rehanvdm/serverless-website-analytics/compare/v1.7.0...v1.8.0) (2024-04-10)
+
+
+### Features
+
+* update cdn client side script ([33468d6](https://github.com/rehanvdm/serverless-website-analytics/commit/33468d69ebb4501e6bcf3deeebd660e0c2766756))
+
 ## [1.7.0](https://github.com/rehanvdm/serverless-website-analytics/compare/v1.6.2...v1.7.0) (2024-04-06)
 
 
