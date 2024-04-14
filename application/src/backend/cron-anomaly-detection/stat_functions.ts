@@ -165,7 +165,9 @@ export function predict(data: CleanedData, seasonLength: number, predictedBreach
   if (expPredictedPrev && expPredictedPrev !== 0) predicted = (expPredictedLatest + expPredictedPrev) / 2;
 
   const latestRecord = data.latest.record;
-  const breachingThreshold = predicted * predictedBreachingMultiplier;
+  const breachingThresholdNoStatic = predicted * predictedBreachingMultiplier;
+  const breachingThreshold = (LambdaEnvironment.STATIC_THRESHOLD < breachingThresholdNoStatic ?
+                             LambdaEnvironment.STATIC_THRESHOLD : breachingThresholdNoStatic);
   /* Use the `data.latest.record` instead of `data.trainingDataViews[data.trainingDataViews.length-1]` because the
    * latter has clamped values */
   const breachingLatest = latestRecord.views > breachingThreshold;

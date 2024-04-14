@@ -32,6 +32,8 @@ export type TestConfig = {
     BREACHING_MULTIPLIER: string;
     EVENT_BRIDGE_SOURCE: string;
 
+    STATIC_THRESHOLD: string;
+
     ALERT_TOPIC_ARN: string;
     ALERT_ON_ALARM: string;
     ALERT_ON_OK: string;
@@ -83,6 +85,7 @@ export const TestConfig: TestConfig = {
     EVALUATION_WINDOW: '2',
     BREACHING_MULTIPLIER: '2',
     EVENT_BRIDGE_SOURCE: 'swa-demo-prod',
+    STATIC_THRESHOLD: '0',
 
     ALERT_TOPIC_ARN: 'arn:aws:sns:eu-west-1:123456789:your-topic-name',
     ALERT_ON_ALARM: 'true',

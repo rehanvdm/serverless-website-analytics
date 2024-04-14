@@ -17,6 +17,8 @@ export class LambdaEnvironment {
   static BREACHING_MULTIPLIER: number;
   static EVENT_BRIDGE_SOURCE: string;
 
+  static STATIC_THRESHOLD: number;
+
   static init() {
     const schema = z.object({
       AWS_REGION: z.string(),
@@ -32,6 +34,8 @@ export class LambdaEnvironment {
       EVALUATION_WINDOW: z.string().transform((v) => Number(v)),
       BREACHING_MULTIPLIER: z.string().transform((v) => Number(v)),
       EVENT_BRIDGE_SOURCE: z.string(),
+
+      STATIC_THRESHOLD: z.string().transform((v) => Number(v)),
     });
     const parsed = schema.safeParse(process.env);
 
