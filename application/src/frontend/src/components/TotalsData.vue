@@ -87,13 +87,13 @@ function tooltipContent(value: number, from: string, to: string, prevValue: numb
 }
 
 .card {
-  flex: 0 1;
+  flex: 1 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   padding: 5px;
-  min-width: 100px;
+  min-width: 9rem;
 }
 .card__skeleton {
   margin-top: 5px;

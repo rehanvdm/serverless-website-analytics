@@ -13,10 +13,12 @@ const router = createRouter({
     {
       path: '/stats/page',
       component: stats,
+      name: "Page Views",
     },
     {
       path: '/stats/event',
       component: stats,
+      name: "Events",
     },
     // {
     //   path: '/',
