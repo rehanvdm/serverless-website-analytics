@@ -36,8 +36,5 @@
     "vue-material-design-icons": "^5.3.0",
     "vue-router": "^4.3.0",
     "vue-tsc": "^2.0.2"
-  },
-  "devDependencies": {
-    "aws-sdk": "^2.1599.0"
   }
 }
