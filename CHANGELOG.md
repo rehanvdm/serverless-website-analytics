@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.9.0](https://github.com/rehanvdm/serverless-website-analytics/compare/v1.8.0...v1.9.0) (2024-04-26)
+
+
+### Features
+
+* include aws-sdk for frontend application tests ([fdb38cd](https://github.com/rehanvdm/serverless-website-analytics/commit/fdb38cd83c8001aaecee222db7c47365c86d2937))
+
+
+### Bug Fixes
+
+* aws-sdk needed as a dev dependency at the top level ([901d3aa](https://github.com/rehanvdm/serverless-website-analytics/commit/901d3aa605155313552b3e948f5c40e2e9e3b8fd))
+
 ## [1.8.0](https://github.com/rehanvdm/serverless-website-analytics/compare/v1.7.0...v1.8.0) (2024-04-10)
 
 
