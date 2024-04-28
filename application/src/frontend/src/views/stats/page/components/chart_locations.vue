@@ -158,10 +158,9 @@ function rowClick(cell: Record<string, any>) {
 .chart-data-outer {
   min-height: 490px;
 }
-@media all and (max-width: 699px) {
+@media all and (max-width: 767px) {
   .chart-data {
-    display: flex;
-    flex-flow: row wrap;
+    grid-template-columns: 1fr;
   }
   .table-data {
     order: -1;

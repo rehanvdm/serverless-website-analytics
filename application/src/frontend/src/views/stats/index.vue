@@ -213,12 +213,12 @@ watch(() => route.path, async () => {
 
         <div class="setting-area" style="flex: 0 0; display: flex; flex-flow: row nowrap;">
           <el-tooltip content="Content" style="flex: 0 0;">
-            <el-button class="menu-button vis-when-narrow" text round plan @click="showContent = !showContent" style="padding-left: 0px;">
+            <el-button class="menu-button hidden-sm-and-up" text round plan @click="showContent = !showContent" style="padding-left: 0px;">
               <mdi-menu class="menu-button__icon"></mdi-menu>
             </el-button>
           </el-tooltip>
 
-          <div style="flex: 1 1; align-content: center;" class="vis-when-narrow">{{ $route.name }}</div>
+          <div style="flex: 1 1; align-content: center;" class="hidden-sm-and-up">{{ $route.name }}</div>
 
           <el-tooltip content="Refresh">
             <el-button class="menu-button" text round plain :loading="isLoading" @click="refresh()">
@@ -257,14 +257,14 @@ watch(() => route.path, async () => {
 
   </div>
 
-  <el-drawer class="hidden-sm-and-down" v-model="showSettings" title="Settings" direction="rtl" size="100%" style="max-width: 500px" >
+  <el-drawer class="" v-model="showSettings" title="Settings" direction="rtl" size="100%" style="max-width: 500px" >
     <div class="settings-label-single" style="display: flex; justify-content: space-between">
       <span class="settings-label">Theme</span>
       <el-switch class="header__switch" v-model="isDark" inactive-text="Light" active-text="Dark" />
     </div>
   </el-drawer>
 
-  <el-drawer class="hidden-sm-and-down" v-model="showContent" title="Content" direction="rtl" size="100%" style="max-width: 500px;">
+  <el-drawer class="" v-model="showContent" title="Content" direction="rtl" size="100%" style="max-width: 500px;">
     <div style="">
       <el-menu :default-active="$route.path" style="margin-top: 10px; border-right: none;">
         <el-menu-item index="/stats/page" @click="trackRouterClick('menu_page', '/stats/page')">
@@ -307,15 +307,9 @@ watch(() => route.path, async () => {
 .header-surround {
   flex-flow: row nowrap;
 }
-.vis-when-narrow {
-  display: none;
-}
-@media all and (max-width: 699px) {
+@media all and (max-width: 767px) {
   .header-surround {
     flex-flow: row wrap;
-  }
-  .vis-when-narrow {
-    display: block;
   }
   .setting-area {
     order: -1;

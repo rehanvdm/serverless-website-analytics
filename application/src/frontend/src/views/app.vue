@@ -16,7 +16,7 @@ const showDemoBanner = computed(() => {
   <el-container class="h100" style="">
     <div style="max-width: 1280px; width: 100%; margin: auto;">
       <div style="display: flex; flex-flow: row nowrap;">
-        <div class="invis-when-narrow" style="width: 140px; flex: 0 0;">
+        <div class="hidden-xs-only" style="width: 140px; flex: 0 0;">
           <el-menu :default-active="$route.path" style="margin-top: 10px; border-right: none;">
             <el-menu-item index="/stats/page" @click="trackRouterClick('menu_page', '/stats/page')">
               <template #title>Page Views</template>
@@ -67,15 +67,6 @@ const showDemoBanner = computed(() => {
   background-color: var(--el-color-primary-light-8);
   border-color: var(--el-color-primary-light-8);
   color: var(--el-color-primary);
-}
-
-.invis-when-narrow {
-  display: block;
-}
-@media all and (max-width: 699px) {
-  .invis-when-narrow {
-    display: none;
-  }
 }
 </style>
 
