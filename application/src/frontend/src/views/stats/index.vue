@@ -185,8 +185,8 @@ watch(() => route.path, async () => {
 
     <el-header style="height: inherit">
 
-      <div class="header-surround" style="display: flex; justify-content: space-between; padding-top: 10px;">
-        <div style="flex: 1 1; display: flex; flex-flow: row wrap; justify-content: space-between;  padding-top: 0px; max-width: 100%;">
+      <div class="header-surround" style="display: flex; justify-content: space-between; padding-top: 10px; gap: 10px;">
+        <div style="flex: 1 1; display: flex; flex-flow: row wrap; justify-content: space-between;  padding-top: 0px; max-width: 100%; gap: 10px;">
           <div style="flex: 1 1; text-align: center; min-width: 125px; max-width: 100%;">
             <div v-if="loadingSites && !sites.length">
               <el-skeleton style="width: 100%; max-width: 100%;" animated>
