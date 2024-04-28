@@ -6108,7 +6108,7 @@ const columns: ComputedRef<Column[]> = computed(()  => {
   const ret: Column[] = [
     { name: "Page", type: "string", index: "page_url", gridColumn: "6fr", canFilter: true, openExternalColumn: "external_url" },
     { name: "Views", type: "number", index: "views", gridColumn: "2fr" },
-    { name: "Time on Page", type: "number", index: "avg_time_on_page", gridColumn: "2fr" },
+    { name: "Time on Page", type: "number", index: "avg_time_on_page", gridColumn: "3fr" },
   ];
 
   const filterHasValues = Object.values(props.filter).some(v => v);

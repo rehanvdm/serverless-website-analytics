@@ -185,9 +185,9 @@ watch(() => route.path, async () => {
 
     <el-header style="height: inherit">
 
-      <div class="header-surround" style="display: flex; justify-content: space-between; padding-top: 10px;">
-        <div style="flex: 1 1; display: flex; flex-flow: row wrap; justify-content: space-between;  padding-top: 0px; max-width: 100%;">
-          <div style="flex: 1 1; text-align: center; min-width: 125px; max-width: 100%;">
+      <div class="header-surround">
+        <div class="around-selects">
+          <div class="select-site">
             <div v-if="loadingSites && !sites.length">
               <el-skeleton style="width: 100%; max-width: 100%;" animated>
                 <template #template>
@@ -204,7 +204,7 @@ watch(() => route.path, async () => {
               <el-button v-if="showUpdateSearch" type="primary" text @click="setSelectedSites()">Update search</el-button>
             </div>
           </div>
-          <div style="flex: 1 1; text-align: center; display: flex; flex-flow: row nowrap; max-width: 100%;">
+          <div class="select-date">
             <el-date-picker v-model="dateFilter" type="daterange" :shortcuts="dateQuickSelectOptions"
                             range-separator="To" start-placeholder="Start date" end-placeholder="End date"/>
 
@@ -213,12 +213,12 @@ watch(() => route.path, async () => {
 
         <div class="setting-area" style="flex: 0 0; display: flex; flex-flow: row nowrap;">
           <el-tooltip content="Content" style="flex: 0 0;">
-            <el-button class="menu-button vis-when-narrow" text round plan @click="showContent = !showContent" style="margin-left: 0px;">
+            <el-button class="menu-button hidden-sm-and-up" text round plan @click="showContent = !showContent" style="margin-right: 8px; margin-left: -10px;">
               <mdi-menu class="menu-button__icon"></mdi-menu>
             </el-button>
           </el-tooltip>
 
-          <div style="flex: 1 1;" class="vis-when-narrow">{{ $route.name }}</div>
+          <div style="flex: 1 1; margin: auto;" class="hidden-sm-and-up">{{ $route.name }}</div>
 
           <el-tooltip content="Refresh">
             <el-button class="menu-button" text round plain :loading="isLoading" @click="refresh()">
@@ -229,10 +229,10 @@ watch(() => route.path, async () => {
             </el-button>
           </el-tooltip>
 
-          <el-divider direction="vertical" style="height: 1.5rem; top: -3px;"></el-divider>
+          <el-divider direction="vertical" style="height: 1.5em; top: .2em;"></el-divider>
 
           <el-tooltip content="Settings">
-            <el-button class="menu-button" text round plain @click="showSettings = !showSettings" >
+            <el-button class="menu-button" text round plain @click="showSettings = !showSettings" style="margin-right: -10px;">
               <mdi-cog class="menu-button__icon"></mdi-cog>
             </el-button>
           </el-tooltip>
@@ -257,14 +257,14 @@ watch(() => route.path, async () => {
 
   </div>
 
-  <el-drawer class="hidden-sm-and-down" v-model="showSettings" title="Settings" direction="rtl" size="100%" style="max-width: 500px" >
+  <el-drawer class="" v-model="showSettings" title="Settings" direction="rtl" size="100%" style="max-width: 500px" >
     <div class="settings-label-single" style="display: flex; justify-content: space-between">
       <span class="settings-label">Theme</span>
       <el-switch class="header__switch" v-model="isDark" inactive-text="Light" active-text="Dark" />
     </div>
   </el-drawer>
 
-  <el-drawer class="hidden-sm-and-down" v-model="showContent" title="Content" direction="rtl" size="100%" style="max-width: 500px;">
+  <el-drawer class="" v-model="showContent" title="Content" direction="rtl" size="100%" style="max-width: 500px;">
     <div style="">
       <el-menu :default-active="$route.path" style="margin-top: 10px; border-right: none;">
         <el-menu-item index="/stats/page" @click="trackRouterClick('menu_page', '/stats/page')">
@@ -282,9 +282,6 @@ watch(() => route.path, async () => {
 <style scoped>
 
 .menu-button {
-  margin-top: -5px;
-  padding: 10px;
-  margin-left: 5px;
 }
 .menu-button__icon {
   font-size: medium;
@@ -308,21 +305,62 @@ watch(() => route.path, async () => {
 }
 
 .header-surround {
+  display: flex;
   flex-flow: row nowrap;
+  justify-content: space-between;
+  padding-top: 10px;
+  gap: 10px;
 }
-.vis-when-narrow {
-  display: none;
-}
-@media all and (max-width: 699px) {
+
+@media all and (max-width: 767px) {
   .header-surround {
     flex-flow: row wrap;
-  }
-  .vis-when-narrow {
-    display: block;
   }
   .setting-area {
     order: -1;
     min-width: 100%;
+  }
+}
+
+.around-selects {
+  flex: 1 1;
+  max-width: 100%;
+
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  padding-top: 0px;
+  gap: 10px;
+}
+.select-site {
+  min-width: 200px;
+  max-width: 100%;
+
+  flex: 0 1 250px;
+  text-align: center;
+}
+.mid-site-date {
+  flex: 1;
+}
+.select-date {
+  min-width: 200px;
+  max-width: 100%;
+
+  flex: 0 0 350px;
+  text-align: center;
+  display: flex;
+  flex-flow: row nowrap;
+}
+
+@media all and (max-width: 899px) {
+  .around-selects {
+    flex-flow: row wrap;
+  }
+  .select-site {
+    flex: 1 1;
+  }
+  .select-date {
+    flex: 1 1;
   }
 }
 </style>
