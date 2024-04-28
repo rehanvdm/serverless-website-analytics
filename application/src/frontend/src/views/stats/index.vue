@@ -218,7 +218,7 @@ watch(() => route.path, async () => {
             </el-button>
           </el-tooltip>
 
-          <div style="flex: 1 1; align-content: center;" class="hidden-sm-and-up">{{ $route.name }}</div>
+          <div style="flex: 1 1; margin: auto;" class="hidden-sm-and-up">{{ $route.name }}</div>
 
           <el-tooltip content="Refresh">
             <el-button class="menu-button" text round plain :loading="isLoading" @click="refresh()">
