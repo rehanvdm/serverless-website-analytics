@@ -213,12 +213,12 @@ watch(() => route.path, async () => {
 
         <div class="setting-area" style="flex: 0 0; display: flex; flex-flow: row nowrap;">
           <el-tooltip content="Content" style="flex: 0 0;">
-            <el-button class="menu-button vis-when-narrow" text round plan @click="showContent = !showContent" style="margin-left: 0px;">
+            <el-button class="menu-button vis-when-narrow" text round plan @click="showContent = !showContent" style="padding-left: 0px;">
               <mdi-menu class="menu-button__icon"></mdi-menu>
             </el-button>
           </el-tooltip>
 
-          <div style="flex: 1 1;" class="vis-when-narrow">{{ $route.name }}</div>
+          <div style="flex: 1 1; align-content: center;" class="vis-when-narrow">{{ $route.name }}</div>
 
           <el-tooltip content="Refresh">
             <el-button class="menu-button" text round plain :loading="isLoading" @click="refresh()">
@@ -229,10 +229,10 @@ watch(() => route.path, async () => {
             </el-button>
           </el-tooltip>
 
-          <el-divider direction="vertical" style="height: 1.5rem; top: -3px;"></el-divider>
+          <el-divider direction="vertical" style="height: 1.5em; top: .2em;"></el-divider>
 
           <el-tooltip content="Settings">
-            <el-button class="menu-button" text round plain @click="showSettings = !showSettings" >
+            <el-button class="menu-button" text round plain @click="showSettings = !showSettings" style="padding-right: 0px;">
               <mdi-cog class="menu-button__icon"></mdi-cog>
             </el-button>
           </el-tooltip>
@@ -282,9 +282,6 @@ watch(() => route.path, async () => {
 <style scoped>
 
 .menu-button {
-  margin-top: -5px;
-  padding: 10px;
-  margin-left: 5px;
 }
 .menu-button__icon {
   font-size: medium;
