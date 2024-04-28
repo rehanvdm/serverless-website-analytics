@@ -84,6 +84,8 @@ function tooltipContent(value: number, from: string, to: string, prevValue: numb
   box-shadow: var(--el-box-shadow-lighter);
   border-radius: 10px;
   min-height: inherit;
+  padding: 15px;
+  gap: 15px;
 }
 
 .card {
@@ -92,7 +94,6 @@ function tooltipContent(value: number, from: string, to: string, prevValue: numb
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 5px;
   min-width: 9rem;
 }
 .card__skeleton {
