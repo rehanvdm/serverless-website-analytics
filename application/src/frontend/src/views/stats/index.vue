@@ -185,9 +185,9 @@ watch(() => route.path, async () => {
 
     <el-header style="height: inherit">
 
-      <div class="header-surround" style="display: flex; justify-content: space-between; padding-top: 10px; gap: 10px;">
-        <div style="flex: 1 1; display: flex; flex-flow: row wrap; justify-content: space-between;  padding-top: 0px; max-width: 100%; gap: 10px;">
-          <div style="flex: 1 1; text-align: center; min-width: 125px; max-width: 100%;">
+      <div class="header-surround">
+        <div class="around-selects">
+          <div class="select-site">
             <div v-if="loadingSites && !sites.length">
               <el-skeleton style="width: 100%; max-width: 100%;" animated>
                 <template #template>
@@ -204,7 +204,7 @@ watch(() => route.path, async () => {
               <el-button v-if="showUpdateSearch" type="primary" text @click="setSelectedSites()">Update search</el-button>
             </div>
           </div>
-          <div style="flex: 1 1; text-align: center; display: flex; flex-flow: row nowrap; max-width: 100%;">
+          <div class="select-date">
             <el-date-picker v-model="dateFilter" type="daterange" :shortcuts="dateQuickSelectOptions"
                             range-separator="To" start-placeholder="Start date" end-placeholder="End date"/>
 
@@ -305,8 +305,13 @@ watch(() => route.path, async () => {
 }
 
 .header-surround {
+  display: flex;
   flex-flow: row nowrap;
+  justify-content: space-between;
+  padding-top: 10px;
+  gap: 10px;
 }
+
 @media all and (max-width: 767px) {
   .header-surround {
     flex-flow: row wrap;
@@ -314,6 +319,48 @@ watch(() => route.path, async () => {
   .setting-area {
     order: -1;
     min-width: 100%;
+  }
+}
+
+.around-selects {
+  flex: 1 1;
+  max-width: 100%;
+
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  padding-top: 0px;
+  gap: 10px;
+}
+.select-site {
+  min-width: 200px;
+  max-width: 100%;
+
+  flex: 0 1 250px;
+  text-align: center;
+}
+.mid-site-date {
+  flex: 1;
+}
+.select-date {
+  min-width: 200px;
+  max-width: 100%;
+
+  flex: 0 0 350px;
+  text-align: center;
+  display: flex;
+  flex-flow: row nowrap;
+}
+
+@media all and (max-width: 899px) {
+  .around-selects {
+    flex-flow: row wrap;
+  }
+  .select-site {
+    flex: 1 1;
+  }
+  .select-date {
+    flex: 1 1;
   }
 }
 </style>
