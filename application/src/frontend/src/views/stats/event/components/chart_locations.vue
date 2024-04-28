@@ -138,7 +138,7 @@ function rowClick(cell: Record<string, any>) {
 <template>
   <div class="container chart-data-outer">
     <div class="chart-data" style="height: 100%;">
-      <ChartLocation v-bind:graphs="chartProps.graphs!" v-bind:loading="loading" style="overflow: scroll; width: 100%;"></ChartLocation>
+      <ChartLocation v-bind:graphs="chartProps.graphs!" v-bind:loading="loading" style="overflow: hidden; width: 100%;"></ChartLocation>
       <TableData class="table-data" :columns="columns" :rows="chartLocations || []" :loading="loading" :page-size="16"
                  @click="rowClick"></TableData>
     </div>

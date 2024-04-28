@@ -204,7 +204,7 @@ watch([filter], () => {
           <ChartEvents ref="componentChartEvents" :sites="sites" :from-date="fromDate" :to-date="toDate"
                       @loading="(val) => loadingChartEvents = val"
                       :filter="filter"
-                      style="overflow: scroll; width: 300px;"
+                      style="overflow: hidden; width: 300px;"
           ></ChartEvents>
         </div>
 

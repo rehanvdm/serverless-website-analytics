@@ -197,7 +197,7 @@ watch([filter], () => {
           <ChartViews ref="componentChartViews" :sites="sites" :from-date="fromDate" :to-date="toDate"
                       @loading="(val) => loadingChartViews = val"
                       :filter="filter"
-                      style="overflow: scroll; width: 300px;"
+                      style="overflow: hidden; width: 300px;"
           ></ChartViews>
         </div>
 
