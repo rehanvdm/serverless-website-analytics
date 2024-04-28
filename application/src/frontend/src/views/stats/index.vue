@@ -213,7 +213,7 @@ watch(() => route.path, async () => {
 
         <div class="setting-area" style="flex: 0 0; display: flex; flex-flow: row nowrap;">
           <el-tooltip content="Content" style="flex: 0 0;">
-            <el-button class="menu-button hidden-sm-and-up" text round plan @click="showContent = !showContent" style="padding-left: 0px;">
+            <el-button class="menu-button hidden-sm-and-up" text round plan @click="showContent = !showContent" style="margin-right: 8px; margin-left: -10px;">
               <mdi-menu class="menu-button__icon"></mdi-menu>
             </el-button>
           </el-tooltip>
@@ -232,7 +232,7 @@ watch(() => route.path, async () => {
           <el-divider direction="vertical" style="height: 1.5em; top: .2em;"></el-divider>
 
           <el-tooltip content="Settings">
-            <el-button class="menu-button" text round plain @click="showSettings = !showSettings" style="padding-right: 0px;">
+            <el-button class="menu-button" text round plain @click="showSettings = !showSettings" style="margin-right: -10px;">
               <mdi-cog class="menu-button__icon"></mdi-cog>
             </el-button>
           </el-tooltip>
