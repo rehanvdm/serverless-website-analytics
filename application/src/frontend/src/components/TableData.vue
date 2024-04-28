@@ -105,7 +105,7 @@ const hover = reactive<Record<any, boolean>>({});
         <div class="row" :style="rowGridColumnCss" v-for="(row, rowIndex) in pageData">
           <template v-for="col of columns">
             <template v-if="col.type === 'string'">
-              <el-tooltip :show-after="1000" :content="row[col.index] != undefined ? row[col.index] : '-'">
+              <el-tooltip :show-after="1000" :content="row[col.index] != undefined ? String(row[col.index]) : '-'">
                 <div v-if="col.canFilter" class="column column--overflow">
 
                   <div style="display: flex;"
@@ -123,13 +123,13 @@ const hover = reactive<Record<any, boolean>>({});
                   </div>
 
                 </div>
-                <div v-lese class="column column--overflow">
+                <div v-else class="column column--overflow">
                   {{ row[col.index] != undefined ? row[col.index] : "-"  }}
                 </div>
               </el-tooltip>
             </template>
             <template v-if="col.type === 'number'">
-              <el-tooltip :show-after="1000" :content="row[col.index] != undefined ? row[col.index] : '-'">
+              <el-tooltip :show-after="1000" :content="row[col.index] != undefined ? String(row[col.index]) : '-'">
                 <div class="column">{{ humanizeNumber(row[col.index]) }}</div>
               </el-tooltip>
             </template>
