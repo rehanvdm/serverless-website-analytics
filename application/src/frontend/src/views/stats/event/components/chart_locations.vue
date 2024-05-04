@@ -136,16 +136,39 @@ function rowClick(cell: Record<string, any>) {
 </script>
 
 <template>
-  <div class="container" style="height: 470px;">
-
-    <div style="display: grid; grid-template-columns: 6fr 2fr; height: 100%;">
-      <ChartLocation v-bind:graphs="chartProps.graphs!" v-bind:loading="loading"></ChartLocation>
-      <TableData :columns="columns" :rows="chartLocations || []" :loading="loading" :page-size="16"
+  <div class="container chart-data-outer">
+    <div class="chart-data" style="height: 100%;">
+      <ChartLocation v-bind:graphs="chartProps.graphs!" v-bind:loading="loading" style="overflow: hidden; width: 100%;"></ChartLocation>
+      <TableData class="table-data" :columns="columns" :rows="chartLocations || []" :loading="loading" :page-size="16"
                  @click="rowClick"></TableData>
     </div>
-
   </div>
 </template>
 
 <style scoped>
+.chart-data {
+  display: grid;
+  grid-template-columns: 6fr 2fr;
+  padding: 10px;
+}
+.table-data {
+  min-width: 140px;
+  margin-left: 10px;
+}
+.chart-data-outer {
+  min-height: 490px;
+}
+@media all and (max-width: 767px) {
+  .chart-data {
+    grid-template-columns: 1fr;
+  }
+  .table-data {
+    order: -1;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  .chart-data-outer {
+    height: fit-content;
+  }
+}
 </style>

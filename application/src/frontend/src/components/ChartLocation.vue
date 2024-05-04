@@ -87,11 +87,11 @@ onMounted(() => {
 
 <template>
   <div style="height: 470px;">
-      <div v-show="!loading" class="chart" ref="chartRef" style="height: 100%; width: 870px;"></div>
+      <div v-show="!loading" class="chart" ref="chartRef" style="height: 100%; width: 100%;"></div>
       <el-skeleton v-show="loading" :loading="true" animated style="height: 100%">
         <template #template>
           <div style="display: flex; height: 100%; width: 100%; margin-top: 10px; column-gap: 10px;">
-            <div class="chart" style="height: 100%; width: 900px; ">
+            <div class="chart" style="height: 100%; width: 100%; ">
               <el-skeleton-item variant="image" style="height: 85%; margin: 20px;" />
             </div>
           </div>

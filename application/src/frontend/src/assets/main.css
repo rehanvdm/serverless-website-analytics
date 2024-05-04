@@ -79,6 +79,16 @@ p {
   width: 100%;
   padding: 0 15px;
   min-height: 470px;
+  min-width: 200px;
+  flex: 1 1;
+}
+
+.main-row {
+  display: flex; width: 100%; margin-top: 10px; column-gap: 10px; flex-flow: row wrap;
+}
+
+.filter-tag {
+  margin: 5px 5px 0 0;
 }
 
 .demo > .el-alert__content > .el-alert__description {
