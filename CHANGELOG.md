@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0](https://github.com/rehanvdm/serverless-website-analytics/compare/v1.9.0...v1.10.0) (2024-05-04)
+
+
+### Features
+
+* Mobile friendly ([#86](https://github.com/rehanvdm/serverless-website-analytics/issues/86)) ([4b1ef87](https://github.com/rehanvdm/serverless-website-analytics/commit/4b1ef87db23dd57ea29f3fc0d6015659c65435dd))
+
 ## [1.9.0](https://github.com/rehanvdm/serverless-website-analytics/compare/v1.8.0...v1.9.0) (2024-04-26)
 
 
