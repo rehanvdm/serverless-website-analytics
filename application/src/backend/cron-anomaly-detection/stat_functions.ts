@@ -168,7 +168,8 @@ export function predict(data: CleanedData, seasonLength: number, predictedBreach
   const breachingThreshold = predicted * predictedBreachingMultiplier;
   /* Use the `data.latest.record` instead of `data.trainingDataViews[data.trainingDataViews.length-1]` because the
    * latter has clamped values */
-  const breachingLatest = latestRecord.views > breachingThreshold;
+  const breachingLatest = latestRecord.views > LambdaEnvironment.MINIMUM_VIEWS &&
+    latestRecord.views > breachingThreshold;
   logger.debug('Prediction', {
     Latest: latestRecord,
     Predicted: predicted,
