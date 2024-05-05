@@ -182,10 +182,10 @@ export interface AnomalyDetectionProps {
   readonly predictedBreachingMultiplier?: number;
 
   /**
-   * The minimum threshold value before allowing breaching.
+   * The minimum threshold views before allowing breaching.
    * @default 0
    */
-  readonly staticThreshold?: number;
+  readonly minimumViews?: number;
 }
 
 export interface AnomalyAlertProps {
@@ -217,7 +217,7 @@ export interface AnomalyProps {
    * @default ```{
    *   evaluationWindow: 2,
    *   predictedBreachingMultiplier: 2,
-   *   staticThreshold: 0
+   *   minimumViews: 0
    * }```
    */
   readonly detection?: AnomalyDetectionProps;
@@ -353,7 +353,7 @@ export class Swa extends Construct {
         detection: {
           evaluationWindow: 2,
           predictedBreachingMultiplier: 2,
-          staticThreshold: 0,
+          minimumViews: 0,
         },
         alert: {
           onAlarm: true,

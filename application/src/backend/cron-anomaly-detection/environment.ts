@@ -16,8 +16,7 @@ export class LambdaEnvironment {
   static EVALUATION_WINDOW: number;
   static BREACHING_MULTIPLIER: number;
   static EVENT_BRIDGE_SOURCE: string;
-
-  static STATIC_THRESHOLD: number;
+  static MINIMUM_VIEWS: number;
 
   static init() {
     const schema = z.object({
@@ -34,8 +33,7 @@ export class LambdaEnvironment {
       EVALUATION_WINDOW: z.string().transform((v) => Number(v)),
       BREACHING_MULTIPLIER: z.string().transform((v) => Number(v)),
       EVENT_BRIDGE_SOURCE: z.string(),
-
-      STATIC_THRESHOLD: z.string().transform((v) => Number(v)),
+      MINIMUM_VIEWS: z.string().transform((v) => Number(v)),
     });
     const parsed = schema.safeParse(process.env);
 

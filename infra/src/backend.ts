@@ -349,8 +349,7 @@ export function backend(
         EVALUATION_WINDOW: props.anomaly.detection.evaluationWindow!.toString(),
         BREACHING_MULTIPLIER: props.anomaly.detection.predictedBreachingMultiplier!.toString(),
         EVENT_BRIDGE_SOURCE: eventBridgeSource,
-
-        STATIC_THRESHOLD: props.anomaly.detection.staticThreshold!.toString(),
+        MINIMUM_VIEWS: props.anomaly.detection.minimumViews!.toString(),
       },
       /* The lambda is NOT idempotent */
       retryAttempts: 0,

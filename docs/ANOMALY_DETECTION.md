@@ -25,7 +25,7 @@ Two important environment variables are used to configure the detection:
    The actual value of 100 is less than the breaching threshold of 160, so the evaluation is not marked as breaching.
    If the actual value was say 200, then it would be more than the breaching threshold and the evaluation would be
    marked as breaching.
-- `STATIC_THRESHOLD` This is a minimum value, below which any other values will not be considered to be breaching the threshold.  It defaults to 0.  As an example - if you have a spike from 1 view over several hours to 100 views in an hour, even for multiple hours, that would normally set off the alarm.  If `STATIC_THRESHOLD` is set to 1000, though, it'll be ignored.
+- `MINIMUM_VIEWS` This is a minimum value, below which any other values will not be considered to be breaching the threshold.  It defaults to 0.  As an example - if you have a spike from 1 view over several hours to 100 views in an hour, even for multiple hours, that would normally set off the alarm.  If `MINIMUM_VIEWS` is set to 1000, though, it'll be ignored.
 
 ### Logic
 
