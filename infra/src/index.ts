@@ -182,7 +182,7 @@ export interface AnomalyDetectionProps {
   readonly predictedBreachingMultiplier?: number;
 
   /**
-   * The minimum threshold views before allowing breaching.
+   * The minimum number of views before an evaluation is considered breached.
    * @default 0
    */
   readonly minimumViews?: number;
