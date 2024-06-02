@@ -31,6 +31,7 @@ export type TestConfig = {
     EVALUATION_WINDOW: string;
     BREACHING_MULTIPLIER: string;
     EVENT_BRIDGE_SOURCE: string;
+    MINIMUM_VIEWS: string;
 
     ALERT_TOPIC_ARN: string;
     ALERT_ON_ALARM: string;
@@ -83,6 +84,7 @@ export const TestConfig: TestConfig = {
     EVALUATION_WINDOW: '2',
     BREACHING_MULTIPLIER: '2',
     EVENT_BRIDGE_SOURCE: 'swa-demo-prod',
+    MINIMUM_VIEWS: '0',
 
     ALERT_TOPIC_ARN: 'arn:aws:sns:eu-west-1:123456789:your-topic-name',
     ALERT_ON_ALARM: 'true',

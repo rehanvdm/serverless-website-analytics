@@ -25,6 +25,7 @@ Two important environment variables are used to configure the detection:
    The actual value of 100 is less than the breaching threshold of 160, so the evaluation is not marked as breaching.
    If the actual value was say 200, then it would be more than the breaching threshold and the evaluation would be
    marked as breaching.
+- `MINIMUM_VIEWS` The minimum number of views before an evaluation is considered breached. Continuing with the example above, if the `Minimum Views` parameter is specified as 101, which is less than the actual view of 100, then the predicted value, breaching multiplier, and the breaching threshold are irrelevant as the evaluation will not be able to transition into the breaching state.
 
 ### Logic
 
