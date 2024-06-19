@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.0](https://github.com/rehanvdm/serverless-website-analytics/compare/v1.10.0...v1.11.0) (2024-06-02)
+
+
+### Features
+
+* Static anomaly detection for pr ([#89](https://github.com/rehanvdm/serverless-website-analytics/issues/89)) ([a00cfae](https://github.com/rehanvdm/serverless-website-analytics/commit/a00cfae6a42e6491f8d824135bf3bf787df1f4db))
+
 ## [1.10.0](https://github.com/rehanvdm/serverless-website-analytics/compare/v1.9.0...v1.10.0) (2024-05-04)
 
 
