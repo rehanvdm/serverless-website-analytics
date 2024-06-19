@@ -195,7 +195,11 @@ function evaluationWindowState(evaluations: Evaluation[], evaluateWindows: numbe
   const evaluationWindowBreached = evaluationWindow.reduce((a, b) => a && b.breached, true);
 
   const latestEvaluation = evaluationWindow[evaluationWindow.length - 1];
-  if (!evaluationWindowBreached && latestEvaluation.value > latestEvaluation.breachingThreshold * 2) {
+  if (
+    !evaluationWindowBreached &&
+    latestEvaluation.value > latestEvaluation.breachingThreshold * 2 &&
+    latestEvaluation.value > LambdaEnvironment.MINIMUM_VIEWS
+  ) {
     console.log('Big spike detected, evaluations in evaluation window is irrelevant', latestEvaluation.date);
     return {
       alarm: true,
