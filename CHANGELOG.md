@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.1](https://github.com/rehanvdm/serverless-website-analytics/compare/v1.11.0...v1.11.1) (2024-06-20)
+
+
+### Bug Fixes
+
+* MINIMUM_VIEWS not applied during Big Spike detection ([#90](https://github.com/rehanvdm/serverless-website-analytics/issues/90)) ([0c6d4fd](https://github.com/rehanvdm/serverless-website-analytics/commit/0c6d4fd35b0fbd14cecf1b722709489c0ba83415))
+
 ## [1.11.0](https://github.com/rehanvdm/serverless-website-analytics/compare/v1.10.0...v1.11.0) (2024-06-02)
 
 
