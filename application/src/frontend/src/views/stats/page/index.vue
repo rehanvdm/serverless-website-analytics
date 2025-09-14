@@ -30,6 +30,7 @@ const emit = defineEmits<{
 /* ================================================================================================================== */
 
 onMounted(async () => {
+  console.log("Mounted page stats");
   if(route.query.filter)
   {
     console.log("route.query.filter", route.query.filter)
@@ -193,40 +194,40 @@ watch([filter], () => {
           ></Totals>
         </div>
 
-        <div class="main-row">
-          <ChartViews ref="componentChartViews" :sites="sites" :from-date="fromDate" :to-date="toDate"
-                      @loading="(val) => loadingChartViews = val"
-                      :filter="filter"
-                      style="overflow: hidden; width: 300px;"
-          ></ChartViews>
-        </div>
+<!--        <div class="main-row">-->
+<!--          <ChartViews ref="componentChartViews" :sites="sites" :from-date="fromDate" :to-date="toDate"-->
+<!--                      @loading="(val) => loadingChartViews = val"-->
+<!--                      :filter="filter"-->
+<!--                      style="overflow: hidden; width: 300px;"-->
+<!--          ></ChartViews>-->
+<!--        </div>-->
 
-        <div class="main-row">
-          <PageViews ref="componentPageViews" :sites="sites" :from-date="fromDate" :to-date="toDate"
-                     @loading="(val) => loadingPageViews = val"
-                     :filter="filter" @filter-change="filterChange"
-          ></PageViews>
-          <Referrers ref="componentReferrers" :sites="sites" :from-date="fromDate" :to-date="toDate"
-                     @loading="(val) => loadingReferrers = val"
-                     :filter="filter" @filter-change="filterChange"
-          ></Referrers>
-        </div>
+<!--        <div class="main-row">-->
+<!--          <PageViews ref="componentPageViews" :sites="sites" :from-date="fromDate" :to-date="toDate"-->
+<!--                     @loading="(val) => loadingPageViews = val"-->
+<!--                     :filter="filter" @filter-change="filterChange"-->
+<!--          ></PageViews>-->
+<!--          <Referrers ref="componentReferrers" :sites="sites" :from-date="fromDate" :to-date="toDate"-->
+<!--                     @loading="(val) => loadingReferrers = val"-->
+<!--                     :filter="filter" @filter-change="filterChange"-->
+<!--          ></Referrers>-->
+<!--        </div>-->
 
 
-        <div class="main-row">
-          <ChartLocations ref="componentChartLocations" :sites="sites" :from-date="fromDate" :to-date="toDate"
-                      @loading="(val) => loadingChartLocations = val"
-                      :filter="filter" @filter-change="filterChange"></ChartLocations>
-        </div>
+<!--        <div class="main-row">-->
+<!--          <ChartLocations ref="componentChartLocations" :sites="sites" :from-date="fromDate" :to-date="toDate"-->
+<!--                      @loading="(val) => loadingChartLocations = val"-->
+<!--                      :filter="filter" @filter-change="filterChange"></ChartLocations>-->
+<!--        </div>-->
 
-        <div class="main-row">
-          <UserInfo ref="componentUserInfo" :sites="sites" :from-date="fromDate" :to-date="toDate"
-                    @loading="(val) => loadingUserInfo = val"
-                    :filter="filter" @filter-change="filterChange"></UserInfo>
-          <UTM ref="componentUtm" :sites="sites" :from-date="fromDate" :to-date="toDate"
-               @loading="(val) => loadingUtm = val"
-               :filter="filter" @filter-change="filterChange"></UTM>
-        </div>
+<!--        <div class="main-row">-->
+<!--          <UserInfo ref="componentUserInfo" :sites="sites" :from-date="fromDate" :to-date="toDate"-->
+<!--                    @loading="(val) => loadingUserInfo = val"-->
+<!--                    :filter="filter" @filter-change="filterChange"></UserInfo>-->
+<!--          <UTM ref="componentUtm" :sites="sites" :from-date="fromDate" :to-date="toDate"-->
+<!--               @loading="(val) => loadingUtm = val"-->
+<!--               :filter="filter" @filter-change="filterChange"></UTM>-->
+<!--        </div>-->
 
         <div class="main-row" style="margin-bottom: 100px;"></div>
 

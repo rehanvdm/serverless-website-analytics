@@ -77,9 +77,9 @@ export const TestConfig: TestConfig = {
     // IS_DEMO_PAGE: 'false',
 
     // Uncomment for no auth
-    // COGNITO_USER_POOL_ID: 'us-east-1_tvl0sw7Ei',
-    // COGNITO_CLIENT_ID: '1lqovfns5d5000va207dc6hhmo',
-    // COGNITO_HOSTED_UI_URL: 'https://swa-demo-login.demo.serverless-website-analytics.com',
+    COGNITO_USER_POOL_ID: 'eu-west-1_MVlZ9lMld',
+    COGNITO_CLIENT_ID: '6udmqo9nlqstcgulgebkpumtan',
+    COGNITO_HOSTED_UI_URL: 'https://login.analytics.rehanvdm.com',
 
     EVALUATION_WINDOW: '2',
     BREACHING_MULTIPLIER: '2',
